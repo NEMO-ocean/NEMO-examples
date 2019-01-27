@@ -1,0 +1,1 @@
+/Users/sflod/DEVELOP_NEMO/TEST_CASE/paper_overflow/NEMOGCM/CONFIG/TEST_CASES/OVERFLOW_paper/EXP00/Barotropic_nn_baro_1/OK_zps_FCT4_fluxcen2_lapahm100/OVF_zps_FCT4_fluxcen2_lapahm100_30mi_00010101_00010101_grid_T.nc
