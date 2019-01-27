@@ -1,0 +1,61 @@
+WARNING: For now, the test case ICE_ADV2D only works if the logical "ll_neg" is set to FALSE in the routine icedyn_adv_umx.F90
+                  (it is still unclear why)
+-------
+Purpose
+-------
+This demonstration case can serve different purposes:
+
+1) The main one: study of the advection of a patch of ice in a bi-periodic channel with a slab ocean (i.e. 1 ocean layer)
+              ==> set ln_icethd=false in namelist_ice_cfg
+
+2) Secondary: study of ice thermodynamics in the same basin
+              ==> set ln_icedyn=false in namelist_ice_cfg
+              ==> eventually change usrdef_sbc.F90 in MY_SRC to fit your needs
+
+-----------
+Experiments
+-----------
+Two experiments can be configured:
+
+a) A simple channel at 3km horizontal resolution (slightly variable => +- 10%)
+              ==> in MY_SRC/usrdef_hgr.F90, uncomment the part "variable scale factors" and comment part "constant scale factors"
+
+b) A simple channel at 3km horizontal resolution (constant scale factors)
+              ==> in MY_SRC/usrdef_hgr.F90, comment the part "variable scale factors" and uncomment part "constant scale factors"
+
+----------
+How to run
+----------
+
+a) Compile and run the model once to get a mesh_mask.nc file with the following command:
+../../../makenemo -r ICE_ADV2D -n ICE_ADV2D -m X64_ADA -j 4
+mpirun ./nemo -np 1
+
+b) Create the initial condition file for sea-ice (initice.nc) by running this python script: 
+python ./make_INITICE.py
+
+c) Run the model a second time
+mpirun ./nemo -np 4
+
+---------------
+What to look at
+---------------
+In case of purpose 1, One can test
+---
+a) the advection scheme: Ultimate-Macho (ln_adv_UMx=T) versus Prather (ln_adv_Pra=T)
+   for a square (ice concentration) or a gaussian (ice volume)
+      with either a constant velocity (ln_dynADV2D=T)
+               or a constant ice-atm. stress, thus velocity is calculated by rheology (ln_dynRHGADV=T)
+      with 1 or 5 ice categories (jpl=1 or 5).
+         (note that ln_dynADV2D=T only works with jpl=1)
+
+In case of purpose 2, one can test conservation of properties:
+---
+b) ice should not change at all if surface fluxes = 0 and SST = freezing temperature
+
+--------------------------------------
+Interpretation of the results (remarks)
+--------------------------------------
+- Prather conserves the max values but also creates side lobes
+- UM does not conserve the max but does not create side lobes
+- The "unmoving" ice (if any) is due to ice rheology which states that ice mass below a certain thresold (1kg/m2) is considered to move at the ocean velocity (thus 0 m/s)

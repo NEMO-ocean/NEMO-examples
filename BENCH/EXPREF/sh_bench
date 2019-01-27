@@ -1,0 +1,58 @@
+#!/bin/bash
+set -u
+#set -xv
+
+resolution=${1:?"you must provide the resolution: 1 025 or 12"}
+mincore=${2:-1} # minimum number of core to be tested
+maxcore=${3:-0} # maximum number of core to be tested
+
+machine=$( hostname | sed -e "s/[0-9]*//g" )
+case $machine in 
+    "beaufixlogin") ncore_node=40 ;;
+    "curie")        ncore_node=16 ;;
+    "irene")        ncore_node=48 ;;
+    *) echo "you must add your machine \"$machine\" with its number of cores per node" ; exit 1 ;;
+esac
+
+[ $mincore -eq 1 ] && targetnb=$ncore_node || targetnb=$mincore
+#
+# build the list of experiences:
+# must be a multiple of ncore_node and as close as possible of the targeted number of core
+#
+n1=0
+list=""
+
+# Prepare gnuplot data file
+dateref=$( date "+%Y%m%d-%Hh%Mm%Ss" )
+echo "# nb_proc    jpi    jpj" > gnuplot_tbc_${resolution}_${dateref}.dat
+nbl=$( cat best_jpni_jpnj_eorca${resolution} | wc -l )
+for ll in $( seq 1 $nbl )
+do
+    line=$( sed -n ${ll}p best_jpni_jpnj_eorca${resolution} )    # for each line
+    nn=$( echo $line | sed -e "s/.*nb_cores \([0-9]*\).*/\1/" )  # get the number of core
+    [ $maxcore -gt 1 -a $nn -gt $maxcore ] && break              # if below $maxcore (if specified)
+        if [ $(( $nn % $ncore_node )) -eq 0 ]                    # if it is a multiple of $ncore_node
+        then
+            if [ $nn -lt $targetnb ]
+            then
+                n1=$nn       # store the number of core
+                line1=$line  # store the line
+            else
+                [ $(( $targetnb - $n1 )) -le $(( $nn -$targetnb )) ] && line=$line1   # keep the previous line
+                echo $line
+                nb=$( echo $line | sed -e "s/[^(]*( \([0-9]*\) x \([0-9]*\) .*/\1*\2/" ) # get jpni*jpnj
+                list="${list} ${nb}"
+                targetnb=$(( $targetnb * 2 ))
+                subsize=$( echo $line | awk {'printf "%d   %d", $11, $13'})
+                corenb=$( echo $line | awk {'printf "%d", $2'})
+                echo "$corenb  $subsize" >> gnuplot_tbc_${resolution}.dat
+            fi
+        fi
+done
+echo $list
+
+for cores in $list
+do
+    ./submit_bench $cores $ncore_node ${resolution} ${dateref}
+done
+

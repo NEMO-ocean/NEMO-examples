@@ -1,0 +1,15 @@
+!-----------------------------------------------------------------------
+&namwad  !   Wetting and drying
+!-----------------------------------------------------------------------
+   ln_wd_il          = .false   ! T/F activation of iterative limiter for  wetting and drying scheme
+   ln_wd_dl          = .true.   ! T/F activation of directional llimiter for wetting drying scheme
+   ln_wd_dl_bc       = .true.   ! T/F Directional limiteer Baroclinic option
+   ln_wd_dl_rmp      = .true.   ! T/F Turn on directional limiter ramp
+   rn_wdmin0         =  0.30    ! dpoth at which wetting/drying starts
+   rn_wdmin1         =  0.2     ! Minimum wet depth on dried cells
+   rn_wdmin2         =  0.0001  ! Tolerance of min wet depth on dried cells
+   rn_wdld           =  2.5     ! Land elevation below which wetting/drying is allowed
+   nn_wdit           =   20     ! Max iterations for W/D limiter
+   rn_wd_sbcdep      =  5.0     ! Depth at which to taper sbc fluxes
+   rn_wd_sbcfra      =  0.999   ! Fraction of SBC fluxes at taper depth (Must be <1)
+/

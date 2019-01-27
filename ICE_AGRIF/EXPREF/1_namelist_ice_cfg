@@ -1,0 +1,96 @@
+!!>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+!! SI3 configuration namelist: Overwrites SHARED/namelist_ice_ref
+!!              1 - Generic parameters                 (nampar)
+!!              2 - Ice thickness discretization       (namitd)
+!!              3 - Ice dynamics                       (namdyn)
+!!              4 - Ice ridging/rafting                (namdyn_rdgrft)
+!!              5 - Ice rheology                       (namdyn_rhg)
+!!              6 - Ice advection                      (namdyn_adv)
+!!              7 - Ice surface boundary conditions    (namsbc)
+!!              8 - Ice thermodynamics                 (namthd)
+!!              9 - Ice heat diffusion                 (namthd_zdf)
+!!             10 - Ice lateral melting                (namthd_da)
+!!             11 - Ice growth in open water           (namthd_do)
+!!             12 - Ice salinity                       (namthd_sal)
+!!             13 - Ice melt ponds                     (namthd_pnd)
+!!             14 - Ice initialization                 (namini)
+!!             15 - Ice/snow albedos                   (namalb)
+!!             16 - Ice diagnostics                    (namdia)
+!!>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+!
+!------------------------------------------------------------------------------
+&nampar         !   Generic parameters
+!------------------------------------------------------------------------------
+   ln_icedyn        = .true.          !  ice dynamics (T) or not (F)
+   ln_icethd        = .false.         !  ice thermo   (T) or not (F)
+/
+!------------------------------------------------------------------------------
+&namitd         !   Ice discretization
+!------------------------------------------------------------------------------
+/
+!------------------------------------------------------------------------------
+&namdyn         !   Ice dynamics
+!------------------------------------------------------------------------------
+   ln_dynALL        = .false.         !  dyn.: full ice dynamics               (rheology + advection + ridging/rafting + correction)
+   ln_dynRHGADV     = .true.          !  dyn.: no ridge/raft & no corrections  (rheology + advection)
+   ln_dynADV1D      = .false.         !  dyn.: only advection 1D                  (Schar & Smolarkiewicz 1996 test case)
+   ln_dynADV2D      = .false.         !  dyn.: only advection 2D w prescribed vel.(rn_uvice + advection)
+      rn_uice       =   0.5           !        prescribed ice u-velocity
+      rn_vice       =   0.5           !        prescribed ice v-velocity
+/
+!------------------------------------------------------------------------------
+&namdyn_rdgrft  !   Ice ridging/rafting
+!------------------------------------------------------------------------------
+/
+!------------------------------------------------------------------------------
+&namdyn_rhg     !   Ice rheology
+!------------------------------------------------------------------------------
+/
+!------------------------------------------------------------------------------
+&namdyn_adv     !   Ice advection
+!------------------------------------------------------------------------------
+   ln_adv_Pra       = .false.         !  Advection scheme (Prather)
+   ln_adv_UMx       = .true.          !  Advection scheme (Ultimate-Macho)
+      nn_UMx        =   5             !     order of the scheme for UMx (1-5 ; 20=centered 2nd order)
+/
+!------------------------------------------------------------------------------
+&namsbc         !   Ice surface boundary conditions
+!------------------------------------------------------------------------------
+/
+!------------------------------------------------------------------------------
+&namthd         !   Ice thermodynamics
+!------------------------------------------------------------------------------
+/
+!------------------------------------------------------------------------------
+&namthd_zdf     !   Ice heat diffusion
+!------------------------------------------------------------------------------
+/
+!------------------------------------------------------------------------------
+&namthd_da      !   Ice lateral melting
+!------------------------------------------------------------------------------
+/
+!------------------------------------------------------------------------------
+&namthd_do      !   Ice growth in open water
+!------------------------------------------------------------------------------
+/
+!------------------------------------------------------------------------------
+&namthd_sal     !   Ice salinity
+!------------------------------------------------------------------------------
+/
+!------------------------------------------------------------------------------
+&namthd_pnd     !   Melt ponds
+!------------------------------------------------------------------------------
+/
+!------------------------------------------------------------------------------
+&namini         !   Ice initialization
+!------------------------------------------------------------------------------
+   ln_iceini        = .false.          !  activate ice initialization (T) or not (F)
+/
+!------------------------------------------------------------------------------
+&namalb         !   albedo parameters
+!------------------------------------------------------------------------------
+/
+!------------------------------------------------------------------------------
+&namdia         !   Diagnostics
+!------------------------------------------------------------------------------
+/

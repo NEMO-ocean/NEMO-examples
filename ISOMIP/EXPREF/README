@@ -1,0 +1,25 @@
+# ISOMIP is a simple TEST_CASE to test the iceshelves in NEMO.
+# no input files are needed (all is prescribed in MY_SRC/usr_def routines
+# for a reference documentation on the ISOMIP test case, see experiement 1 on http://efdl.cims.nyu.edu/project_oisi/isomip/experiments/phase_I/idealized_numerical_models_5.pdf
+
+# default namelist is setup for a 30y run on 32 processors with the minimum output using XIOS in attached mode with single file output
+
+# How to build moc.nc and psi.nc
+   - Download or clone the CDFTOOLS (see https://github.com/meom-group/CDFTOOLS)
+   - Compile all the tools (or at least cdfpsi and cdfmoc) on your cluster (see https://github.com/meom-group/CDFTOOLS#using-cdftools)
+   - if mesh_mask.nc is splitted, you need to rebuild them using the rebuild NEMO tools (see in NEMOGCM/TOOLS) or run 1 (or more) time step on a single processor (nn_itend variable in the namelist). 
+   - set the correct link: ln -s mesh_mask.nc mask.nc ; ln -s mesh_mask.nc mesh_hgr.nc ; ln -s mesh_mask.nc mesh_zgr.nc
+   - run the cdftools : 
+        - cdfmoc ISOMIP_1m_00010101_00301231_grid_V.nc                                       => moc.nc
+        - cdfpsi ISOMIP_1m_00010101_00301231_grid_U.nc ISOMIP_1m_00010101_00301231_grid_V.nc => psi.nc
+
+# How to plt moc/psi and melt (python with netcdf and matplotlib library requiried):
+   - psi.png => python2.7 plot_psi.py -f psi.nc -v sobarstf
+   - moc.png => python2.7 plot_moc.py -f moc.nc -v zomsfglo
+   - mlt.png => python2.7 plot_mlt.py -f ISOMIP_1m_00010101_00301231_grid_T.nc -v sowflisf
+by default the last time frame is plotted.
+
+# location the expected circulation and melt plot after 30y of run:
+   - ISOMIP/EXP00/ISOMIP_psi.png
+   - ISOMIP/EXP00/ISOMIP_moc.png
+   - ISOMIP/EXP00/ISOMIP_mlt.png

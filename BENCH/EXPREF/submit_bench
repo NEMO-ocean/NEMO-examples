@@ -1,0 +1,197 @@
+#!/bin/bash
+#  
+#  BENCH launching scripts for beaufix, Meteo-France
+#                          and curie, TGCC
+#  To be modified for other machines
+#
+set -u
+set -vx
+#
+cores=$1
+ncore_node=$2
+resolution=$3
+dateref=$4
+machine=$( hostname | sed -e "s/[0-9]*//g" )
+#
+# number of processes for each executable
+    nproc_exe1=$( echo $cores | bc )
+  (( nproc = $nproc_exe1 ))
+(( nnode = $nproc / $ncore_node ))
+[ $nnode -lt 1 ] && nnode=1
+
+nproc5=$( printf "%05d\n" ${nproc_exe1} )
+
+######################################################################
+### beaufixlogin
+######################################################################
+
+if [ "$machine" == "beaufixlogin" ]
+then
+    
+cat > Log/run_bench << EOF
+#!/bin/bash
+#SBATCH --time=00:1:00
+#SBATCH -p  normal64         # partition/queue
+#SBATCH --job-name=bench      # job name
+#SBATCH -N $nnode            # number of nodes
+#SBATCH -n $nproc            # number of procs
+#SBATCH -o /scratch/work/cglo315/ESIWACE/dev_r9759_HPC09_ESIWACE/tests/LBENCH_RN/EXP00/Log/job.out%j
+#SBATCH -e /scratch/work/cglo315/ESIWACE/dev_r9759_HPC09_ESIWACE/tests/LBENCH_RN/EXP00/Log/job.out%j
+#SBATCH --exclusive
+
+module unload intelmpi intel grib_api
+module load intel/16.1.150 intelmpi/5.1.2.150
+
+itac=0
+xpmpi=0
+
+if [ \$xpmpi == 1 ]; then
+  module load bullxde
+  module load xPMPI/1.1_intelmpi
+fi
+
+[ \$itac == 1 ] && module load itac/2017.2.028
+
+set -vx
+
+cd \${TMPDIR}
+cp /scratch/work/cglo315/ESIWACE/dev_r9759_HPC09_ESIWACE/tests/LBENCH_RN/EXP00/* .
+
+# Best decompositions BENCH-1
+jpni=${cores/\**/}
+jpnj=${cores/?*\*/}
+
+sed -e "s/jpni *=.*/jpni = \${jpni}/" -e "s/jpnj *=.*/jpnj = \${jpnj}/" namelist_cfg_orca${resolution}_like > namelist_cfg
+
+export OMP_NUM_THREADS=1
+ulimit -s unlimited
+#
+if [ \$itac == 1 ]; then
+  source /opt/softs/intel/2017/update_1/itac_latest/bin/itacvars.sh
+  time mpirun -ordered-output -prepend-rank -trace -np $nproc_exe1 ./nemo > jobout 2>joberr
+else
+  time mpirun -ordered-output -prepend-rank -np $nproc_exe1 ./nemo > jobout_${resolution}_${nproc5}
+fi
+/opt/softs/bin/ja
+
+if [ \$xpmpi == 1 ]; then
+  module unload xPMPI/1.1_intelmpi
+  module unload bullxde
+fi
+#
+EOF
+
+
+### 4. Execute the model
+
+    echo 'Submitting the job to queue using sbatch'
+    sbatch Log/run_bench
+    squeue -u cglo315
+
+echo 'is executed or submitted to queue.'
+
+
+fi
+
+######################################################################
+### curie or irene
+######################################################################
+
+if [[ ( "$machine" == "curie" ) || ( "$machine" == "irene" ) ]]
+then
+    
+    case ${resolution} in
+	"1")
+	    if [ $nproc_exe1 -lt 50 ]
+	    then
+		timejob=3600
+	    elif [ $nproc_exe1 -lt 100 ]
+	    then
+		timejob=1800
+	    elif [ $nproc_exe1 -lt 200 ]
+	    then
+		timejob=900
+	    else
+		timejob=600
+	    fi
+	    ;;
+	"025")
+	    if [ $nproc_exe1 -lt 50 ]
+	    then
+		timejob=15000
+	    elif [ $nproc_exe1 -lt 100 ]
+	    then
+		timejob=7000
+	    elif [ $nproc_exe1 -lt 200 ]
+	    then
+		timejob=3600
+	    elif [ $nproc_exe1 -lt 400 ]
+	    then
+		timejob=2000
+	    elif [ $nproc_exe1 -lt 800 ]
+	    then
+		timejob=1000
+	    else
+		timejob=600
+	    fi
+	    ;;
+	"12")
+	    if [ $nproc_exe1 -lt 200 ]
+	    then
+		timejob=30000
+	    elif [ $nproc_exe1 -lt 400 ]
+	    then
+		timejob=15000
+	    elif [ $nproc_exe1 -lt 800 ]
+	    then
+		timejob=8000
+	    elif [ $nproc_exe1 -lt 1600 ]
+	    then
+		timejob=5000
+	    elif [ $nproc_exe1 -lt 3200 ]
+	    then
+		timejob=2500
+	    else
+		timejob=1200
+	    fi
+	;;
+    esac
+
+    [ "$machine" == "curie" ] && queuename=standard || queuename=skylake
+    
+    jobname=$HOME/binrun/jobbench
+    cat > $jobname << EOF
+#!/bin/bash
+#MSUB -r bench${nproc5}
+#MSUB -n ${nproc_exe1}
+#MSUB -T $timejob
+#MSUB -e bench_${resolution}_${nproc5}_%I.eo
+#MSUB -o bench_${resolution}_${nproc5}_%I.eo
+#MSUB -j oe
+#MSUB -x
+#MSUB -q ${queuename}
+#MSUB -A gen6895
+#==========================================
+set -u
+#
+
+cd \${BRIDGE_MSUB_PWD}/..
+
+
+EXPjob=EXP_${resolution}_${nproc5}_${dateref}
+rsync -av --exclude="*eo" EXPREF/ \${EXPjob}/
+rsync -av EXP00/nemo \${EXPjob}/nemo
+cd \${EXPjob}
+
+jpni=${cores/\**/}
+jpnj=${cores/?*\*/}
+
+sed -e "s/jpni *=.*/jpni = \${jpni}/" -e "s/jpnj *=.*/jpnj = \${jpnj}/" namelist_cfg_orca${resolution}_like > namelist_cfg
+
+time ccc_mprun -n \${BRIDGE_MSUB_NPROC} ./nemo > jobout_${resolution}_${nproc5}_${dateref}
+
+EOF
+
+    ccc_msub $jobname
+
+fi

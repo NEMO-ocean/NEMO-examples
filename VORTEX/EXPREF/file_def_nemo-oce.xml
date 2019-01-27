@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+    <!-- 
+============================================================================================================
+=                                           output files definition                                        =
+=                                            Define your own files                                         =
+=                                         put the variables you want...                                    =
+============================================================================================================
+    -->
+    
+    <file_definition type="one_file" name="@expname@" sync_freq="10d" min_digits="4">
+      <file_group id="1d" output_freq="1d"  output_level="10" enabled=".TRUE." >  <!-- 5d files -->  
+ 
+	<file id="file1" name_suffix="_grid_T" description="ocean T grid variables" >
+	  <field field_ref="e3t"          name="e3t_inst"     long_name="instantaneous T-cell thickness"                operation="instant" />
+	  <field field_ref="toce"         name="thetao_inst"  long_name="instantaneous sea water potential temperature" operation="instant" /> 
+	  <field field_ref="ssh"          name="ssh_inst"     long_name="instantaneous sea surface height above geoid"  operation="instant" />
+	</file>
+
+	<file id="file3" name_suffix="_grid_U" description="ocean U grid variables" >
+	  <field field_ref="e3u"          name="e3u_inst"     long_name="instantaneous U-cell thickness"        operation="instant" />
+	  <field field_ref="uoce"         name="uo_inst"      long_name="instantaneous sea water x velocity"    operation="instant" />
+	</file>
+	
+	<file id="file4" name_suffix="_grid_V" description="ocean V grid variables" >
+	  <field field_ref="e3v"          name="e3v_inst"     long_name="instantaneous V-cell thickness"        operation="instant" />
+	  <field field_ref="voce"         name="vo_inst"      long_name="instantaneous sea water y velocity"    operation="instant" />
+	</file>
+	
+	<file id="file5" name_suffix="_grid_W" description="ocean W grid variables" >
+	  <field field_ref="e3w"          name="e3w_inst"     long_name="instantaneous W-cell thickness"        operation="instant" />
+	  <field field_ref="woce"         name="wo_inst"      long_name="instantaneous ocean vertical velocity" operation="instant" />
+	</file>
+
+      </file_group>
+
+   </file_definition>

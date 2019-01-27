@@ -1,0 +1,40 @@
+-------
+Purpose
+-------
+This demonstration case can be used to study the advection of a patch of ice in a bi-periodic channel
+with a slab ocean (i.e. 1 ocean layer) and an agrif zoom in the center
+
+-----------
+Experiments
+-----------
+Two experiments can be configured:
+
+a) A simple channel at 3km horizontal resolution (slightly variable => +- 10%)
+              ==> in MY_SRC/usrdef_hgr.F90, uncomment the part "variable scale factors" and comment part "constant scale factors"
+
+b) A simple channel at 3km horizontal resolution (constant scale factors)
+              ==> in MY_SRC/usrdef_hgr.F90, comment the part "variable scale factors" and uncomment part "constant scale factors"
+
+----------
+How to run
+----------
+
+a) Compile and run the model once to get a mesh_mask.nc file with the following command:
+../../../makenemo -r ICE_AGRIF -n ICE_AGRIF -m X64_ADA -j 4
+mpirun ./nemo -np 1
+
+b) Create the initial condition file for sea-ice (initice.nc) by running this python script: 
+python ./make_INITICE.py
+
+c) Run the model a second time
+mpirun ./nemo -np 4
+
+---------------
+What to look at
+---------------
+the advection through an agrif zoom 1:3
+   for a square (ice concentration) or a gaussian (ice volume)
+      with either a constant velocity (ln_dynADV2D=T and define rn_uice & rn_vice)
+               or a constant ice-atm. stress, thus velocity is calculated by rheology (ln_dynRHGADV=T)
+      with 1 or 5 ice categories (jpl=1 or 5)
+         (note that ln_dynADV2D=T only works with jpl=1)

@@ -1,0 +1,68 @@
+<?xml version="1.0"?>
+    <!-- $id$ -->
+    
+ <!--
+============================================================================================================
+=                                           output files definition                                        =
+============================================================================================================
+  -->
+    
+    <file_definition type="one_file" name="@expname@_@freq@_@startdate@_@enddate@" sync_freq="1d" min_digits="4">
+    
+    
+      <file_group id="1ts" output_freq="1ts"  output_level="10" enabled=".TRUE.">  <!-- 1 day files -->   	
+
+	<file id="file1" name_suffix="_icemod" description="ice variables" enabled=".true." >
+
+        <!-- ice mask -->
+        <field field_ref="icemask"          name="simsk"   />
+
+        <!-- general -->
+        <field field_ref="snwvolu"          name="snvolu" />
+        <field field_ref="icethic"          name="sithic" />
+        <field field_ref="icethic"          name="sithic_max" operation="maximum" />
+        <field field_ref="icethic"          name="sithic_min" operation="minimum" />
+        <field field_ref="iceneg_pres"      name="sineg_pres" />
+        <field field_ref="iceneg_volu"      name="sineg_volu" />
+        <field field_ref="fasticepres"      name="fasticepres" />
+        <field field_ref="icevolu"          name="sivolu" />
+        <field field_ref="iceconc"          name="siconc" />
+        <field field_ref="icesalt"          name="sisali" />
+        <field field_ref="iceapnd"          name="siapnd" />
+        <field field_ref="icevpnd"          name="sivpnd" />
+        <field field_ref="sst_m"            name="sst_m"  />
+        <field field_ref="sss_m"            name="sss_m"  />
+
+        <!-- momentum -->
+        <field field_ref="uice"             name="sivelu"  />
+        <field field_ref="vice"             name="sivelv"  />
+        <field field_ref="icevel"           name="sivelo"  />
+
+        <!-- rheology -->
+        <field field_ref="icediv"           name="sidive"  />
+
+        <!-- categories -->
+        <field field_ref="icemask_cat"      name="simskcat"/>
+        <field field_ref="snwthic_cat"      name="snthicat"/>
+        <field field_ref="iceconc_cat"      name="siconcat"/>
+        <field field_ref="icethic_cat"      name="sithicat"/>
+
+        </file>
+
+      </file_group>
+
+      <file_group id="1h" output_freq="1h"  output_level="10" enabled=".TRUE."/> <!-- 1h files -->
+      <file_group id="2h" output_freq="2h"  output_level="10" enabled=".TRUE."/> <!-- 2h files -->
+      <file_group id="3h" output_freq="3h"  output_level="10" enabled=".TRUE."/> <!-- 3h files -->     
+      <file_group id="4h" output_freq="4h"  output_level="10" enabled=".TRUE."/> <!-- 4h files -->
+      <file_group id="6h" output_freq="6h"  output_level="10" enabled=".TRUE."/> <!-- 6h files -->        
+      <file_group id="5d" output_freq="5d"  output_level="10" enabled=".TRUE."/>  <!-- 5d files -->   	
+      <file_group id="2m" output_freq="2mo" output_level="10" enabled=".TRUE."/> <!-- real 2m files -->
+      <file_group id="3m" output_freq="3mo" output_level="10" enabled=".TRUE."/> <!-- real 3m files -->
+      <file_group id="4m" output_freq="4mo" output_level="10" enabled=".TRUE."/> <!-- real 4m files -->
+      <file_group id="6m" output_freq="6mo" output_level="10" enabled=".TRUE."/> <!-- real 6m files -->
+      <file_group id="2y"  output_freq="2y" output_level="10" enabled=".TRUE."/> <!-- real 2y files -->
+      <file_group id="5y"  output_freq="5y" output_level="10" enabled=".TRUE."/> <!-- real 5y files -->
+      <file_group id="10y" output_freq="10y" output_level="10" enabled=".TRUE."/> <!-- real 10y files -->
+
+   </file_definition>

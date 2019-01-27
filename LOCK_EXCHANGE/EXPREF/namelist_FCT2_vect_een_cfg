@@ -1,0 +1,198 @@
+!!>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+!! NEMO/OCE  Configuration namelist : used to overwrite defaults values defined in SHARED/namelist_ref
+!!>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+!
+!-----------------------------------------------------------------------
+&namusr_def    !   LOCK_EXCHANGE user defined namelist
+!-----------------------------------------------------------------------
+   rn_dx       =    500.   ! horizontal resolution in meters
+   rn_dz       =      1.   ! vertical   resolution in meters
+/
+!
+!-----------------------------------------------------------------------
+&namrun        !   parameters of the run
+!-----------------------------------------------------------------------
+   nn_no       =       0   !  job number (no more used...)
+   cn_exp      =   "LOCK_FCT2_vect_een"  !  experience name
+   nn_it000    =       1   !  first time step
+   nn_itend    =   61200   ! for 17h of simulation  (=61200 time-step)
+   nn_istate   =       0   !  output the initial state (1) or not (0)
+   nn_stock    =   61200   !  frequency of creation of a restart file (modulo referenced to 1)
+   nn_write    =   61200   !  frequency of write in the output file   (modulo referenced to nn_it000)
+/
+!-----------------------------------------------------------------------
+&namcfg        !   parameters of the configuration
+!-----------------------------------------------------------------------
+   ln_read_cfg = .false.   !  (=T) read the domain configuration file
+      !                    !  (=F) user defined configuration  ==>>>  see usrdef(_...) modules
+   ln_write_cfg = .false.   !  (=T) create the domain configuration file
+/
+!-----------------------------------------------------------------------
+&namdom        !   space and time domain (bathymetry, mesh, timestep)
+!-----------------------------------------------------------------------
+   ln_linssh   = .false.   !  =T  linear free surface  ==>>  model level are fixed in time
+   !
+   rn_isfhmin  =    0.00   !  treshold (m) to discriminate grounding ice to floating ice
+   !
+   rn_rdt      =    1.     !  time step for the dynamics (and tracer if nn_acc=0)
+   rn_atfp     =    0.1    !  asselin time filter parameter
+   !
+   ln_crs      = .false.   !  Logical switch for coarsening module
+   !
+   ln_meshmask = .false.   !  =T create a mesh file
+/
+!-----------------------------------------------------------------------
+&namtsd    !   data : Temperature  & Salinity
+!-----------------------------------------------------------------------
+/
+!-----------------------------------------------------------------------
+&namsbc        !   Surface Boundary Condition (surface module)
+!-----------------------------------------------------------------------
+  nn_fsbc     = 1         !  frequency of surface boundary condition computation
+                          !     (also = the frequency of sea-ice & iceberg model call)
+  ln_usr      = .true.    !  user defined formulation                  (T => check usrdef_sbc)
+  ln_blk      = .false.   !  Bulk formulation                          (T => fill namsbc_blk )
+  nn_ice      = 0         !  =0 no ice boundary condition   
+  ln_traqsr   = .false.   !  Light penetration in the ocean            (T => fill namtra_qsr )
+  ln_rnf      = .false.   !  runoffs                                   (T => fill namsbc_rnf)
+  ln_ssr      = .false.   !  Sea Surface Restoring on T and/or S       (T => fill namsbc_ssr)
+  nn_fwb      = 0         !  FreshWater Budget: =0 unchecked
+/
+!-----------------------------------------------------------------------
+&namlbc        !   lateral momentum boundary condition                  (default: NO selection)
+!-----------------------------------------------------------------------
+   rn_shlat    =    0.     !  free slip
+/
+!-----------------------------------------------------------------------
+&namdrg            !   top/bottom drag coefficient                      (default: NO selection)
+!-----------------------------------------------------------------------
+   ln_OFF     = .true.    !  free-slip       : Cd = 0                  
+/
+!-----------------------------------------------------------------------
+&nameos        !   ocean physical parameters
+!-----------------------------------------------------------------------
+   ln_seos     = .true.         !  = Use simplified equation of state (S-EOS)
+   !                     ! S-EOS coefficients (nn_eos=1):
+   !                          !  rd(T,S,Z)*rau0 = -a0*(1+.5*lambda*dT+mu*Z+nu*dS)*dT+b0*dS
+   rn_a0       =  0.2         !  thermal expension coefficient (nn_eos= 1)
+   rn_b0       =  0.          !  saline  expension coefficient (nn_eos= 1)
+   rn_lambda1  =  0.          !  cabbeling coeff in T^2  (=0 for linear eos)
+   rn_lambda2  =  0.          !  cabbeling coeff in S^2  (=0 for linear eos)
+   rn_mu1      =  0.          !  thermobaric coeff. in T (=0 for linear eos)
+   rn_mu2      =  0.          !  thermobaric coeff. in S (=0 for linear eos)
+   rn_nu       =  0.          !  cabbeling coeff in T*S  (=0 for linear eos)
+/
+!-----------------------------------------------------------------------
+&namtra_adv    !   advection scheme for tracer
+!-----------------------------------------------------------------------
+   ln_traadv_cen = .false. !  2nd order centered scheme
+      nn_cen_h   =  4            !  =2/4, horizontal 2nd order CEN / 4th order CEN
+      nn_cen_v   =  4            !  =2/4, vertical   2nd order CEN / 4th order COMPACT
+   ln_traadv_fct = .true. !  FCT scheme
+      nn_fct_h   =  2            !  =2/4, horizontal 2nd / 4th order
+      nn_fct_v   =  2            !  =2/4, vertical   2nd / COMPACT 4th order
+   ln_traadv_mus = .false. !  MUSCL scheme
+      ln_mus_ups = .false.       !  use upstream scheme near river mouths
+   ln_traadv_ubs = .false. !  UBS scheme
+      nn_ubs_v   =  2            !  =2  , vertical 2nd order FCT / COMPACT 4th order
+   ln_traadv_qck = .false. !  QUICKEST scheme
+/
+!-----------------------------------------------------------------------
+&namtra_ldf    !   lateral diffusion scheme for tracers
+!-----------------------------------------------------------------------
+   !                       !  Operator type:
+   ln_traldf_OFF   =  .true.  !  No explicit diffusion
+   ln_traldf_lap   =  .false.  !    laplacian operator
+   ln_traldf_blp   =  .false.  !  bilaplacian operator
+/
+
+!!======================================================================
+!!                      ***  Dynamics namelists  ***                  !!
+!!======================================================================
+!
+!-----------------------------------------------------------------------
+&namdyn_adv    !   formulation of the momentum advection
+!-----------------------------------------------------------------------
+   ln_dynadv_vec = .true.  !  vector form (T) or flux form (F)
+   nn_dynkeg     = 0       ! scheme for grad(KE): =0   C2  ;  =1   Hollingsworth correction
+   ln_dynadv_cen2 = .false. !  flux form - 2nd order centered scheme
+   ln_dynadv_ubs = .false. !  flux form - 3rd order UBS      scheme
+/
+!-----------------------------------------------------------------------
+&nam_vvl    !   vertical coordinate options                             (default: zstar)
+!-----------------------------------------------------------------------
+   ln_vvl_zstar  = .true.           !  zstar vertical coordinate
+/
+!-----------------------------------------------------------------------
+&namdyn_vor    !   option of physics/algorithm
+!-----------------------------------------------------------------------
+   ln_dynvor_ene = .false. !  enstrophy conserving scheme
+   ln_dynvor_ens = .false. !  energy conserving scheme
+   ln_dynvor_mix = .false. !  mixed scheme
+   ln_dynvor_een = .true. !  energy & enstrophy scheme
+      nn_een_e3f = 0             !  e3f = masked averaging of e3t divided by 4 (=0) or by the sum of mask (=1)
+/
+!-----------------------------------------------------------------------
+&namdyn_hpg    !   Hydrostatic pressure gradient option
+!-----------------------------------------------------------------------
+   ln_hpg_zps  = .false.  !  z-coordinate - partial steps (interpolation)
+   ln_hpg_sco  = .true.   !  s-coordinate (standard jacobian formulation)
+/
+!-----------------------------------------------------------------------
+&namdyn_spg    !   Surface pressure gradient
+!-----------------------------------------------------------------------
+   ln_dynspg_ts  = .true.   ! explicit free surface
+      ln_bt_fw      = .true.     ! Forward integration of barotropic Eqs.
+      ln_bt_av      = .true.     ! Time filtering of barotropic variables
+         nn_bt_flt     = 1          ! Time filter choice  = 0 None
+         !                          !                     = 1 Boxcar over   nn_baro sub-steps
+         !                          !                     = 2 Boxcar over 2*nn_baro  "    "
+      ln_bt_auto    = .true.     ! Number of sub-step defined from:
+         nn_baro      =  1         ! =F : the number of sub-step in rn_rdt seconds
+/
+!-----------------------------------------------------------------------
+&namdyn_ldf    !   lateral diffusion on momentum
+!-----------------------------------------------------------------------
+   !                       !  Type of the operator :
+   !                           !  no diffusion: set ln_dynldf_lap=..._blp=F 
+   ln_dynldf_lap =  .true.     !    laplacian operator
+   ln_dynldf_blp =  .false.    !  bilaplacian operator
+   !                       !  Direction of action  :
+   ln_dynldf_lev =  .false.     !  iso-level
+   ln_dynldf_hor =  .true.    !  horizontal (geopotential)
+   ln_dynldf_iso =  .false.    !  iso-neutral
+   !                       !  Coefficient
+   nn_ahm_ijk_t  = 0         !  space/time variation of eddy coef
+      !                             !  =  0  constant 
+      !                        !  time invariant coefficients :  ahm = 1/2  Uv*Lv   (lap case) 
+      !                             !                            bhm = 1/12 Uv*Lv^3 (blp case)
+      rn_Uv      = 4.e-5            !  lateral viscous velocity [m/s] (nn_ahm_ijk_t= 0, 10, 20, 30)
+      rn_Lv      = 500.             !  lateral viscous length   [m]   (nn_ahm_ijk_t= 0, 10)
+/
+!!======================================================================
+!!                     vertical physics namelists                     !!
+!!======================================================================
+!-----------------------------------------------------------------------
+&namzdf        !   vertical physics                                     (default: NO selection)
+!-----------------------------------------------------------------------
+   !                       ! type of vertical closure
+   ln_zdfcst   = .true.       !  constant mixing
+   !
+   !                       ! convection
+   ln_zdfevd   = .false.      !  enhanced vertical diffusion
+   ln_zdfnpc   = .false.      !  Non-Penetrative Convective algorithm
+   !
+   !                       ! coefficients
+   rn_avm0     =   1.e-4      !  vertical eddy viscosity   [m2/s]       (background Kz if ln_zdfcst=F)
+   rn_avt0     =   0.e0       !  vertical eddy diffusivity [m2/s]       (background Kz if ln_zdfcst=F)
+   nn_avb      =    0         !  profile for background avt & avm (=1) or not (=0)
+   nn_havtb    =    0         !  horizontal shape for avtb (=1) or not (=0)
+/
+!-----------------------------------------------------------------------
+&nammpp        !   Massively Parallel Processing                        ("key_mpp_mpi)
+!-----------------------------------------------------------------------
+/
+!-----------------------------------------------------------------------
+&namctl        !   Control prints & Benchmark
+!-----------------------------------------------------------------------
+/

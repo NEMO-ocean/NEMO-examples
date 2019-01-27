@@ -1,0 +1,3 @@
+ORCA1_CICE # ORCA2_LIM # OCE TOP  # http://gws-access.ceda.ac.uk/public/nemo/uspconfigs/ORCA1_CICE/v3.6.0/ORCA1_CICE_ctl.txt
+ISOMIP     # GYRE      # OCE      # http://gws-access.ceda.ac.uk/public/nemo/uspconfigs/ISOMIP/trunk/ISOMIP_ctl.txt
+IRISHSEA   # GYRE      # OCE      # http://gws-access.ceda.ac.uk/public/nemo/uspconfigs/IRISHSEA/v3.7.0/IRISHSEA_ctl.txt

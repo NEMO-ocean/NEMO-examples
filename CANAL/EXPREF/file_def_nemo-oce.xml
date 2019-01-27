@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+    <!-- 
+============================================================================================================
+=                                           output files definition                                        =
+=                                            Define your own files                                         =
+=                                         put the variables you want...                                    =
+============================================================================================================
+    -->
+    
+    <file_definition type="one_file" name="@expname@" sync_freq="10d" min_digits="4">
+      <file_group id="1ts" output_freq="1ts"  output_level="10" enabled=".TRUE." >  <!-- 5d files -->  
+ 
+	<file id="file1" name_suffix="_grid_T" description="ocean T grid variables" >
+	  <field field_ref="toce" /> 
+	  <field field_ref="soce" /> 
+	  <field field_ref="ssh"  />
+	  <field field_ref="salgrad"  />
+	  <field field_ref="ke_zint"  />
+	  <field field_ref="relvor"  />
+	  <field field_ref="potvor"  />
+	  <field field_ref="saltc"  />
+	  <field field_ref="salt2c"  />
+	</file>
+
+	<file id="file3" name_suffix="_grid_U" description="ocean U grid variables" >
+	  <field field_ref="utau"  />
+	  <field field_ref="uoce" />
+	  <field_group group_ref="trendU"  />  
+	</file>
+	
+	<file id="file4" name_suffix="_grid_V" description="ocean V grid variables" >
+	  <field field_ref="vtau"  />
+	  <field field_ref="voce" />
+	  <field_group group_ref="trendV"  />  
+	</file>
+	
+	<file id="file5" name_suffix="_grid_W" description="ocean W grid variables" >
+	  <field field_ref="woce" />
+	</file>
+
+      </file_group>
+
+   </file_definition>

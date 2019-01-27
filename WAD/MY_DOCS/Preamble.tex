@@ -1,0 +1,175 @@
+\documentclass[a4paper,11pt]{book}
+%\documentclass[a4paper,11pt,makeidx]{book} <== may need this to generate index
+
+%  makeindex NEMO_book  <== to regenerate the index
+%  bibtex    NEMO_book	<== to generate  the bibliography
+
+%\usepackage[french]{babel}
+%\usepackage{color}
+\usepackage{rotating, graphicx}			           % allows insertion of pictures
+%\usepackage{graphics}			                   % allows insertion of pictures
+\graphicspath{{Figures/}}                                  % Set global directory for pictures
+\DeclareGraphicsExtensions{.pdf,.eps}                      % Use .eps for LaTeX2HTML
+%\usepackage{xcolor}                                       % Incompatibility with color -> graphicx
+\usepackage[capbesideposition={top,center}]{floatrow}      % allows captions
+\floatsetup[table]{style=plaintop}                         % beside pictures
+\usepackage[margin=10pt,font={small},                      % Gives small font for captions
+labelsep=colon,labelfont={bf}]{caption}                    %
+\usepackage{enumitem}                                      % allows non-bold description items
+\usepackage{longtable}                                     % allows multipage tables
+%\usepackage{colortbl}                                     % gives coloured panels behind table columns
+
+%hyperref
+\usepackage[pdftitle={NEMO ocean engine},pdfauthor={Gurvan Madec},pdfstartview=FitH,
+bookmarks=true,bookmarksopen=true,breaklinks=true,colorlinks=true,
+linkcolor=blue,anchorcolor=blue,citecolor=blue,filecolor=blue,menucolor=blue,urlcolor=blue]{hyperref}
+% pdfsubject={The preprint document class
+%   elsart},% pdfkeywords={diapycnal diffusion,numerical mixing,z-level models},%%  usage of exteranl hyperlink :  \href{mailto:my_address@wikibooks.org}{my\_address@wikibooks.org}
+%                                                 \url{http://www.wikibooks.org}
+%                                     or         \href{http://www.wikibooks.org}{wikibooks home}
+
+
+%%%% page styles etc................
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+% with this we ensure that the chapter and section
+% headings are in lowercase.
+\renewcommand{\chaptermark}[1]{\markboth{#1}{}}
+\renewcommand{\sectionmark}[1]{\markright{\thesection.\ #1}}
+\fancyhf{}             % delete current setting for header and footer
+\fancyhead[LE,RO]{\bfseries\thepage}
+\fancyhead[LO]{\bfseries\hspace{-0em}\rightmark}
+\fancyhead[RE]{\bfseries\leftmark}
+\renewcommand{\headrulewidth}{0.5pt}
+\renewcommand{\footrulewidth}{0pt  }
+\addtolength{\headheight}{2.6pt}   % make space for the rule
+%\addtolength{\headheight}{1.6pt}   % make space for the rule
+% get rid of headers on plain pages
+\fancypagestyle{plain}{\fancyhead{}\renewcommand{\headrulewidth}{0pt}}
+
+
+%%%%  Section number in Margin.......
+% typeset the number of each section in the left margin, with the start of each instance of
+% sectional heading text aligned with the left hand edge of  the body text.
+\makeatletter
+\def\@seccntformat#1{\protect\makebox[0pt][r]{\csname the#1\endcsname\quad}}
+\makeatother
+
+% Leave blank pages completely empty, w/o header
+\makeatletter
+\def\cleardoublepage{\clearpage\if@twoside \ifodd\c@page\else
+  \hbox{}
+  \vspace*{\fill}
+  \vspace{\fill}
+  \thispagestyle{empty}
+  \newpage
+  \if@twocolumn\hbox{}\newpage\fi\fi\fi}
+\makeatother
+
+%%%% define the chapter  style ................
+\usepackage{minitoc}				%In French : \usepackage[french]{minitoc}
+%\usepackage{mtcoff}				% invalidate the use of minitocs
+\usepackage{fancybox}
+
+\makeatletter
+\def\LigneVerticale{\vrule height 5cm depth 2cm\hspace{0.1cm}\relax}
+\def\LignesVerticales{%
+  \let\LV\LigneVerticale\LV\LV\LV\LV\LV\LV\LV\LV\LV\LV}
+\def\GrosCarreAvecUnChiffre#1{%
+  \rlap{\vrule height 0.8cm width 1cm depth 0.2cm}%
+ \rlap{\hbox to 1cm{\hss\mbox{\color{white} #1}\hss}}%
+  \vrule height 0pt width 1cm depth 0pt}
+\def\GrosCarreAvecTroisChiffre#1{%
+  \rlap{\vrule height 0.8cm width 1.6cm depth 0.2cm}%
+ \rlap{\hbox to 1.5cm{\hss\mbox{\color{white} #1}\hss}}%
+  \vrule height 0pt width 1cm depth 0pt}
+
+\def\@makechapterhead#1{\hbox{%
+   \huge
+    \LignesVerticales
+    \hspace{-0.5cm}%
+    \GrosCarreAvecUnChiffre{\thechapter}
+    \hspace{0.2cm}\hbox{#1}%
+%    \GrosCarreAvecTroisChiffre{\thechapter}
+%    \hspace{1cm}\hbox{#1}%
+%}\par\vskip 2cm}
+}\par\vskip 1cm}
+\def\@makeschapterhead#1{\hbox{%
+   \huge
+    \LignesVerticales
+    %\hspace{0.5cm}%
+    \hbox{#1}%
+}\par\vskip 2cm}
+\makeatother
+
+%\def\thechapter{\Roman{chapter}}   	% chapter number to be Roman
+
+
+%%%%           Mathematics...............
+%\documentclass{amsart}
+\usepackage{xspace}                              % helpd ensure correct spacing after macros
+\usepackage{latexsym,amssymb,amsmath}
+\allowdisplaybreaks[1]				% allow page breaks in the middle of equations
+\usepackage{TexFiles/Styles/math_abbrev}    % use maths shortcuts
+
+\usepackage{times}			 	 % use times font for text
+%\usepackage{mathtime}                          % font for illustrator to work (belleek fonts )
+%\usepackage[latin1]{inputenc}                % allows some unicode removed (agn)
+
+
+%%% essai commande
+\newcommand{\nl}[1]{\texttt{\small{\textcolor{blue}{#1}}}}
+\newcommand{\nlv}[1]{\texttt{\footnotesize#1}\xspace}
+\newcommand{\smnlv}[1]{\texttt{\scriptsize#1}\xspace}
+
+%%%% namelist & code display................................
+\usepackage{alltt,verbatim}  	%%  alltt & verbatim for namelist
+% namelists
+\newcommand{\namdisplay}[1]{\begin{alltt}{\tiny\verbatiminput{Namelists/#1}}\end{alltt}\vspace{-10pt}}
+\newcommand{\namtools}[1]{\begin{alltt}{\tiny\verbatiminput{Namelists/#1}}\end{alltt}\vspace{-10pt}}
+% code display
+%\newcommand{\codedisplay} [1] {\begin{alltt}{\tiny {\begin{verbatim} {#1}} \end{verbatim}} \end{alltt}      }
+
+
+
+%%%% commands for working with text................................
+% command to "comment out" portions of text ({} argument) or not ({#1} argument)
+\newcommand{\amtcomment}[1]{}   	% command to "commented out" portions of text or not (#1 in argument)
+\newcommand{\sgacomment}[1]{}   	% command to "commented out" portions of
+\newcommand{\gmcomment}[1]{}   	% command to "commented out" portions of
+%                                    				% text that span line breaks
+%Red (NR) or Yellow(WARN)
+%\newcommand{\NR}   {\colorbox{red}   {#1}}
+%\newcommand{\WARN} {\colorbox{yellow}{#1}}
+
+
+
+%%% index commands......................
+\usepackage{makeidx}
+%\usepackage{showidx}				% show the index entry
+
+\newcommand{\mdl}[1]{\textit{#1.F90}\index{Modules!#1}}	%module (mdl)
+\newcommand{\rou}[1]{\textit{#1}\index{Routines!#1}}	%module (routine)
+\newcommand{\hf}[1]{\textit{#1.h90}\index{h90 file!#1}}	%module (h90 files)
+\newcommand{\ngn}[1]{\textit{#1}\index{Namelist Group Name!#1}}	%namelist name (nampar)
+\newcommand{\np}[1]{\textit{#1}\index{Namelist variables!#1}}        %namelist variable
+\newcommand{\jp}[1]{\textit{#1}\index{Model parameters!#1}}	%model parameter (jp)
+\newcommand{\pp}[1]{\textit{#1}\index{Model parameters!#1}} 	%namelist parameter (pp)
+\newcommand{\ifile}[1]{\textit{#1.nc  }\index{Input NetCDF files!#1.nc}}	%input NetCDF files (.nc)
+\newcommand{\key}[1]{\textbf{key\_#1}\index{CPP keys!key\_#1}}	%key_cpp (key)
+\newcommand{\NEMO}{\textit{NEMO}\xspace}	%NEMO (nemo)
+
+%%%%   Bibliography   .............
+\usepackage[nottoc,notlof,notlot]{tocbibind}
+\usepackage[square,comma]{natbib}
+\bibpunct{[}{]}{,}{a}{}{;}                           %suppress "," after "et al."
+\providecommand{\bibfont}{\small}
+
+\usepackage{subfiles}                          % Separate compilation of chapters from whole manual
+%\newcommand{\onlyinsubfile}[1]{#1}             % New commands for printing parts according to
+%\newcommand{\notinsubfile}[1]{}                % the file being compiled
+% Commands to use in the documentfile
+%\renewcommand{\onlyinsubfile}[1]{}                      % Appears only if chapter   .tex file is compiled
+%\renewcommand{\notinsubfile}[1]{#1}                     %    "    ""   "" NEMO_book .tex file is compiled
+
+\DeclareMathAlphabet{\mathpzc}{OT1}{pzc}{m}{it}
