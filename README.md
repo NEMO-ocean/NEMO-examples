@@ -1,23 +1,20 @@
 
 # NEMO Tests Cases
 
+## Description of tests cases available with NEMO
 
-## Description of available tests cases available with NEMO
-
-ICE_AGRIF
-=========
-  
+### ICE_AGRIF
+ 
   This test case illustrates the advection of an ice patch across an East/West and North/South periodic channel
   over a slab ocean (i.e. one ocean layer), and with an AGRIF zoom (1:3) in the center
   The purpose of this configuration is to test the advection of the ice patch in  
   and across the AGRIF boundary
   One can either impose ice velocities or ice-atm. stresses and let rheology define velocities
   (see README for details)
-
+<img src="./ICE_AGRIF/ICE_AGRIF_UDIAG_43days_UM5.gif">
   .. image:: _static/ICE_AGRIF_UDIAG_43days_UM5.gif
 
-VORTEX
-======
+### VORTEX
   
   This test case illustrates the propagation of an anticyclonic eddy over a Beta plan and a flat bottom.
   It is implemented here with an online refined subdomain (1:3) out of which the vortex propagates.
@@ -29,8 +26,8 @@ VORTEX
   
   .. image:: _static/VORTEX_anim.gif
 
-ISOMIP
-======
+### ISOMIP
+
 
   The purpose of this test case is to evaluate the impact of various schemes and new development with the iceshelf cavities circulation and melt.
   This configuration served as initial assesment of the ice shelf module in Losh et al. (2008) :cite:`LOSCH2008` and Mathiot et al. (2017) :cite:`MATHIOT2017`. 
@@ -40,8 +37,8 @@ ISOMIP
 
   .. image:: _static/ISOMIP_moc.png
 
-LOCK_EXCHANGE
-=============
+### LOCK_EXCHANGE
+
 
   The LOCK EXCHANGE experiment is a classical fluid dynamics experiment that has been adapted
   by Haidvogel and Beckmann (1999) :cite:`HAIDVOGEL1999` for testing advection schemes in ocean circulation models.
@@ -53,8 +50,8 @@ LOCK_EXCHANGE
 
   .. image:: _static/LOCK-FCT4_flux_ubs.gif
 
-OVERFLOW
-========
+### OVERFLOW
+
 
   The OVERFLOW experiment illustrates the impact of different choices of numerical schemes 
   and/or subgrid closures on spurious interior mixing close to bottom topography. 
@@ -63,10 +60,10 @@ OVERFLOW
   Here we can assess the behaviour of the second-order tracer advection scheme FCT2 and fortht-order FCT4, z-coordinate and sigma coordinate (...).
 
   Below the animation of the OVERFLOW test case in sigma coordinate with the forth-order advection scheme FCT4.
-
+<img src="./OVERFLOW/figures/OVF-sco_FCT4_flux_cen-ahm1000.gif">
   .. image:: _static/OVF-sco_FCT4_flux_cen-ahm1000.gif
-WAD
-===
+  
+### WAD
 
   A set of simple closed basin geometries for testing the Wetting and drying capabilities. 
   Examples range from a closed channel with EW linear bottom slope to a parabolic EW channel with a Gaussian ridge.
@@ -77,15 +74,14 @@ WAD
 
   .. image:: _static/wad_testcase_7.gif
 
-CANAL
-=====
+### CANAL
 
   East-west periodic canal of variable size with several initial states and associated geostrophic currents (zonal jets or vortex).
 
   .. image::_static/CANAL_image.gif
 
-ICE_ADV2D
-=========
+### ICE_ADV2D
+
   
   This test case illustrates the advection of an ice patch across an East/West and North/South periodic channel
   over a slab ocean (i.e. one ocean layer).
@@ -95,8 +91,8 @@ ICE_ADV2D
   especially the occurence of overshoots in ice thickness
   
 
-ICE_ADV1D
-=========
+### ICE_ADV1D
+
   
   This experiment is the classical Schar & Smolarkiewicz (1996) test case :cite:`SCHAR1996`,
   which has been used in :cite:`LIPSCOMB2004`,
@@ -105,17 +101,15 @@ ICE_ADV1D
   The purpose of this configuration is to test the caracteristics of advection schemes available in the sea-ice code
   (for now, Prather and Ultimate-Macho from 1st to 5th order),
   especially the constitency between concentration, thickness and volume, and the preservation of initial shapes.  
+
 ## How to run these test cases 
-The complete and up-to-date set of test cases is available on this
-`NEMO test cases Github repository <http://github.com/NEMO-ocean/NEMO-examples>`_.
+The complete and up-to-date set of test cases is available [on this NEMO test cases Github repository](http://github.com/NEMO-ocean/NEMO-examples).
 
-Download it directly in the ``./tests`` root directory with
-
-.. code-block:: console
+Download it directly in the ``./tests`` root directory using following command:
 
    $ git clone http://github.com/NEMO-ocean/NEMO-examples
 
-Once downloaded, the test case can be compiled and run as any other NEMO confiuration, see the "Buid the frameowrk section here:https://forge.ipsl.jussieu.fr/nemo/chrome/site/doc/NEMO/guide/html/NEMO_guide.html
+Once downloaded, the test case can be compiled and run as any other NEMO confiuration, see the "Buid the frameowrk section [here](https://forge.ipsl.jussieu.fr/nemo/chrome/site/doc/NEMO/guide/html/NEMO_guide.html)
 
 ## Exploring the results of a test case
 Each test case subdirectory includes some plots and/or pythin notebook discribing the expercted results, possible sensitivuty tests, etc..
