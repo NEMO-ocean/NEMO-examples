@@ -106,9 +106,9 @@
 The complete and up-to-date set of test cases is available [on this NEMO test cases Github repository](http://github.com/NEMO-ocean/NEMO-examples).
 
 Download it directly in the ``./tests`` root directory using following command:
-
-   $ git clone http://github.com/NEMO-ocean/NEMO-examples
-
+``` 
+ git clone http://github.com/NEMO-ocean/NEMO-examples
+``` 
 Once downloaded, the test case can be compiled and run as any other NEMO confiuration, see the "Buid the frameowrk section [here](https://forge.ipsl.jussieu.fr/nemo/chrome/site/doc/NEMO/guide/html/NEMO_guide.html)
 
 ## Exploring the results of a test case
@@ -116,12 +116,30 @@ Each test case subdirectory includes some plots and/or pythin notebook discribin
 
 ## How to contribute and add new demontration case :
 To propose a test case contribution, you need to build up its directory including:
-* a README.md description of the test case, and the release/revision number on which this tests case is working
-* all the input files or the program to build them
+* a README.md including 
+   * Detailed desscription of the test case: goal and results 
+   * Author as contact person
+   * The release/revision number of NEMO on which this tests case is working
+   * Published document to quote as reference for the test case
+* All the input files or the program to build them
 * Some outputs and/or figures from the results, to demonstrate the interest and capabilities of the test case
 * Hopefully a python notebook to run the test case and produce the results
 
-This directory should then be sent as a pull request to this github repository.
+This directory should then be sent as a pull request to this github repository, using the follwing procedure ("NEWONE" to be substituted as the test case name below):
+``` 
+ git clone http://github.com/NEMO-ocean/NEMO-examples         # Get the master branch of test cases
+```
+In your local copy of the branch, add the "NEWONE" directory for your additional test case, containing the material described above
+
+Add it in the github repository:
+``` 
+git branch "new branch name"                                # Create the new branch "new branch name" on github
+git add "NEWONE"                                            # Add "NEWONE" test case into it
+git commit -m "add NEWONE test case"                        # Commit this addition
+git pull                                                    # Send it to github repository
+```
+
+
 
 
 
