@@ -11,8 +11,7 @@
   and across the AGRIF boundary
   One can either impose ice velocities or ice-atm. stresses and let rheology define velocities
   (see README for details)
-<img src="./ICE_AGRIF/ICE_AGRIF_UDIAG_43days_UM5.gif">
-  .. image:: _static/ICE_AGRIF_UDIAG_43days_UM5.gif
+  ![U diag ICE_AGRIF](ICE_AGRIF/MY_DOCS/ICE_AGRIF_UDIAG_43days_UM5.gif)
 
 ### VORTEX
   
