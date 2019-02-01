@@ -115,6 +115,7 @@ Once downloaded, the test case can be compiled and run as any other NEMO confiur
 Each test case subdirectory includes some plots and/or pythin notebook discribing the expercted results, possible sensitivuty tests, etc..
 
 ## How to contribute and add new demontration case :
+
 To propose a test case contribution, you need to build up its directory including:
 * a README.md including 
    * Detailed desscription of the test case: goal and results 
@@ -125,7 +126,10 @@ To propose a test case contribution, you need to build up its directory includin
 * Some outputs and/or figures from the results, to demonstrate the interest and capabilities of the test case
 * Hopefully a python notebook to run the test case and produce the results
 
-This directory should then be sent as a pull request to this github repository, using the follwing procedure ("NEWONE" to be substituted as the test case name below):
+This directory should then be sent as a pull request to this github repository
+
+<!--- Comments for now
+using the follwing procedure ("NEWONE" to be substituted as the test case name below):
 ``` 
  git clone http://github.com/NEMO-ocean/NEMO-examples         # Get the master branch of test cases
 ```
@@ -138,7 +142,7 @@ git add "NEWONE"                                            # Add "NEWONE" test 
 git commit -m "add NEWONE test case"                        # Commit this addition
 git pull                                                    # Send it to github repository
 ```
-
+ ---!>
 
 
 
