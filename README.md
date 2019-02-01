@@ -23,7 +23,7 @@
   The animation below (sea level anomaly in meters) illustrates with two 1:2 successively nested grids how
   the vortex smoothly propagates out of the refined grids.
   
-  .. image:: _static/VORTEX_anim.gif
+  ![VORTEX anim](VORTEX/MY_DOCS/VORTEX_anim.gif)
 
 ### ISOMIP
 
