@@ -11,6 +11,7 @@
   and across the AGRIF boundary
   One can either impose ice velocities or ice-atm. stresses and let rheology define velocities
   (see README for details)
+
   ![U diag ICE_AGRIF](ICE_AGRIF/MY_DOCS/ICE_AGRIF_UDIAG_43days_UM5.gif)
 
 ### VORTEX
@@ -34,7 +35,7 @@
   
   The figure below (meridional overturning circulation) illustrates the circulation generated after 10000 days by the ice shelf melting (ice pump).
 
-  .. image:: _static/ISOMIP_moc.png
+  ![ISOMIP moc](ISOMIP/MY_DOCS/ISOMIP_moc.png)
 
 ### LOCK_EXCHANGE
 
