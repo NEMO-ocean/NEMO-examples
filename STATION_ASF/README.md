@@ -90,7 +90,7 @@ If everything goes according to plan, ``launch_sasf.sh`` should have generated t
     STATION_ASF-NCAR_1h_20180101_20181231_gridU.nc 
     STATION_ASF-NCAR_1h_20180101_20181231_gridV.nc
 
-Then, you can fire the Jupyter notebook `station_asf_notebook.ipynb` found into the `notebook` directory! In which you should update `cprod_dir` to the same path as `PROD_DIR` of `launch_sasf.sh`...
+Then, you can fire the Jupyter notebook [`station_asf_notebook.ipynb`](https://github.com/NEMO-ocean/NEMO-examples/blob/master/STATION_ASF/notebook/station_asf_notebook.ipynb) found into the `notebook` directory! In which you should update `cprod_dir` to the same path as `PROD_DIR` of `launch_sasf.sh`...
 
 ---
 
