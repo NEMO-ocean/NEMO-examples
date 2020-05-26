@@ -1,0 +1,41 @@
+<!--
+    ==============================================================================================
+    NEMO context
+    ==============================================================================================
+-->
+<context id="nemo">
+  <variable_definition>
+    <!-- Year/Month/Day of time origin for NetCDF files; defaults to 1800-01-01 -->
+    <variable id="ref_year"  type="int"> 1970 </variable>
+    <variable id="ref_month" type="int"> 01 </variable>
+    <variable id="ref_day"   type="int"> 01 </variable>
+  </variable_definition>
+  <!-- -->
+  <!-- Fields definition -->
+  <field_definition src="./field_def_nemo-oce.xml"/>   <!--  NEMO ocean dynamics                     -->
+
+  <!-- Files definition -->
+  <file_definition src="./file_def_nemo-oce.xml"/>     <!--  NEMO ocean dynamics                     -->
+  <!--
+      ============================================================================================================
+      = grid definition = = DO NOT CHANGE =
+      ============================================================================================================
+  -->
+
+  <axis_definition>
+    <axis id="deptht" long_name="Vertical T levels" unit="m" positive="down" />
+    <axis id="depthu" long_name="Vertical U levels" unit="m" positive="down" />
+    <axis id="depthv" long_name="Vertical V levels" unit="m" positive="down" />
+    <axis id="depthw" long_name="Vertical W levels" unit="m" positive="down" />
+    <axis id="nfloat" long_name="Float number"      unit="-"                 />
+    <axis id="icbcla"  long_name="Iceberg class"      unit="1"               />
+    <axis id="ncatice" long_name="Ice category"       unit="1"               />
+    <axis id="iax_20C" long_name="20 degC isotherm"   unit="degC"            />
+    <axis id="iax_28C" long_name="28 degC isotherm"   unit="degC"            />
+  </axis_definition>
+
+  <domain_definition src="./domain_def_nemo.xml"/>
+
+  <grid_definition src="./grid_def_nemo.xml"/>
+
+</context>

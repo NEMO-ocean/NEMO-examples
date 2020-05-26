@@ -1,0 +1,56 @@
+<?xml version="1.0"?>
+<file_definition type="multiple_file" name="@expname@_@freq@_@startdate@_@enddate@" sync_freq="1mo" min_digits="4">
+
+  <file_group id="1ts" output_freq="1ts"  output_level="10" enabled=".TRUE."/> <!-- 1 time step files -->
+
+  <file_group id="1h" output_freq="1h"  output_level="10" enabled=".TRUE."> <!-- 1h files -->
+
+    <file id="file1" name_suffix="_gridT" description="ocean T grid variables" compression_level="3" >
+      <field field_ref="t_skin"       name="t_skin"   />
+      <field field_ref="sst_m"        name="sst"      />
+      <field field_ref="sss_m"        name="sss"      />
+      <field field_ref="ssu_m"        name="ssu"      />
+      <field field_ref="ssv_m"        name="ssv"      />
+      <!--    -->
+      <field field_ref="rho_air"      name="rho_air"  />
+      <field field_ref="dt_skin"      name="dt_skin"  />
+      <!--    -->
+      <field field_ref="qt_oce"       name="qt"   />
+      <field field_ref="qsr_oce"      name="qsr"  />
+      <field field_ref="qns_oce"      name="qns"  />
+      <field field_ref="qla_oce"      name="qla"  />
+      <field field_ref="qsb_oce"      name="qsb"  />
+      <field field_ref="qlw_oce"      name="qlw"  />
+      <field field_ref="qemp_oce"     name="qemp" />
+      <!-- -->
+      <field field_ref="evap_oce"     name="evap" />
+      <field field_ref="precip"       name="precip" />
+      <field field_ref="empmr"        name="empmr" />
+      <!-- -->
+      <field field_ref="taum"         name="taum"     />
+      <field field_ref="wspd"         name="windsp"   />
+    </file>
+
+    <file id="file2" name_suffix="_gridU" description="ocean U grid variables" compression_level="3" >
+      <field field_ref="utau"         name="tauuo"    />
+    </file>
+
+    <file id="file3" name_suffix="_gridV" description="ocean V grid variables" compression_level="3" >
+      <field field_ref="vtau"         name="tauvo"    />
+    </file>
+
+  </file_group>
+
+  <file_group id="2h" output_freq="2h"  output_level="10" enabled=".TRUE."/> <!-- 2h files -->
+  <file_group id="3h" output_freq="3h"  output_level="10" enabled=".TRUE."/> <!-- 3h files -->
+  <file_group id="4h" output_freq="4h"  output_level="10" enabled=".TRUE."/> <!-- 4h files -->
+  <file_group id="6h" output_freq="6h"  output_level="10" enabled=".TRUE."/> <!-- 6h files -->
+  <file_group id="1d" output_freq="1d"  output_level="10" enabled=".TRUE."/> <!-- 1d files -->
+  <file_group id="3d" output_freq="3d"  output_level="10" enabled=".TRUE."/> <!-- 3d files -->
+  <file_group id="5d" output_freq="5d"  output_level="10" enabled=".TRUE."/> <!-- 5d files -->
+  <file_group id="1m" output_freq="1mo" output_level="10" enabled=".TRUE."/> <!-- real monthly files -->
+  <file_group id="2y"  output_freq="2y" output_level="10" enabled=".TRUE."/> <!-- real 2y files -->
+  <file_group id="5y"  output_freq="5y" output_level="10" enabled=".TRUE."/> <!-- real 5y files -->
+  <file_group id="10y" output_freq="10y" output_level="10" enabled=".TRUE."/> <!-- real 10y files -->
+
+</file_definition>
