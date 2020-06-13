@@ -1,3 +1,4 @@
+
 # Prerequisites
 *.d
 
@@ -30,3 +31,6 @@
 *.exe
 *.out
 *.app
+
+# Jupyter notebook stuff
+.ipynb_checkpoints

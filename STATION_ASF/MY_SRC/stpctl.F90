@@ -218,7 +218,7 @@ CONTAINS
       WRITE(clfmt, '(i1)') INT(LOG10(REAL(jpnij  ,wp))) + 1     ! how many digits to we need to write ? (we decide max = 9)
       !!! WRITE(clsum, '(i'//clfmt//')') ksum                   ! this is creating a compilation error with AGRIF
       cl4 = '(i'//clfmt//')'   ;   WRITE(clsum, cl4) ksum
-      WRITE(clfmt, '(i1)') INT(LOG10(REAL(jpnij-1,wp))) + 1     ! how many digits to we need to write ? (we decide max = 9)
+      WRITE(clfmt, '(i1)') INT(LOG10(REAL(MAX(1,jpnij-1),wp))) + 1    ! how many digits to we need to write ? (we decide max = 9)
       cl4 = '(i'//clfmt//')'   ;   WRITE(clmin, cl4) kmin-1
                                    WRITE(clmax, cl4) kmax-1
       !

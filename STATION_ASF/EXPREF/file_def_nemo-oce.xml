@@ -27,8 +27,12 @@
       <field field_ref="precip"       name="precip" />
       <field field_ref="empmr"        name="empmr" />
       <!-- -->
-      <field field_ref="taum"         name="taum"     />
-      <field field_ref="wspd"         name="windsp"   />
+      <field field_ref="taum"         name="taum"   />
+      <field field_ref="wspd"         name="windsp" />
+      <!-- -->
+      <field field_ref="Cd_oce"       name="Cd_oce" />
+      <field field_ref="Ce_oce"       name="Ce_oce" />
+      <field field_ref="Ch_oce"       name="Ch_oce" />
     </file>
 
     <file id="file2" name_suffix="_gridU" description="ocean U grid variables" compression_level="3" >

@@ -37,22 +37,13 @@ l_color = [  '#ffed00' , '#008ab8' , '0.4'  ] ; # colors to differentiate algos 
 l_width = [     3      ,    2      ,  1     ] ; # line-width to differentiate algos on the plot
 l_style = [    '-'     ,   '-'     , '--'   ] ; # line-style
 
-L_VNEM  = [   'qla'     ,     'qsb'     ,     'qt'     ,   'qlw'     ,  'taum'     ,    'dt_skin'         ]
-L_VARO  = [   'Qlat'    ,    'Qsen'     ,     'Qnet'   ,   'Qlw'     ,  'Tau'      ,    'dT_skin'         ] ; # name of variable on figure
-L_VARL  = [ r'$Q_{lat}$', r'$Q_{sens}$' , r'$Q_{net}$' , r'$Q_{lw}$' , r'$|\tau|$' , r'$\Delta T_{skin}$' ] ; # name of variable in latex mode
-L_VUNT  = [ r'$W/m^2$'  , r'$W/m^2$'    , r'$W/m^2$'   , r'$W/m^2$'  , r'$N/m^2$'  ,      'K'             ]
-L_VMAX  = [     75.     ,     75.       ,    800.      ,     25.     ,    1.2      ,       0.7            ]
-L_VMIN  = [   -250.     ,   -125.       ,   -400.      ,   -150.     ,    0.       ,      -0.7            ]
-L_ANOM  = [   True      ,    True       ,    True      ,    True     ,   True      ,      False           ]
-
-#L_VNEM  = [   'qlw'      ]
-#L_VARO  = [   'Qlw'      ] ; # name of variable on figure
-#L_VARL  = [ r'$Q_{lw}$'  ] ; # name of variable in latex mode
-#L_VUNT  = [ r'$W/m^2$'   ]
-#L_VMAX  = [     25.      ]
-#L_VMIN  = [   -150.      ]
-#L_ANOM  = [    True      ]
-
+L_VNEM  = [   'Cd_oce'  ,   'Ce_oce'  ,   'qla'     ,     'qsb'     ,     'qt'     ,   'qlw'     ,  'taum'     ,    'dt_skin'         ]
+L_VARO  = [     'Cd'    ,     'Ce'    ,   'Qlat'    ,    'Qsen'     ,     'Qnet'   ,   'Qlw'     ,  'Tau'      ,    'dT_skin'         ] ; # name of variable on figure
+L_VARL  = [ r'$C_{D}$'  , r'$C_{E}$'  , r'$Q_{lat}$', r'$Q_{sens}$' , r'$Q_{net}$' , r'$Q_{lw}$' , r'$|\tau|$' , r'$\Delta T_{skin}$' ] ; # name of variable in latex mode
+L_VUNT  = [     ''      ,     ''      , r'$W/m^2$'  , r'$W/m^2$'    , r'$W/m^2$'   , r'$W/m^2$'  , r'$N/m^2$'  ,      'K'             ]
+L_VMAX  = [    0.0075   ,    0.005    ,     75.     ,     75.       ,    800.      ,     25.     ,    1.2      ,       0.7            ]
+L_VMIN  = [    0.0005   ,    0.0005   ,   -250.     ,   -125.       ,   -400.      ,   -150.     ,    0.       ,      -0.7            ]
+L_ANOM  = [   False     ,   False     ,   True      ,    True       ,    True      ,    True     ,   True      ,      False           ]
 
 
 nb_algos = len(L_ALGOS) ; print(nb_algos)
@@ -135,7 +126,8 @@ for jv in range(nb_var):
     plt.ylabel(L_VARL[jv]+' ['+L_VUNT[jv]+']')
 
     ax1.grid(color='k', linestyle='-', linewidth=0.3)
-    plt.legend(bbox_to_anchor=(0.45, 0.2), ncol=1, shadow=True, fancybox=True)
+    #plt.legend(bbox_to_anchor=(0.45, 0.2), ncol=1, shadow=True, fancybox=True)
+    plt.legend(loc='best', ncol=1, shadow=True, fancybox=True)
     ax1.annotate(cvar_lnm, xy=(0.3, 0.97), xycoords='axes fraction',  bbox={'facecolor':'w', 'alpha':1., 'pad':10}, zorder=50, **font_inf)
     plt.savefig(L_VARO[jv]+'.'+fig_ext, dpi=int(rDPI), transparent=False)
     plt.close(jv)

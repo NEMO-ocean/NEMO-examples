@@ -2,21 +2,22 @@
 
 echo
 
-STATION_ASF_DIR=`pwd | sed -e "s|/EXPREF||g"` ; # STATION_ASF directory where to work from, normally in here!
+wdir=`basename ${PWD}`; # should be "EXPREF" or "EXP00" normally...
 
 
+STATION_ASF_DIR=`pwd | sed -e "s|/${wdir}||g"` ; # STATION_ASF directory where to work from, normally in here!
 
 # Root directory NEMOGCM reference depository where to fetch compiled STATION_ASF nemo.exe + default namelists:
-NEMO_DIR="/home/laurent/DEV/NEMOGCM_trunk"
+NEMO_REF_DIR="/home/laurent/DEV/NEMOGCM_trunk"
+NEMO_WRK_DIR="/home/laurent/DEV/NEMOGCM_trunk"
 
-
-NEMO_EXPREF=${STATION_ASF_DIR}/EXPREF  ; # STATION_ASF EXPREF directory from which to use namelists and XIOS xml files...
+NEMO_EXPREF=${STATION_ASF_DIR}/${wdir}  ; # STATION_ASF EXPREF directory from which to use namelists and XIOS xml files...
 
 # what directory inside "tests" actually contains the compiled test-case?
 TC_DIR="STATION_ASF2"
 
 # => so the executable to use is:
-NEMO_EXE="${NEMO_DIR}/tests/${TC_DIR}/BLD/bin/nemo.exe"
+NEMO_EXE="${NEMO_WRK_DIR}/tests/${TC_DIR}/BLD/bin/nemo.exe"
 
 # Directory where to run the simulation:
 PROD_DIR="${HOME}/tmp/STATION_ASF"
@@ -34,7 +35,9 @@ echo "#        S T A T I O N   A i r  -  S e a   F l u x        #"
 echo "###########################################################"
 echo
 echo " We shall work in here: ${STATION_ASF_DIR}/"
-echo " NEMOGCM reference depository is: ${NEMO_DIR}/"
+echo " NEMOGCM   work    depository is: ${NEMO_WRK_DIR}/"
+echo "   ==> NEMO EXE to use: ${NEMO_EXE}"
+echo " NEMOGCM reference depository is: ${NEMO_REF_DIR}/"
 echo " Input forcing data into: ${DATA_IN_DIR}/"
 echo " Production will be done into: ${PROD_DIR}/"
 echo
@@ -47,18 +50,18 @@ echo " *** Using the following NEMO executable:"
 echo "  ${NEMO_EXE} "
 echo
 
-if [ ! -d ${NEMO_EXPREF} ]; then echo " Mhhh, no EXPREF directory ${NEMO_EXPREF} !"; exit; fi
+if [ ! -d ${NEMO_EXPREF} ]; then echo " Mhhh, no ${wdir} directory ${NEMO_EXPREF} !"; exit; fi
 
 rsync -avP ${NEMO_EXE}          ${PROD_DIR}/
 
-for ff in "context_nemo.xml" "file_def_nemo-oce.xml" "iodef.xml"; do
+for ff in "context_nemo.xml" "file_def_nemo-oce.xml" "field_def_nemo-oce.xml" "iodef.xml"; do
     if [ ! -f ${NEMO_EXPREF}/${ff} ]; then echo " Mhhh, ${ff} not found into ${NEMO_EXPREF} !"; exit; fi
     rsync -avPL ${NEMO_EXPREF}/${ff} ${PROD_DIR}/
 done
 
 # Getting reference/defaults files from reference NEMO distro:
-rdir="${NEMO_DIR}/cfgs/SHARED"
-for ff in "domain_def_nemo.xml" "field_def_nemo-oce.xml" "grid_def_nemo.xml" "namelist_ref"; do
+rdir="${NEMO_REF_DIR}/cfgs/SHARED"
+for ff in "domain_def_nemo.xml" "grid_def_nemo.xml" "namelist_ref"; do
     if [ ! -f ${rdir}/${ff} ]; then echo " Mhhh, ${ff} not found into ${rdir} !"; exit; fi
     ln -sf ${rdir}/${ff} ${PROD_DIR}/.
 done
