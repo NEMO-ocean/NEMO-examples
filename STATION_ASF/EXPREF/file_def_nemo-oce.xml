@@ -33,6 +33,12 @@
       <field field_ref="Cd_oce"       name="Cd_oce" />
       <field field_ref="Ce_oce"       name="Ce_oce" />
       <field field_ref="Ch_oce"       name="Ch_oce" />
+      <field field_ref="theta_zt"     name="theta_zt" />
+      <field field_ref="q_zt"         name="q_zt" />
+      <field field_ref="theta_zu"     name="theta_zu" />
+      <field field_ref="q_zu"         name="q_zu" />
+      <field field_ref="ssq"          name="ssq" />
+      <field field_ref="wspd_blk"     name="wspd_blk" />      
     </file>
 
     <file id="file2" name_suffix="_gridU" description="ocean U grid variables" compression_level="3" >
