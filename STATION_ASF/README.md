@@ -1,6 +1,6 @@
 # *Station Air-Sea Fluxes* demonstration case
 
-Last sucessful test done with NEMOGCM trunk: `r12965`
+Last sucessful test done with NEMOGCM trunk: `r13131`
 
 
 ## Objectives
