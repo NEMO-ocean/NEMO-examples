@@ -2,6 +2,7 @@
 
 Last sucessful test done with NEMOGCM trunk: `r13131`
 
+Author: Laurent Brodeau, 2020
 
 ## Objectives
 
