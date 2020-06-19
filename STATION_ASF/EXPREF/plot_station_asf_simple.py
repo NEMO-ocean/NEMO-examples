@@ -162,6 +162,7 @@ for ja in range(nb_algos):
     plt.close(1)
 
 
+del xxx
 
 
 

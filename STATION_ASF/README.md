@@ -26,7 +26,9 @@ as well as the usual surface atmospheric state:
 - Downwelling solar radiation
 - Downwelling longwave radiation
 
-### Example of diagnostics done by `STATION_ASF`
+### Example of diagnostics from `STATION_ASF`
+
+(Generated with script `./EXPREF/plot_station_asf_simple.py`)
 
 ![plot](https://github.com/NEMO-ocean/NEMO-examples/blob/master/STATION_ASF/figs/01_temperatures_ECMWF.svg)
 
