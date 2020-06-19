@@ -26,6 +26,10 @@ as well as the usual surface atmospheric state:
 - Downwelling solar radiation
 - Downwelling longwave radiation
 
+https://github.com/NEMO-ocean/NEMO-examples
+
+![plot](https://github.com/NEMO-ocean/NEMO-examples/blob/master/STATION_ASF/figs/01_temperatures_ECMWF.svg)
+
 
 
 ## Physical description
