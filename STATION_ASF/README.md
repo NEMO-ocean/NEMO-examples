@@ -1,16 +1,16 @@
 # *Station Air-Sea Fluxes* demonstration case
 
-Last sucessful test done with NEMOGCM trunk: `r13263`
+Last successful test done with NEMOGCM trunk: `r13263`
 
 Author: Laurent Brodeau, 2020
 
 ## Objectives
 
-```STATION_ASF``` is a demonstration case that mimics an in-situ station (buoy, platform) dedicated to the estimation of surface air-sea fluxes by means of the measurement of traditional meteorological surface parameters.
+```STATION_ASF``` is a demonstration test-case that mimics a (static) in-situ station (buoy, platform) dedicated to the estimation of surface air-sea fluxes by means of *widely-measured* (bulk) meteorological surface parameters.
 
-```STATION_ASF``` is based on the merging of the "single column" and the "standalone surface module" configurations of NEMO. In short, it coulb defined as "SAS meets C1D". As such, the spatial domain of ```STATION_ASF``` is punctual (1D, well actually 3 x 3 as in C1D).
+```STATION_ASF``` has been constructed by merging the *single column* and the *standalone surface module* configurations of NEMO. In short, it can be defined as "SAS meets C1D". As such, the spatial domain of ```STATION_ASF``` is punctual (1D, well actually 3 x 3 as in C1D).
 
-```STATION_ASF``` is therefore a versatile tool, and extremely light in terms of computing requirements, to test the different bulk algorithms and cool-skin/warm-layer parameterization options included in NEMO.
+```STATION_ASF``` is therefore a versatile tool, and extremely lightweight in terms of computing requirements, to test the different bulk algorithms and cool-skin/warm-layer parameterization options included in NEMO.
 
 As input ```STATION_ASF``` will require the traditional *bulk* sea surface parameters:
 
