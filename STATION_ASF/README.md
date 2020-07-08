@@ -88,7 +88,7 @@ Then you can use the script ``launch_sasf.sh`` found in  ```EXPREF/``` to launch
 
 - ```PROD_DIR``` :  Directory where to run the simulation
 
-- ```DATA_IN_DIR``` : Directory containing sea-surface + atmospheric forcings (get it there https://drive.google.com/file/d/1MxNvjhRHmMrL54y6RX7WIaM9-LGl--ZP/)
+- ```DATA_IN_DIR``` : Directory containing sea-surface + atmospheric forcings (found here in ```input_data/```)
 
 If everything goes according to plan, ``launch_sasf.sh`` should have generated the 3 following sets of output files into `${PROD_DIR}/output`:
 
@@ -106,5 +106,5 @@ Then, you can fire the Jupyter notebook [`station_asf_notebook.ipynb`](https://g
 
 ---
 
-*/Laurent Brodeau, May 2020.*
+*/Laurent, July 2020.*
 
