@@ -1,6 +1,6 @@
 # *Station Air-Sea Fluxes* demonstration case
 
-Last sucessful test done with NEMOGCM trunk: `r13131`
+Last sucessful test done with NEMOGCM trunk: `r13263`
 
 Author: Laurent Brodeau, 2020
 
@@ -84,7 +84,7 @@ First compile the test-case as follows (compile with xios-2.5 support → check 
 
 Then you can use the script ``launch_sasf.sh`` found in  ```EXPREF/``` to launch 3 simulations (one for each bulk parameterization available). You need to adapt the following variable to your environment in the script:
 
-- ```NEMO_DIR``` : NEMO root directory where to fetch compiled STATION_ASF ```nemo.exe``` + setup (such as ```${NEMO_DIR}/tests/STATION_ASF```)
+- ```NEMO_ROOT_DIR``` : NEMO root directory where to fetch compiled STATION_ASF ```nemo.exe``` + setup (such as ```${NEMO_ROOT_DIR}/tests/STATION_ASF```)
 
 - ```PROD_DIR``` :  Directory where to run the simulation
 
