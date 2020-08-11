@@ -14,7 +14,8 @@ TC_DIR="STATION_ASF2"
 expdir=`basename ${PWD}`; # we expect "EXPREF" or "EXP00" normally...
 
 # NEMOGCM root directory:
-NEMO_ROOT_DIR="/home/laurent/DEV/NEMO/NEMOGCM_trunk"
+#NEMO_ROOT_DIR="/home/laurent/DEV/NEMO/NEMOGCM_trunk"
+NEMO_ROOT_DIR="/home/laurent/DEV/NEMO/NEMOGCM_trunk_r13263"
 
 # NEMOGCM root directory where to fetch compiled STATION_ASF nemo.exe:
 SASF_WRK_DIR="${NEMO_ROOT_DIR}/tests/${TC_DIR}"

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- Mode: Python; coding: utf-8; indent-tabs-mode: nil; tab-width: 4 -*-
 
 # Post-diagnostic of STATION_ASF /  L. Brodeau, 2019
@@ -7,15 +7,12 @@ import sys
 from os import path as path
 import math
 import numpy as nmp
-from netCDF4 import Dataset
+from netCDF4 import Dataset,num2date
 import matplotlib as mpl
 mpl.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 
-
-reload(sys)
-sys.setdefaultencoding('utf8')
 
 cstation = 'PAPA'
 
@@ -63,7 +60,7 @@ nb_algos = len(L_ALGOS) ; print(nb_algos)
 # Getting arguments:
 narg = len(sys.argv)
 if narg != 2:
-    print 'Usage: '+sys.argv[0]+' <DIR_OUT_SASF>'; sys.exit(0)
+    print('Usage: '+sys.argv[0]+' <DIR_OUT_SASF>'); sys.exit(0)
 cdir_data = sys.argv[1]
 
 
@@ -73,7 +70,7 @@ cdir_data = sys.argv[1]
 # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 def chck4f(cf):
     cmesg = 'ERROR: File '+cf+' does not exist !!!'
-    if not path.exists(cf): print cmesg ; sys.exit(0)
+    if not path.exists(cf): print(cmesg) ; sys.exit(0)
 
 ###cf_in = nmp.empty((), dtype="S10")
 cf_in = []
@@ -93,13 +90,8 @@ cunit_t = id_in.variables['time_counter'].units ; print(' "time_counter" is in "
 id_in.close()
 nbr = len(vt)
 
-
-
-
-vtime = nmp.zeros(nbr)
-
-vt = vt + 1036800. + 30.*60. # BUG!??? don't get why false in epoch to date conversion, and yet ncview gets it right!
-for jt in range(nbr): vtime[jt] = mdates.epoch2num(vt[jt])
+vtime = num2date(vt, units=cunit_t) ; # something understandable!                                                                 
+vtime = vtime.astype(dtype='datetime64[D]')
 
 ii=nbr/300
 ib=max(ii-ii%10,1)
@@ -218,7 +210,6 @@ for jv in range(nb_var):
             romagn = math.floor(math.log(rmax, 10)) ; # order of magnitude of the anomaly  we're dealing with
             rmlt = 10.**(int(romagn)) / 2.
             yrng = math.copysign( math.ceil(abs(rmax)/rmlt)*rmlt , rmax)
-            #print 'yrng = ', yrng ;  #sys.exit(0)
 
             fig = plt.figure(num = 10+jv, figsize=size_fig, facecolor='w', edgecolor='k')
             ax1 = plt.axes([0.08, 0.25, 0.9, 0.7])

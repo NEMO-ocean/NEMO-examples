@@ -126,8 +126,8 @@
    !                    !  bulk algorithm :
    ln_NCAR      = .true.    ! "NCAR"      algorithm   (Large and Yeager 2008)
    ln_COARE_3p0 = .false.   ! "COARE 3.0" algorithm   (Fairall et al. 2003)
-   ln_COARE_3p6 = .false.   ! "COARE 3.5" algorithm   (Edson et al. 2013)
-   ln_ECMWF     = .false.   ! "ECMWF"     algorithm   (IFS cycle 31)
+   ln_COARE_3p6 = .false.   ! "COARE 3.6" algorithm   (Edson et al. 2013)
+   ln_ECMWF     = .false.   ! "ECMWF"     algorithm   (IFS cycle 45r1)
       rn_zqt    =  2.5      !  Air temperature & humidity reference height (m) [PAPA station]
       rn_zu     =  4.       !  Wind vector reference height (m)                [PAPA station]
       !
@@ -135,11 +135,11 @@
       ln_skin_cs = .false.  !  use the cool-skin parameterization => set nn_fsbc=1 and ln_dm2dc=.true.!
       ln_skin_wl = .false.  !  use the warm-layer        "        => set nn_fsbc=1 and ln_dm2dc=.true.!
       !
-      ln_humi_sph = .false. !  humidity specified below in "sn_humi" is specific humidity     [kg/kg] if .true.
-      ln_humi_dpt = .false. !  humidity specified below in "sn_humi" is dew-point temperature   [K]   if .true.
-      ln_humi_rlh = .true.  !  humidity specified below in "sn_humi" is relative humidity       [%]   if .true.
+   ln_humi_sph = .false. !  humidity "sn_humi" is specific humidity  [kg/kg]
+   ln_humi_dpt = .false. !  humidity "sn_humi" is dew-point temperature [K]
+   ln_humi_rlh = .true.  !  humidity "sn_humi" is relative humidity     [%]
    !
-   cn_dir = './'  !  root directory for the bulk data location
+   cn_dir      = './'      !  root directory for the bulk data location
    !___________!_________________________!___________________!___________!_____________!________!___________!______________________________________!__________!_______________!
    !           !  file name              ! frequency (hours) ! variable  ! time interp.!  clim  ! 'yearly'/ !       weights filename               ! rotation ! land/sea mask !
    !           !                         !  (if <0  months)  !   name    !   (logical) !  (T/F) ! 'monthly' !                                      ! pairing  !    filename   !
@@ -220,7 +220,7 @@
 !-----------------------------------------------------------------------
 &nameos        !   ocean Equation Of Seawater                           (default: NO selection)
 !-----------------------------------------------------------------------
-   ln_eos80    = .true.          !  = Use EOS80
+   ln_eos80    = .true.         !  = Use EOS80
 /
 !!======================================================================
 !!                      ***  Dynamics namelists  ***                  !!
