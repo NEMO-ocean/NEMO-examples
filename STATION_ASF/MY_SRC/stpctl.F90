@@ -42,11 +42,10 @@ CONTAINS
    SUBROUTINE stp_ctl( kt, Kmm )
       !!----------------------------------------------------------------------
       !!                    ***  ROUTINE stp_ctl  ***
-      !!                     
+      !!
       !! ** Purpose :   Control the run
       !!
       !! ** Method  : - Save the time step in numstp
-      !!              - Print it each 50 time steps
       !!              - Stop the run IF problem encountered by setting nstop > 0
       !!                Problems checked: wind stress module  max larger than 5 N/m^2
       !!                                  non-solar heat flux max larger than 2000 W/m^2
@@ -63,16 +62,16 @@ CONTAINS
       INTEGER                         ::   idtime, istatus
       INTEGER , DIMENSION(4)          ::   iareasum, iareamin, iareamax
       INTEGER , DIMENSION(3,3)        ::   iloc                                  ! min/max loc indices
-      REAL(wp)                        ::   zzz                                   ! local real 
+      REAL(wp)                        ::   zzz                                   ! local real
       REAL(wp), DIMENSION(4)          ::   zmax, zmaxlocal
-      LOGICAL                         ::   ll_wrtstp, ll_colruns, ll_wrtruns
+      LOGICAL                         ::   ll_wrtstp, ll_colruns, ll_wrtruns, ll_0oce
       LOGICAL, DIMENSION(jpi,jpj)     ::   llmsk
       CHARACTER(len=20)               ::   clname
       !!----------------------------------------------------------------------
       IF( nstop > 0 .AND. ngrdstop > -1 )   RETURN   !   stpctl was already called by a child grid
       !
       ll_wrtstp  = ( MOD( kt-nit000, sn_cfctl%ptimincr ) == 0 ) .OR. ( kt == nitend )
-      ll_colruns = ll_wrtstp .AND. sn_cfctl%l_runstat .AND. jpnij > 1 
+      ll_colruns = ll_wrtstp .AND. sn_cfctl%l_runstat .AND. jpnij > 1
       ll_wrtruns = ( ll_colruns .OR. jpnij == 1 ) .AND. lwm
       !
       IF( kt == nit000 ) THEN
@@ -98,7 +97,7 @@ CONTAINS
             istatus = NF90_DEF_VAR( nrunid, 'emp_max', NF90_DOUBLE, (/ idtime /), nvarid(3) )
             istatus = NF90_ENDDEF(nrunid)
          ENDIF
-         !    
+         !
       ENDIF
       !
       !                                   !==              write current time step              ==!
@@ -109,25 +108,39 @@ CONTAINS
       ENDIF
       !                                   !==            test of local extrema           ==!
       !                                   !==  done by all processes at every time step  ==!
-      llmsk(:,:) = tmask(:,:,1) == 1._wp
-      zmax(1) = MAXVAL(     taum(:,:)   , mask = llmsk )   ! max wind stress module
-      zmax(2) = MAXVAL( ABS( qns(:,:) ) , mask = llmsk )   ! max non-solar heat flux
-      zmax(3) = MAXVAL( ABS( emp(:,:) ) , mask = llmsk )   ! max E-P
-      zmax(4) = REAL( nstop, wp )                                     ! stop indicator
+      !
+      llmsk(   1:Nis1,:) = .FALSE.                                              ! exclude halos from the checked region
+      llmsk(Nie1: jpi,:) = .FALSE.
+      llmsk(:,   1:Njs1) = .FALSE.
+      llmsk(:,Nje1: jpj) = .FALSE.
+      !
+      llmsk(Nis0:Nie0,Njs0:Nje0) = tmask(Nis0:Nie0,Njs0:Nje0,1) == 1._wp        ! test only the inner domain
+      !
+      ll_0oce = .NOT. ANY( llmsk(:,:) )                                         ! no ocean point in the inner domain?
+      !
+      zmax(1) = MAXVAL(     taum(:,:)  , mask = llmsk )                         ! max wind stress module
+      zmax(2) = MAXVAL( ABS( qns(:,:) ), mask = llmsk )                         ! max non-solar heat flux
+      zmax(3) = MAXVAL( ABS( emp(:,:) ), mask = llmsk )                         ! max E-P
+      zmax(4) = REAL( nstop, wp )                                               ! stop indicator
+      !
       !                                   !==               get global extrema             ==!
       !                                   !==  done by all processes if writting run.stat  ==!
       IF( ll_colruns ) THEN
          zmaxlocal(:) = zmax(:)
          CALL mpp_max( "stpctl", zmax )          ! max over the global domain
          nstop = NINT( zmax(4) )                 ! update nstop indicator (now sheared among all local domains)
+      ELSE
+         ! if no ocean point: MAXVAL returns -HUGE => we must overwrite this value to avoid error handling bellow.
+         IF( ll_0oce )   zmax(1:3) = 0._wp       ! default "valid" values...
       ENDIF
+      !                                   !==               error handling               ==!
       !                                   !==              write "run.stat" files              ==!
       !                                   !==  done only by 1st subdomain at writting timestep  ==!
       IF( ll_wrtruns ) THEN
          WRITE(numrun,9500) kt, zmax(1), zmax(2), zmax(3)
-         istatus = NF90_PUT_VAR( nrunid, nvarid(1), (/ zmax(1)/), (/kt/), (/1/) )
-         istatus = NF90_PUT_VAR( nrunid, nvarid(2), (/ zmax(2)/), (/kt/), (/1/) )
-         istatus = NF90_PUT_VAR( nrunid, nvarid(3), (/ zmax(3)/), (/kt/), (/1/) )
+         DO ji = 1, 3
+            istatus = NF90_PUT_VAR( nrunid, nvarid(ji), (/zmax(ji)/), (/kt/), (/1/) )
+         END DO
          IF( kt == nitend ) istatus = NF90_CLOSE(nrunid)
       END IF
       !                                   !==               error handling               ==!
@@ -144,9 +157,9 @@ CONTAINS
             ! first: close the netcdf file, so we can read it
             IF( lwm .AND. kt /= nitend )   istatus = NF90_CLOSE(nrunid)
             ! get global loc on the min/max
-            CALL mpp_maxloc( 'stpctl',    taum(:,:)  , tmask(:,:,1), zzz, iloc(1:2,1) )   ! mpp_maxloc ok if mask = F 
-            CALL mpp_maxloc( 'stpctl',ABS( qns(:,:) ), tmask(:,:,1), zzz, iloc(1:2,2) )
-            CALL mpp_minloc( 'stpctl',ABS( emp(:,:) ), tmask(:,:,1), zzz, iloc(1:2,3) )
+            CALL mpp_maxloc( 'stpctl',    taum(:,:)  , llmsk, zzz, iloc(1:2,1) )   ! mpp_maxloc ok if mask = F
+            CALL mpp_maxloc( 'stpctl',ABS( qns(:,:) ), llmsk, zzz, iloc(1:2,2) )
+            CALL mpp_minloc( 'stpctl',ABS( emp(:,:) ), llmsk, zzz, iloc(1:2,3) )
             ! find which subdomain has the max.
             iareamin(:) = jpnij+1   ;   iareamax(:) = 0   ;   iareasum(:) = 0
             DO ji = 1, 4
@@ -159,9 +172,12 @@ CONTAINS
             CALL mpp_sum( "stpctl", iareasum )         ! sum over the global domain
          ELSE                    ! find local min and max locations:
             ! if we are here, this means that the subdomain contains some oce points -> no need to test the mask used in maxloc
-            iloc(1:2,1) = MAXLOC(     taum(:,:)  , mask = llmsk ) + (/ nimpp - 1, njmpp - 1/)
-            iloc(1:2,2) = MAXLOC( ABS( qns(:,:) ), mask = llmsk ) + (/ nimpp - 1, njmpp - 1/)
-            iloc(1:2,3) = MINLOC( ABS( emp(:,:) ), mask = llmsk ) + (/ nimpp - 1, njmpp - 1/)
+            iloc(1:2,1) = MAXLOC(     taum(:,:)  , mask = llmsk )
+            iloc(1:2,2) = MAXLOC( ABS( qns(:,:) ), mask = llmsk )
+            iloc(1:2,3) = MINLOC( ABS( emp(:,:) ), mask = llmsk )
+            DO ji = 1, 3   ! local domain indices ==> global domain indices, excluding halos
+               iloc(1:2,ji) = (/ mig0(iloc(1,ji)), mjg0(iloc(2,ji)) /)
+            END DO
             iareamin(:) = narea   ;   iareamax(:) = narea   ;   iareasum(:) = 1         ! this is local information
          ENDIF
          !
@@ -177,15 +193,21 @@ CONTAINS
          !
          CALL dia_wri_state( Kmm, 'output.abort' )     ! create an output.abort file
          !
-         IF( ll_colruns .or. jpnij == 1 ) THEN   ! all processes synchronized -> use lwp to print in opened ocean.output files
-            IF(lwp)   CALL ctl_stop( ctmp1, ' ', ctmp2, ctmp3, ctmp4, ctmp5, ' ', ctmp6 )
+         IF( ll_colruns .OR. jpnij == 1 ) THEN   ! all processes synchronized -> use lwp to print in opened ocean.output files
+            IF(lwp) THEN
+               CALL ctl_stop( ctmp1, ' ', ctmp2, ctmp3, ctmp4, ctmp5, ' ', ctmp6 )
+            ELSE
+               nstop = MAX(1, nstop)   ! make sure nstop > 0 (automatically done when calling ctl_stop)
+            ENDIF
          ELSE                                    ! only mpi subdomains with errors are here -> STOP now
             CALL ctl_stop( 'STOP', ctmp1, ' ', ctmp2, ctmp3, ctmp4, ctmp5, ' ', ctmp6 )
          ENDIF
          !
-         IF( nstop == 0 )   nstop = 1 
-         ngrdstop = Agrif_Fixed()
-         !
+      ENDIF
+      !
+      IF( nstop > 0 ) THEN                                                  ! an error was detected and we did not abort yet...
+         ngrdstop = Agrif_Fixed()                                           ! store which grid got this error
+         IF( .NOT. ll_colruns .AND. jpnij > 1 )   CALL ctl_stop( 'STOP' )   ! we must abort here to avoid MPI deadlock
       ENDIF
       !
 9500  FORMAT(' it :', i8, '    tau_max: ', D23.16, ' |qns|_max: ', D23.16,' |emp|_max: ', D23.16)
@@ -214,13 +236,13 @@ CONTAINS
       INTEGER           ::   ifmtk
       !!----------------------------------------------------------------------
       WRITE(clkt , '(i9)') kt
-      
+
       WRITE(clfmt, '(i1)') INT(LOG10(REAL(jpnij  ,wp))) + 1     ! how many digits to we need to write ? (we decide max = 9)
-      !!! WRITE(clsum, '(i'//clfmt//')') ksum                   ! this is creating a compilation error with AGRIF
+!!! WRITE(clsum, '(i'//clfmt//')') ksum                   ! this is creating a compilation error with AGRIF
       cl4 = '(i'//clfmt//')'   ;   WRITE(clsum, cl4) ksum
       WRITE(clfmt, '(i1)') INT(LOG10(REAL(MAX(1,jpnij-1),wp))) + 1    ! how many digits to we need to write ? (we decide max = 9)
       cl4 = '(i'//clfmt//')'   ;   WRITE(clmin, cl4) kmin-1
-                                   WRITE(clmax, cl4) kmax-1
+      WRITE(clmax, cl4) kmax-1
       !
       WRITE(clfmt, '(i1)') INT(LOG10(REAL(jpiglo,wp))) + 1      ! how many digits to we need to write jpiglo? (we decide max = 9)
       cl4 = '(i'//clfmt//')'   ;   WRITE(cli, cl4) kloc(1)      ! this is ok with AGRIF
@@ -236,7 +258,7 @@ CONTAINS
          WRITE(cdline,9300) TRIM(ADJUSTL(clkt)), TRIM(ADJUSTL(cdprefix)), pval, TRIM(cli), TRIM(clj), clk(1:ifmtk), TRIM(clsuff)
       ELSE
          WRITE(clfmt, '(i1)') INT(LOG10(REAL(jpk,wp))) + 1      ! how many digits to we need to write jpk? (we decide max = 9)
-         !!! WRITE(clk, '(i'//clfmt//')') kloc(3)               ! this is creating a compilation error with AGRIF
+!!! WRITE(clk, '(i'//clfmt//')') kloc(3)               ! this is creating a compilation error with AGRIF
          cl4 = '(i'//clfmt//')'   ;   WRITE(clk, cl4) kloc(3)   ! this is ok with AGRIF
          WRITE(cdline,9400) TRIM(ADJUSTL(clkt)), TRIM(ADJUSTL(cdprefix)), pval, TRIM(cli), TRIM(clj),    TRIM(clk), TRIM(clsuff)
       ENDIF

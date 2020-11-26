@@ -386,15 +386,17 @@ CONTAINS
       CALL iom_rstput( 0, 0, inum, 'soicecov', fr_i              )    ! ice fraction
       CALL iom_rstput( 0, 0, inum, 'sozotaux', utau              )    ! i-wind stress
       CALL iom_rstput( 0, 0, inum, 'sometauy', vtau              )    ! j-wind stress
-
-#if defined key_si3
-      IF( nn_ice == 2 ) THEN   ! condition needed in case agrif + ice-model but no-ice in child grid
-         CALL ice_wri_state( inum )
-      ENDIF
-#endif
       !
       CALL iom_close( inum )
       !
+#if defined key_si3
+      IF( nn_ice == 2 ) THEN   ! condition needed in case agrif + ice-model but no-ice in child grid
+         CALL iom_open( TRIM(cdfile_name)//'_ice', inum, ldwrt = .TRUE., kdlev = jpl, cdcomp = 'ICE' )
+         CALL ice_wri_state( inum )
+         CALL iom_close( inum )
+      ENDIF
+      !
+#endif
    END SUBROUTINE dia_wri_state
 
    !!======================================================================

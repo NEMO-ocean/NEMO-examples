@@ -18,6 +18,11 @@ MODULE sbcssm
    USE eosbn2         ! equation of state - Brunt Vaisala frequency
    USE lbclnk         ! ocean lateral boundary conditions (or mpp link)
    !
+#if defined key_si3
+   USE ice            !#LB: we need to fill the "tm_su"   array!
+   USE sbc_ice        !#LB: we need to fill the "alb_ice" array!
+#endif
+   !
    USE in_out_manager ! I/O manager
    USE iom            ! I/O library
    USE lib_mpp        ! distributed memory computing library
@@ -47,13 +52,18 @@ MODULE sbcssm
    INTEGER     ::   jf_ssh         ! index of sea surface height
    INTEGER     ::   jf_e3t         ! index of first T level thickness
    INTEGER     ::   jf_frq         ! index of fraction of qsr absorbed in the 1st T level
+#if defined key_si3
+   INTEGER     ::   jf_ifr         ! index of sea-ice concentration !#LB
+   INTEGER     ::   jf_tic         ! index of sea-ice surface temperature !#LB
+   INTEGER     ::   jf_ial         ! index of sea-ice surface albedo !#LB
+#endif
 
    TYPE(FLD), ALLOCATABLE, DIMENSION(:) :: sf_ssm_3d  ! structure of input fields (file information, fields read)
    TYPE(FLD), ALLOCATABLE, DIMENSION(:) :: sf_ssm_2d  ! structure of input fields (file information, fields read)
 
    !!----------------------------------------------------------------------
    !! NEMO/SAS 4.0 , NEMO Consortium (2018)
-   !! $Id: sbcssm.F90 12615 2020-03-26 15:18:49Z laurent $
+   !! $Id: sbcssm.F90 13286 2020-07-09 15:48:29Z smasson $
    !! Software governed by the CeCILL license (see ./LICENSE)
    !!----------------------------------------------------------------------
 CONTAINS
@@ -72,7 +82,7 @@ CONTAINS
       INTEGER, INTENT(in) ::   Kbb, Kmm   ! ocean time level indices
       ! (not needed for SAS but needed to keep a consistent interface in sbcmod.F90)
       !
-      INTEGER  ::   ji, jj     ! dummy loop indices
+      INTEGER  ::   ji, jj, jl ! dummy loop indices
       REAL(wp) ::   ztinta     ! ratio applied to after  records when doing time interpolation
       REAL(wp) ::   ztintb     ! ratio applied to before records when doing time interpolation
       !!----------------------------------------------------------------------
@@ -83,39 +93,37 @@ CONTAINS
          IF( nfld_3d > 0 ) CALL fld_read( kt, 1, sf_ssm_3d )      !==   read data at kt time step   ==!
          IF( nfld_2d > 0 ) CALL fld_read( kt, 1, sf_ssm_2d )      !==   read data at kt time step   ==!
          !
-         IF( ln_3d_uve ) THEN
-            IF( .NOT. ln_linssh ) THEN
-               e3t_m(:,:) = sf_ssm_3d(jf_e3t)%fnow(:,:,1) * tmask(:,:,1) ! vertical scale factor
-            ELSE
-               e3t_m(:,:) = e3t_0(:,:,1)                                 ! vertical scale factor
-            ENDIF
-            ssu_m(:,:) = sf_ssm_3d(jf_usp)%fnow(:,:,1) * umask(:,:,1)    ! u-velocity
-            ssv_m(:,:) = sf_ssm_3d(jf_vsp)%fnow(:,:,1) * vmask(:,:,1)    ! v-velocity
-         ELSE
-            IF( .NOT. ln_linssh ) THEN
-               e3t_m(:,:) = sf_ssm_2d(jf_e3t)%fnow(:,:,1) * tmask(:,:,1) ! vertical scale factor
-            ELSE
-               e3t_m(:,:) = e3t_0(:,:,1)                                 ! vertical scale factor
-            ENDIF
-            ssu_m(:,:) = sf_ssm_2d(jf_usp)%fnow(:,:,1) * umask(:,:,1)    ! u-velocity
-            ssv_m(:,:) = sf_ssm_2d(jf_vsp)%fnow(:,:,1) * vmask(:,:,1)    ! v-velocity
-         ENDIF
+         e3t_m(:,:) = e3t_0(:,:,1)                                 ! vertical scale factor
+         ssu_m(:,:) = sf_ssm_2d(jf_usp)%fnow(:,:,1) * umask(:,:,1)    ! u-velocity
+         ssv_m(:,:) = sf_ssm_2d(jf_vsp)%fnow(:,:,1) * vmask(:,:,1)    ! v-velocity
          !
+         !#LB:
+#if defined key_si3
+         !IF(lwp) WRITE(numout,*) 'LOLO: sbc_ssm()@sbcssm.F90 => fill "tm_su" and other fields at kt =', kt
+         !IF(lwp) WRITE(numout,*) 'LOLO: sbc_ssm()@sbcssm.F90 => shape of at_i ==>', SIZE(at_i,1), SIZE(at_i,2)
+         at_i (:,:) = sf_ssm_2d(jf_ifr)%fnow(:,:,1) * tmask(:,:,1)    ! sea-ice concentration [fraction]
+         tm_su(:,:) = sf_ssm_2d(jf_tic)%fnow(:,:,1) * tmask(:,:,1)    ! sea-ice surface temperature, read in [K] !#LB
+         sst_m(:,:) = sf_ssm_2d(jf_ial)%fnow(:,:,1) * tmask(:,:,1)    ! !!!sst_m AS TEMPORARY ARRAY !!! sea-ice albedo [fraction]
+         DO jl = 1, jpl
+            !IF(lwp) WRITE(numout,*) 'LOLO: sbc_ssm()@sbcssm.F90 => fill "t_su" for ice cat =', jl
+            a_i    (:,:,jl) = at_i (:,:)
+            a_i_b  (:,:,jl) = at_i (:,:)
+            t_su   (:,:,jl) = tm_su(:,:)
+            alb_ice(:,:,jl) = sst_m(:,:)
+         END DO
+         !IF(lwp) WRITE(numout,*) ''
+#endif
+         !#LB.
          sst_m(:,:) = sf_ssm_2d(jf_tem)%fnow(:,:,1) * tmask(:,:,1)    ! temperature
          sss_m(:,:) = sf_ssm_2d(jf_sal)%fnow(:,:,1) * tmask(:,:,1)    ! salinity
          ssh_m(:,:) = sf_ssm_2d(jf_ssh)%fnow(:,:,1) * tmask(:,:,1)    ! sea surface height
-         IF( ln_read_frq ) THEN
-            frq_m(:,:) = sf_ssm_2d(jf_frq)%fnow(:,:,1) * tmask(:,:,1) ! solar penetration
-         ELSE
-            frq_m(:,:) = 1._wp
-         ENDIF
+         frq_m(:,:) = 1._wp
       ELSE
          sss_m(:,:) = 35._wp                             ! =35. to obtain a physical value for the freezing point
          CALL eos_fzp( sss_m(:,:), sst_m(:,:) )          ! sst_m is set at the freezing point
          ssu_m(:,:) = 0._wp
          ssv_m(:,:) = 0._wp
          ssh_m(:,:) = 0._wp
-         IF( .NOT. ln_linssh ) e3t_m(:,:) = e3t_0(:,:,1) !clem: necessary at least for sas2D
          frq_m(:,:) = 1._wp                              !              - -
          ssh  (:,:,Kmm) = 0._wp                              !              - -
       ENDIF
@@ -135,8 +143,6 @@ CONTAINS
          CALL prt_ctl(tab2d_1=ssu_m, clinfo1=' ssu_m   - : ', mask1=umask   )
          CALL prt_ctl(tab2d_1=ssv_m, clinfo1=' ssv_m   - : ', mask1=vmask   )
          CALL prt_ctl(tab2d_1=ssh_m, clinfo1=' ssh_m   - : ', mask1=tmask   )
-         IF( .NOT.ln_linssh )   CALL prt_ctl(tab2d_1=ssh_m, clinfo1=' e3t_m   - : ', mask1=tmask   )
-         IF( ln_read_frq    )   CALL prt_ctl(tab2d_1=frq_m, clinfo1=' frq_m   - : ', mask1=tmask   )
       ENDIF
       !
       IF( l_initdone ) THEN          !   Mean value at each nn_fsbc time-step   !
@@ -145,8 +151,6 @@ CONTAINS
          CALL iom_put( 'sst_m', sst_m )
          CALL iom_put( 'sss_m', sss_m )
          CALL iom_put( 'ssh_m', ssh_m )
-         IF( .NOT.ln_linssh )   CALL iom_put( 'e3t_m', e3t_m )
-         IF( ln_read_frq    )   CALL iom_put( 'frq_m', frq_m )
       ENDIF
       !
       IF( ln_timing )   CALL timing_stop( 'sbc_ssm')
@@ -174,8 +178,11 @@ CONTAINS
       TYPE(FLD_N) ::   sn_usp, sn_vsp
       TYPE(FLD_N) ::   sn_ssh, sn_e3t, sn_frq
       !!
+      TYPE(FLD_N) ::   sn_ifr, sn_tic, sn_ial ! #LB
+      !!
       NAMELIST/namsbc_sas/ l_sasread, cn_dir, ln_3d_uve, ln_read_frq,   &
-         &                 sn_tem, sn_sal, sn_usp, sn_vsp, sn_ssh, sn_e3t, sn_frq
+         &                 sn_tem, sn_sal, sn_usp, sn_vsp, sn_ssh, sn_e3t, sn_frq, &
+         &                 sn_ifr, sn_tic, sn_ial  ! #LB
       !!----------------------------------------------------------------------
       !
       IF( ln_rstart .AND. nn_components == jp_iam_sas )   RETURN
@@ -195,8 +202,6 @@ CONTAINS
       IF(lwp) THEN                              ! Control print
          WRITE(numout,*) '   Namelist namsbc_sas'
          WRITE(numout,*) '      Initialisation using an input file                                 l_sasread   = ', l_sasread
-         WRITE(numout,*) '      Are we supplying a 3D u,v and e3 field                             ln_3d_uve   = ', ln_3d_uve
-         WRITE(numout,*) '      Are we reading frq (fraction of qsr absorbed in the 1st T level)   ln_read_frq = ', ln_read_frq
       ENDIF
       !
       !! switch off stuff that isn't sensible with a standalone module
@@ -218,6 +223,10 @@ CONTAINS
          IF( lwp ) WRITE(numout,*) '         ==>>>   No freshwater budget adjustment needed with StandAlone Surface scheme'
          nn_fwb = 0
       ENDIF
+      IF( ln_closea ) THEN
+         IF( lwp ) WRITE(numout,*) '         ==>>>   No closed seas adjustment needed with StandAlone Surface scheme'
+         ln_closea = .false.
+      ENDIF
 
       !
       IF( l_sasread ) THEN                       ! store namelist information in an array
@@ -229,20 +238,34 @@ CONTAINS
          !! alternatively if ln_3d_uve is false, 6 for 2d and 1 for 3d), reset nfld_3d, nfld_2d,
          !! and the rest of the logic should still work
          !
-         jf_tem = 1   ;   jf_ssh = 3   ! default 2D fields index
-         jf_sal = 2   ;   jf_frq = 4   !
+         !#LB:
+         jf_tem = 1
+         jf_sal = 2
+         jf_ssh = 3
+         jf_usp = 4
+         jf_vsp = 5
          !
-         IF( ln_3d_uve ) THEN
-            jf_usp = 1   ;   jf_vsp = 2   ;   jf_e3t = 3     ! define 3D fields index
-            nfld_3d  = 2 + COUNT( (/.NOT.ln_linssh/) )       ! number of 3D fields to read
-            nfld_2d  = 3 + COUNT( (/ln_read_frq/) )          ! number of 2D fields to read
-         ELSE
-            jf_usp = 4   ;   jf_e3t = 6                      ! update 2D fields index
-            jf_vsp = 5   ;   jf_frq = 6 + COUNT( (/.NOT.ln_linssh/) )
-            !
-            nfld_3d  = 0                                     ! no 3D fields to read
-            nfld_2d  = 5 + COUNT( (/.NOT.ln_linssh/) ) + COUNT( (/ln_read_frq/) )    ! number of 2D fields to read
-         ENDIF
+         nfld_3d  = 0
+         nfld_2d  = 5
+         !
+#if defined key_si3
+         jf_ifr = jf_vsp + 1
+         jf_tic = jf_vsp + 2
+         jf_ial = jf_vsp + 3
+         nfld_2d = nfld_2d + 3
+
+         !IF(lwp) WRITE(numout,*) 'LOLO: nfld_2d =', nfld_2d
+         !IF(lwp) WRITE(numout,*) 'LOLO: jf_tem =', jf_tem
+         !IF(lwp) WRITE(numout,*) 'LOLO: jf_sal =', jf_sal
+         !IF(lwp) WRITE(numout,*) 'LOLO: jf_ssh =', jf_ssh
+         !IF(lwp) WRITE(numout,*) 'LOLO: jf_usp =', jf_usp
+         !IF(lwp) WRITE(numout,*) 'LOLO: jf_vsp =', jf_vsp
+         !IF(lwp) WRITE(numout,*) 'LOLO: jf_ifr =', jf_ifr
+         !IF(lwp) WRITE(numout,*) 'LOLO: jf_tic =', jf_tic
+         !IF(lwp) WRITE(numout,*) 'LOLO: jf_ial =', jf_ial
+         !IF(lwp) WRITE(numout,*) ''
+#endif
+         !#LB.
          !
          IF( nfld_3d > 0 ) THEN
             ALLOCATE( slf_3d(nfld_3d), STAT=ierr )         ! set slf structure
@@ -251,7 +274,6 @@ CONTAINS
             ENDIF
             slf_3d(jf_usp) = sn_usp
             slf_3d(jf_vsp) = sn_vsp
-            IF( .NOT.ln_linssh )   slf_3d(jf_e3t) = sn_e3t
          ENDIF
          !
          IF( nfld_2d > 0 ) THEN
@@ -260,12 +282,14 @@ CONTAINS
                CALL ctl_stop( 'sbc_ssm_init: unable to allocate slf 2d structure' )   ;   RETURN
             ENDIF
             slf_2d(jf_tem) = sn_tem   ;   slf_2d(jf_sal) = sn_sal   ;   slf_2d(jf_ssh) = sn_ssh
-            IF( ln_read_frq )   slf_2d(jf_frq) = sn_frq
-            IF( .NOT. ln_3d_uve ) THEN
-               slf_2d(jf_usp) = sn_usp ; slf_2d(jf_vsp) = sn_vsp
-               IF( .NOT.ln_linssh )   slf_2d(jf_e3t) = sn_e3t
-            ENDIF
+            slf_2d(jf_usp) = sn_usp ; slf_2d(jf_vsp) = sn_vsp
          ENDIF
+         !
+#if defined key_si3
+         slf_2d(jf_ifr) = sn_ifr   !#LB
+         slf_2d(jf_tic) = sn_tic   !#LB
+         slf_2d(jf_ial) = sn_ial   !#LB
+#endif
          !
          ierr1 = 0    ! default definition if slf_?d(ifpr)%ln_tint = .false.
          IF( nfld_3d > 0 ) THEN

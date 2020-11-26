@@ -45,9 +45,14 @@ MODULE nemogcm
 
    CHARACTER(lc) ::   cform_aaa="( /, 'AAAAAAAA', / ) "     ! flag for output listing
 
+#if defined key_mpp_mpi
+   ! need MPI_Wtime
+   INCLUDE 'mpif.h'
+#endif
+
    !!----------------------------------------------------------------------
    !! NEMO/OCE 4.0 , NEMO Consortium (2018)
-   !! $Id: nemogcm.F90 12489 2020-02-28 15:55:11Z davestorkey $
+   !! $Id: nemogcm.F90 13286 2020-07-09 15:48:29Z smasson $
    !! Software governed by the CeCILL license (see ./LICENSE)
    !!----------------------------------------------------------------------
 CONTAINS
@@ -108,7 +113,7 @@ CONTAINS
       CALL nemo_closefile
       !
 #if defined key_iomput
-                                    CALL xios_finalize  ! end mpp communications with xios
+      CALL xios_finalize  ! end mpp communications with xios
 #else
       IF( lk_mpp )                  CALL mppstop      ! end mpp communications
 #endif
@@ -130,9 +135,8 @@ CONTAINS
       !!----------------------------------------------------------------------
       INTEGER ::   ios, ilocal_comm   ! local integers
       !!
-      NAMELIST/namctl/ sn_cfctl,  nn_print, nn_ictls, nn_ictle,             &
-         &             nn_isplt , nn_jsplt, nn_jctls, nn_jctle,             &
-         &             ln_timing, ln_diacfl
+      NAMELIST/namctl/ sn_cfctl, ln_timing, ln_diacfl,                                &
+         &             nn_isplt,  nn_jsplt,  nn_ictls, nn_ictle, nn_jctls, nn_jctle
       NAMELIST/namcfg/ ln_read_cfg, cn_domcfg, ln_closea, ln_write_cfg, cn_domcfg_out, ln_use_jattr
       !!----------------------------------------------------------------------
       !
@@ -145,11 +149,11 @@ CONTAINS
       !
 #if defined key_iomput
       IF( Agrif_Root() ) THEN
-            CALL xios_initialize( "for_xios_mpi_id", return_comm=ilocal_comm )   ! nemo local communicator given by xios
+         CALL xios_initialize( "for_xios_mpi_id", return_comm=ilocal_comm )   ! nemo local communicator given by xios
       ENDIF
       CALL mpp_start( ilocal_comm )
 #else
-         CALL mpp_start( )
+      CALL mpp_start( )
 #endif
       !
       narea = mpprank + 1               ! mpprank: the rank of proc (0 --> mppsize -1 )
@@ -162,18 +166,17 @@ CONTAINS
       ! open ocean.output as soon as possible to get all output prints (including errors messages)
       IF( lwm )   CALL ctl_opn(     numout,        'ocean.output', 'REPLACE', 'FORMATTED', 'SEQUENTIAL', -1, -1, .FALSE. )
       ! open reference and configuration namelist files
-                  CALL load_nml( numnam_ref,        'namelist_ref',                                           -1, lwm )
-                  CALL load_nml( numnam_cfg,        'namelist_cfg',                                           -1, lwm )
+      CALL load_nml( numnam_ref,        'namelist_ref',                                           -1, lwm )
+      CALL load_nml( numnam_cfg,        'namelist_cfg',                                           -1, lwm )
       IF( lwm )   CALL ctl_opn(     numond, 'output.namelist.dyn', 'REPLACE', 'FORMATTED', 'SEQUENTIAL', -1, -1, .FALSE. )
       ! open /dev/null file to be able to supress output write easily
       IF( Agrif_Root() ) THEN
-                  CALL ctl_opn(     numnul,           '/dev/null', 'REPLACE', 'FORMATTED', 'SEQUENTIAL', -1, -1, .FALSE. )
+         CALL ctl_opn(     numnul,           '/dev/null', 'REPLACE', 'FORMATTED', 'SEQUENTIAL', -1, -1, .FALSE. )
 #ifdef key_agrif
       ELSE
-                  numnul = Agrif_Parent(numnul)   
+         numnul = Agrif_Parent(numnul)
 #endif
       ENDIF
-      !
       !                             !--------------------!
       !                             ! Open listing units !  -> need sn_cfctl from namctl to define lwp
       !                             !--------------------!
@@ -214,6 +217,14 @@ CONTAINS
          WRITE(numout,*) "       )  ) jgs                     `    (   (   "
          WRITE(numout,*) "     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ "
          WRITE(numout,*)
+
+         ! Print the working precision to ocean.output
+         IF (wp == dp) THEN
+            WRITE(numout,*) "Working precision = double-precision"
+         ELSE
+            WRITE(numout,*) "Working precision = single-precision"
+         ENDIF
+         WRITE(numout,*)
          !
          WRITE(numout,cform_aaa)                                        ! Flag AAAAAAA
          !
@@ -228,12 +239,12 @@ CONTAINS
       READ  ( numnam_ref, namcfg, IOSTAT = ios, ERR = 903 )
 903   IF( ios /= 0 )   CALL ctl_nam ( ios , 'namcfg in reference namelist' )
       READ  ( numnam_cfg, namcfg, IOSTAT = ios, ERR = 904 )
-904   IF( ios >  0 )   CALL ctl_nam ( ios , 'namcfg in configuration namelist' )   
+904   IF( ios >  0 )   CALL ctl_nam ( ios , 'namcfg in configuration namelist' )
       !
       IF( ln_read_cfg ) THEN            ! Read sizes in domain configuration file
-         CALL domain_cfg ( cn_cfg, nn_cfg, jpiglo, jpjglo, jpkglo, jperio )
+         CALL domain_cfg ( cn_cfg, nn_cfg, Ni0glo, Nj0glo, jpkglo, jperio )
       ELSE                              ! user-defined namelist
-         CALL usr_def_nam( cn_cfg, nn_cfg, jpiglo, jpjglo, jpkglo, jperio )
+         CALL usr_def_nam( cn_cfg, nn_cfg, Ni0glo, Nj0glo, jpkglo, jperio )
       ENDIF
       !
       IF(lwm)   WRITE( numond, namcfg )
@@ -259,18 +270,24 @@ CONTAINS
       IF( ln_timing    )   CALL timing_init     ! timing
       IF( ln_timing    )   CALL timing_start( 'nemo_init')
       !
-                           CALL     phy_cst         ! Physical constants
-                           CALL     eos_init        ! Equation of state
+      CALL     phy_cst         ! Physical constants
+      CALL     eos_init        ! Equation of state
       IF( lk_c1d       )   CALL     c1d_init        ! 1D column configuration
-                           CALL     dom_init( Nbb, Nnn, Naa, "OPA") ! Domain
+      CALL     dom_init( Nbb, Nnn, Naa, "OPA") ! Domain
       IF( sn_cfctl%l_prtctl )   &
          &                 CALL prt_ctl_init        ! Print control
-      !
-      
-                           CALL  istate_init( Nbb, Nnn, Naa )    ! ocean initial state (Dynamics and tracers)
 
-      !                                      ! external forcing 
-                           CALL     sbc_init( Nbb, Nnn, Naa )    ! surface boundary conditions (including sea-ice)
+      CALL  istate_init( Nbb, Nnn, Naa )    ! ocean initial state (Dynamics and tracers)
+
+      !                                      ! external forcing
+      CALL     sbc_init( Nbb, Nnn, Naa )    ! surface boundary conditions (including sea-ice)
+
+      !#LB:
+#if defined key_si3
+      IF(lwp) WRITE(numout,*) 'LOLO: nemo_init@nemogcm.F90: shape of fr_i ==>', SIZE(fr_i,1), SIZE(fr_i,2)
+      fr_i(:,:) = 0._wp
+#endif
+      !#LB.
 
       !
       IF(lwp) WRITE(numout,cform_aaa)           ! Flag AAAAAAA
@@ -301,29 +318,15 @@ CONTAINS
          WRITE(numout,*) '                              sn_cfctl%l_prtctl  = ', sn_cfctl%l_prtctl
          WRITE(numout,*) '                              sn_cfctl%l_prttrc  = ', sn_cfctl%l_prttrc
          WRITE(numout,*) '                              sn_cfctl%l_oasout  = ', sn_cfctl%l_oasout
-         WRITE(numout,*) '                              sn_cfctl%procmin   = ', sn_cfctl%procmin  
-         WRITE(numout,*) '                              sn_cfctl%procmax   = ', sn_cfctl%procmax  
-         WRITE(numout,*) '                              sn_cfctl%procincr  = ', sn_cfctl%procincr 
-         WRITE(numout,*) '                              sn_cfctl%ptimincr  = ', sn_cfctl%ptimincr 
-         WRITE(numout,*) '      level of print                  nn_print   = ', nn_print
-         WRITE(numout,*) '      Start i indice for SUM control  nn_ictls   = ', nn_ictls
-         WRITE(numout,*) '      End i indice for SUM control    nn_ictle   = ', nn_ictle
-         WRITE(numout,*) '      Start j indice for SUM control  nn_jctls   = ', nn_jctls
-         WRITE(numout,*) '      End j indice for SUM control    nn_jctle   = ', nn_jctle
-         WRITE(numout,*) '      number of proc. following i     nn_isplt   = ', nn_isplt
-         WRITE(numout,*) '      number of proc. following j     nn_jsplt   = ', nn_jsplt
+         WRITE(numout,*) '                              sn_cfctl%procmin   = ', sn_cfctl%procmin
+         WRITE(numout,*) '                              sn_cfctl%procmax   = ', sn_cfctl%procmax
+         WRITE(numout,*) '                              sn_cfctl%procincr  = ', sn_cfctl%procincr
+         WRITE(numout,*) '                              sn_cfctl%ptimincr  = ', sn_cfctl%ptimincr
          WRITE(numout,*) '      timing by routine               ln_timing  = ', ln_timing
          WRITE(numout,*) '      CFL diagnostics                 ln_diacfl  = ', ln_diacfl
       ENDIF
       !
-      nprint    = nn_print          ! convert DOCTOR namelist names into OLD names
-      nictls    = nn_ictls
-      nictle    = nn_ictle
-      njctls    = nn_jctls
-      njctle    = nn_jctle
-      isplt     = nn_isplt
-      jsplt     = nn_jsplt
-
+      IF( .NOT.ln_read_cfg )   ln_closea = .false.   ! dealing possible only with a domcfg file
       IF(lwp) THEN                  ! control print
          WRITE(numout,*)
          WRITE(numout,*) '   Namelist namcfg'
@@ -333,46 +336,6 @@ CONTAINS
          WRITE(numout,*) '      create a configuration definition file        ln_write_cfg     = ', ln_write_cfg
          WRITE(numout,*) '         filename to be written                        cn_domcfg_out = ', TRIM(cn_domcfg_out)
          WRITE(numout,*) '      use file attribute if exists as i/p j-start   ln_use_jattr     = ', ln_use_jattr
-      ENDIF
-      IF( .NOT.ln_read_cfg )   ln_closea = .false.   ! dealing possible only with a domcfg file
-      !
-      !                             ! Parameter control
-      !
-      IF( sn_cfctl%l_prtctl .OR. sn_cfctl%l_prttrc ) THEN              ! sub-domain area indices for the control prints
-         IF( lk_mpp .AND. jpnij > 1 ) THEN
-            isplt = jpni   ;   jsplt = jpnj   ;   ijsplt = jpni*jpnj   ! the domain is forced to the real split domain
-         ELSE
-            IF( isplt == 1 .AND. jsplt == 1  ) THEN
-               CALL ctl_warn( ' - isplt & jsplt are equal to 1',   &
-                  &           ' - the print control will be done over the whole domain' )
-            ENDIF
-            ijsplt = isplt * jsplt            ! total number of processors ijsplt
-         ENDIF
-         IF(lwp) WRITE(numout,*)'          - The total number of processors over which the'
-         IF(lwp) WRITE(numout,*)'            print control will be done is ijsplt : ', ijsplt
-         !
-         !                              ! indices used for the SUM control
-         IF( nictls+nictle+njctls+njctle == 0 )   THEN    ! print control done over the default area
-            lsp_area = .FALSE.
-         ELSE                                             ! print control done over a specific  area
-            lsp_area = .TRUE.
-            IF( nictls < 1 .OR. nictls > jpiglo )   THEN
-               CALL ctl_warn( '          - nictls must be 1<=nictls>=jpiglo, it is forced to 1' )
-               nictls = 1
-            ENDIF
-            IF( nictle < 1 .OR. nictle > jpiglo )   THEN
-               CALL ctl_warn( '          - nictle must be 1<=nictle>=jpiglo, it is forced to jpiglo' )
-               nictle = jpiglo
-            ENDIF
-            IF( njctls < 1 .OR. njctls > jpjglo )   THEN
-               CALL ctl_warn( '          - njctls must be 1<=njctls>=jpjglo, it is forced to 1' )
-               njctls = 1
-            ENDIF
-            IF( njctle < 1 .OR. njctle > jpjglo )   THEN
-               CALL ctl_warn( '          - njctle must be 1<=njctle>=jpjglo, it is forced to jpjglo' )
-               njctle = jpjglo
-            ENDIF
-         ENDIF
       ENDIF
       !
       IF( 1._wp /= SIGN(1._wp,-0._wp)  )   CALL ctl_stop( 'nemo_ctl: The intrinsec SIGN function follows f2003 standard.',  &
@@ -419,7 +382,7 @@ CONTAINS
       INTEGER :: ierr
       !!----------------------------------------------------------------------
       !
-      ierr =        oce_alloc    ()    ! ocean 
+      ierr =        oce_alloc    ()    ! ocean
       ierr = ierr + dia_wri_alloc()
       ierr = ierr + dom_oce_alloc()    ! ocean domain
       !
@@ -428,7 +391,7 @@ CONTAINS
       !
    END SUBROUTINE nemo_alloc
 
-   
+
    SUBROUTINE nemo_set_cfctl(sn_cfctl, setto )
       !!----------------------------------------------------------------------
       !!                     ***  ROUTINE nemo_set_cfctl  ***
@@ -452,4 +415,3 @@ CONTAINS
 
    !!======================================================================
 END MODULE nemogcm
-

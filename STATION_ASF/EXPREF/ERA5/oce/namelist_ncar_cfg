@@ -1,7 +1,7 @@
 !!>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 !! NEMO/OCE  Configuration namelist : overwrite default values defined in SHARED/namelist_ref
 !!>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-!!             STATION_ASF configuration   
+!!             STATION_ASF configuration, <FORCING> forcing
 !!======================================================================
 !!              ***  Domain & Run management namelists  ***           !!
 !!                                                                    !!
@@ -20,61 +20,36 @@
 &namusr_def    !   STATION_ASF user defined namelist
 !-----------------------------------------------------------------------
    rn_dept1    =  1.0   ! depth (m) at which the prescribed SST is taken  == depth of first T point! (IMPORTANT for warm-layer impact, the deeper, the more pronounced!)
-   !                    ! [PAPA station = 1 m]
+   !                    ! [ERA5_NorthGreenland station = 1 m]
 /
 !-----------------------------------------------------------------------
 &namrun        !   parameters of the run
 !-----------------------------------------------------------------------
-   nn_no       =       0   !  Assimilation cycle index
-   cn_exp      =  'STATION_ASF-COARE3p6-noskin'  !  experience name
+   cn_exp      =  'STATION_ASF-NCAR_<FORCING>'  !  experience name
    nn_it000    =    1   !  first time step
-!!!   nn_itend    =    26304   !  last  time step => 3 years (including 1 leap!) at dt=3600s
-!!!   nn_date0    =    20160101   !  date at nit_0000 (format yyyymmdd) used if ln_rstart=F or (ln_rstart=T and nn_rstctl=0 or 1)
    nn_itend    =    8760   !  last  time step => 3 years (including 1 leap!) at dt=3600s
    nn_date0    = 20180101  !  date at nit_0000 (format yyyymmdd) used if ln_rstart=F or (ln_rstart=T and nn_rstctl=0 or 1)
-   nn_time0    =       0   !  initial time of day in hhmm
    nn_leapy    =       1   !  Leap year calendar (1) or not (0)
-   ln_rstart   = .false.   !  start from rest (F) or from a restart file (T)
-      ln_1st_euler = .false.  !  =T force a start with forward time step (ln_rstart=T)
-      nn_rstctl   = 2      !  restart control ==> activated only if ln_rstart=T
-      !                          !    = 0 nn_date0 read in namelist ; nn_it000 : read in namelist
-      !                          !    = 1 nn_date0 read in namelist ; nn_it000 : check consistancy between namelist and restart
-      !                          !    = 2 nn_date0 read in restart  ; nn_it000 : check consistancy between namelist and restart
-      cn_ocerst_in    = ''   !  suffix of ocean restart name (input)
-      cn_ocerst_indir = ''         !  directory from which to read input ocean restarts
-      cn_ocerst_out   = 'restart_oce'   !  suffix of ocean restart name (output)
-      cn_ocerst_outdir = './'         !  directory in which to write output ocean restarts
-   nn_istate   =       0   !  output the initial state (1) or not (0)
-   ln_rst_list = .false.   !  output restarts at list of times using nn_stocklist (T) or at set frequency with nn_stock (F)
-   !!
-!!!   nn_stock    =    26304   ! 3 years (including 1 leap!) at dt=3600s / frequency of creation of a restart file (modulo referenced to 1)
-!!!   nn_write    =    26304   ! 3 years (including 1 leap!) at dt=3600s / frequency of write in the output file   (modulo referenced to nn_it000)
+   !
    nn_stock    =    8760   ! 1 year at dt=3600s / frequency of creation of a restart file (modulo referenced to 1)
    nn_write    =    8760   ! 1 year at dt=3600s / frequency of write in the output file   (modulo referenced to nn_it000)
-   !!
-   ln_mskland  = .false.   !  mask land points in NetCDF outputs (costly: + ~15%)
-   ln_cfmeta   = .false.   !  output additional data to netCDF files required for compliance with the CF metadata standard
-   ln_clobber  = .true.    !  clobber (overwrite) an existing file
-   nn_chunksz  =       0   !  chunksize (bytes) for NetCDF file (works only with iom_nf90 routines)
-   ln_xios_read = .false.  !  use XIOS to read restart file (only for a single file restart)
-   nn_wxios = 0      !  use XIOS to write restart file 0 - no, 1 - single file output, 2 - multiple file output
 /
 !-----------------------------------------------------------------------
 &namdom        !   time and space domain / STATION_ASF
 !-----------------------------------------------------------------------
-   rn_Dt      =  3600.    !  time step for the dynamics and tracer => frequency of atmospheric forcing
-   ln_meshmask = .false.
    ln_linssh   = .true.    !  =T  linear free surface  ==>>  model level are fixed in time
+   rn_Dt       =  3600.    !  time step for the dynamics and tracer => frequency of atmospheric forcing
+   ln_meshmask = .false.
 /
 !-----------------------------------------------------------------------
 &namcfg        !   parameters of the configuration                      (default: use namusr_def in namelist_cfg)
 !-----------------------------------------------------------------------
 /
 !-----------------------------------------------------------------------
-&namc1d        !   1D configuration options / STATION_ASF               ("key_c1d" default: PAPA station)
+&namc1d        !   1D configuration options / STATION_ASF
 !-----------------------------------------------------------------------
-   rn_lat1d    =      50.1 !  Column latitude    [PAPA station]
-   rn_lon1d    =    215.1  !  Column longitude   [PAPA station]
+   rn_lat1d    =   84. !  Column latitude    [ERA5_NorthGreenland station]
+   rn_lon1d    =  324. !  Column longitude   [ERA5_NorthGreenland station]
 /
 !-----------------------------------------------------------------------
 &namc1d_dyndmp !   U & V newtonian damping                              ("key_c1d" default: OFF)
@@ -99,7 +74,7 @@
 !!======================================================================
 !!            ***  Surface Boundary Condition namelists  ***          !!
 !!                                                                    !!
-!!                           STATION_ASF case                         !!
+!!                           STATION_ASF test-case                         !!
 !!                                                                    !!
 !!   namsbc          surface boundary condition manager                 (default: NO selection)
 !!   namsbc_flx      flux               formulation                     (ln_flx     =T)
@@ -107,6 +82,7 @@
 !!   namsbc_cpl      CouPLed            formulation                     ("key_oasis3" )
 !!   namsbc_sas      Stand-Alone Surface module                         (SAS_SRC  only)
 !!   namsbc_iif      Ice-IF: use observed ice cover                     (nn_ice = 1   )
+!!   namtra_qsr      penetrative solar radiation                        (ln_traqsr  =T)
 !!   namsbc_ssr      sea surface restoring term (for T and/or S)        (ln_ssr     =T)
 !!   namsbc_rnf      river runoffs                                      (ln_rnf     =T)
 !!   namsbc_apr      Atmospheric Pressure                               (ln_apr_dyn =T)
@@ -119,39 +95,46 @@
 !-----------------------------------------------------------------------
    nn_fsbc     = 1         !!LOLO!  frequency of SBC module call
    ln_blk      = .true.    !  Bulk formulation                          (T => fill namsbc_blk )
+   !
+   nn_ice      = 0  !LOLO  !  =0 no ice boundary condition
+      !                    !  =1 use observed ice-cover                 (  => fill namsbc_iif )
+      !                    !  =2 or 3 for SI3 and CICE, respectively
+   !    
+   ln_dm2dc    = .false.   !#lolo  daily mean to diurnal cycle on short wave
 /
 !-----------------------------------------------------------------------
 &namsbc_blk    !   namsbc_blk  generic Bulk formula / STATION_ASF       (ln_blk =T)
 !-----------------------------------------------------------------------
    !                    !  bulk algorithm :
-   ln_NCAR      = .false.   ! "NCAR"      algorithm   (Large and Yeager 2008)
-   ln_COARE_3p0 = .false.   ! "COARE 3.0" algorithm   (Fairall et al. 2003)
-   ln_COARE_3p6 = .true.    ! "COARE 3.5" algorithm   (Edson et al. 2013)
-   ln_ECMWF     = .false.   ! "ECMWF"     algorithm   (IFS cycle 45r1)
-      rn_zqt    =  2.5      !  Air temperature & humidity reference height (m) [PAPA station]
-      rn_zu     =  4.       !  Wind vector reference height (m)                [PAPA station]
-      !
-      ! Skin is ONLY available in ECMWF and COARE algorithms:
-      ln_skin_cs = .false.  !  use the cool-skin parameterization => set nn_fsbc=1 and ln_dm2dc=.true.!
-      ln_skin_wl = .false.  !  use the warm-layer        "        => set nn_fsbc=1 and ln_dm2dc=.true.!
-      !
-      ln_humi_sph = .false. !  humidity specified below in "sn_humi" is specific humidity     [kg/kg] if .true.
-      ln_humi_dpt = .false. !  humidity specified below in "sn_humi" is dew-point temperature   [K]   if .true.
-      ln_humi_rlh = .true.  !  humidity specified below in "sn_humi" is relative humidity       [%]   if .true.
+   ln_NCAR      = .true.     ! "NCAR"      algorithm   (Large and Yeager 2008)
+   ln_COARE_3p0 = .false.    ! "COARE 3.0" algorithm   (Fairall et al. 2003)
+   ln_COARE_3p6 = .false.    ! "COARE 3.6" algorithm   (Edson et al. 2013)
+   ln_ECMWF     = .false.    ! "ECMWF"     algorithm   (IFS cycle 45r1)
+   ln_ANDREAS   = .false.    ! "ANDREAS"   algorithm   (Andreas et al. 2015)
+      rn_zqt       =  2.     !  Air temperature & humidity reference height (m)
+      rn_zu        = 10.     !  Wind vector reference height (m)
+      nn_iter_algo = 20      !  Number of iterations in bulk param. algo ("stable ABL + weak wind" requires more)
+      ln_skin_cs   = .false. !  use the cool-skin parameterization
+      ln_skin_wl   = .false. !  use the warm-layer parameterization
    !
-   cn_dir = './'  !  root directory for the bulk data location
+   ln_humi_sph = .false. !  humidity "sn_humi" is specific humidity  [kg/kg]
+   ln_humi_dpt = .true.  !  humidity "sn_humi" is dew-point temperature [K]
+   ln_humi_rlh = .false. !  humidity "sn_humi" is relative humidity     [%]
+   ln_tair_pot = .false. !  air temperature read in "sn_tair" is already POTENTIAL TEMPERATURE, NOT ABSOLUTE (ECMWF => ln_tair_pot=.false.)
+   !
+   cn_dir      = './'      !  root directory for the bulk data location
    !___________!_________________________!___________________!___________!_____________!________!___________!______________________________________!__________!_______________!
    !           !  file name              ! frequency (hours) ! variable  ! time interp.!  clim  ! 'yearly'/ !       weights filename               ! rotation ! land/sea mask !
    !           !                         !  (if <0  months)  !   name    !   (logical) !  (T/F) ! 'monthly' !                                      ! pairing  !    filename   !
-   sn_wndi     = 'Station_PAPA_50N-145W_atm_hourly',  1.  , 'u_air',    .true.     , .false. , 'yearly'  , ''   ,''   , ''
-   sn_wndj     = 'Station_PAPA_50N-145W_atm_hourly',  1.  , 'v_air',    .true.     , .false. , 'yearly'  , ''   ,''   , ''
-   sn_qsr      = 'Station_PAPA_50N-145W_atm_hourly',  1.  , 'rad_sw',   .false.    , .false. , 'yearly'  , ''  , ''   , ''
-   sn_qlw      = 'Station_PAPA_50N-145W_atm_hourly',  1.  , 'rad_lw',   .false.    , .false. , 'yearly'  , ''  , ''   , ''
-   sn_tair     = 'Station_PAPA_50N-145W_atm_hourly',  1.  , 't_air',    .true.     , .false. , 'yearly'  , ''  , ''   , ''
-   sn_humi     = 'Station_PAPA_50N-145W_atm_hourly',  1.  , 'rh_air',   .true.     , .false. , 'yearly'  , ''  , ''   , ''
-   sn_prec     = 'Station_PAPA_50N-145W_precip_daily', 24., 'precip',   .false.    , .false. , 'yearly'  , ''  , ''   , ''
-   sn_snow     = 'Station_PAPA_50N-145W_precip_daily', 24., 'snow',     .false.    , .false. , 'yearly'  , ''  , ''   , ''
-   sn_slp      = 'Station_PAPA_50N-145W_atm_hourly',  1.  , 'slp',      .true.     , .false. , 'yearly'  , ''  , ''   , ''
+   sn_wndi     = '<SFORC>',  1.  ,  'u10'    ,   .true.    , .false. , 'yearly'  , ''   ,''   , ''
+   sn_wndj     = '<SFORC>',  1.  ,  'v10'    ,   .true.    , .false. , 'yearly'  , ''   ,''   , ''
+   sn_qsr      = '<SFORC>',  1.  ,  'ssrd'   ,   .false.   , .false. , 'yearly'  , ''  , ''   , ''
+   sn_qlw      = '<SFORC>',  1.  ,  'strd'   ,   .false.   , .false. , 'yearly'  , ''  , ''   , ''
+   sn_tair     = '<SFORC>',  1.  ,  't2m'    ,   .true.    , .false. , 'yearly'  , ''  , ''   , ''
+   sn_humi     = '<SFORC>',  1.  ,  'd2m'    ,   .true.    , .false. , 'yearly'  , ''  , ''   , ''
+   sn_prec     = '<SFORC>',  1.  ,  'tp'     ,   .false.   , .false. , 'yearly'  , ''  , ''   , ''
+   sn_snow     = '<SFORC>',  1.  ,  'sf'     ,   .false.   , .false. , 'yearly'  , ''  , ''   , ''
+   sn_slp      = '<SFORC>',  1.  ,  'msl'    ,   .true.    , .false. , 'yearly'  , ''  , ''   , ''
 /
 !-----------------------------------------------------------------------
 &namsbc_abl    !   Atmospheric Boundary Layer formulation           (ln_abl = T)
@@ -165,20 +148,16 @@
 &namsbc_sas    !   Stand-Alone Surface boundary condition / STATION_ASF
 !-----------------------------------------------------------------------
    l_sasread   = .true.    !  =T Read in file ;  =F set all to 0. (see sbcssm)
-      ln_3d_uve   = .false.   !  specify whether we are supplying a 3D u,v and e3 field
-      ln_read_frq = .false.   !  specify whether we must read frq or not
-
-   cn_dir      = './'     !  root directory for the ocean data location
+   !
+   cn_dir      = './'      !  root directory for the ocean data location
    !___________!_________________________!___________________!___________!_____________!________!___________!__________________!__________!_______________!
    !           !  file name              ! frequency (hours) ! variable  ! time interp.!  clim  ! 'yearly'/ ! weights filename ! rotation ! land/sea mask !
    !           !                         !  (if <0  months)  !   name    !   (logical) !  (T/F) ! 'monthly' !                  ! pairing  !    filename   !
-   sn_usp  = 'Station_PAPA_50N-145W_oce_hourly', 1.         , 'ssu'     ,   .true.    , .false. , 'yearly'  ,    ''            ,    ''    ,    ''
-   sn_vsp  = 'Station_PAPA_50N-145W_oce_hourly', 1.         , 'ssv'     ,   .true.    , .false. , 'yearly'  ,    ''            ,    ''    ,    ''
-   sn_tem  = 'Station_PAPA_50N-145W_oce_hourly', 1.         , 'sst',        .true.    , .false. , 'yearly'  ,    ''            ,    ''    ,    ''
-   sn_sal  = 'Station_PAPA_50N-145W_oce_hourly', 1.         , 'sss',        .true.    , .false. , 'yearly'  ,    ''            ,    ''    ,    ''
-   sn_ssh  = 'Station_PAPA_50N-145W_oce_hourly', 1.         , 'ssh',        .true.    , .false. , 'yearly'  ,    ''            ,    ''    ,    ''
-   sn_e3t  = 'Station_PAPA_50N-145W_oce_hourly', 1.         , 'e3t_m'   ,   .true.    , .false. , 'yearly'  ,    ''            ,    ''    ,    ''
-   sn_frq  = 'Station_PAPA_50N-145W_oce_hourly', 1.         , 'frq_m'   ,   .true.    , .false. , 'yearly'  ,    ''            ,    ''    ,    ''
+   sn_usp  = '<SFORC>', 1.         , 'ssu'     ,   .true.    , .false. , 'yearly'  ,    ''            ,    ''    ,    ''
+   sn_vsp  = '<SFORC>', 1.         , 'ssv'     ,   .true.    , .false. , 'yearly'  ,    ''            ,    ''    ,    ''
+   sn_tem  = '<SFORC>', 1.         , 'sst'     ,   .true.    , .false. , 'yearly'  ,    ''            ,    ''    ,    ''
+   sn_sal  = '<SFORC>', 1.         , 'sss',        .true.    , .false. , 'yearly'  ,    ''            ,    ''    ,    ''
+   sn_ssh  = '<SFORC>', 1.         , 'ssh',        .true.    , .false. , 'yearly'  ,    ''            ,    ''    ,    ''
 /
 !!======================================================================
 !!               ***  Lateral boundary condition  ***                 !!
@@ -220,7 +199,7 @@
 !-----------------------------------------------------------------------
 &nameos        !   ocean Equation Of Seawater                           (default: NO selection)
 !-----------------------------------------------------------------------
-   ln_eos80    = .true.          !  = Use EOS80
+   ln_eos80    = .true.         !  = Use EOS80
 /
 !!======================================================================
 !!                      ***  Dynamics namelists  ***                  !!

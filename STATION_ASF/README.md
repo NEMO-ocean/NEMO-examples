@@ -196,11 +196,10 @@ The namelists for the `ERA5_NorthGreenland` forcing are located into `ERA5/oce+i
 ### Compiling and launching STATION_ASF simulations
 
 First compile the test-case as follows (compile with xios-2.5 support → check your ARCH file):
-```$ ./makenemo -a STATION_ASF -m <your_arch> -n STATION_ASF2 -j 4```
 
-Move to: ```tests/STATION_ASF/EXPREF/```
+    $ ./makenemo -a STATION_ASF -m <your_arch> -n STATION_ASF2 -j 4
 
-There, you can use the script ``launch_sasf.sh`` to launch `STATION_ASF` simulations. You need to adapt the following variable to your environment in the script:
+Move to `tests/STATION_ASF/EXPREF/`, there, you can use the script ``launch_sasf.sh`` to launch `STATION_ASF` simulations. You need to adapt the following variable to your environment in the script:
 
 - ```CONFIG_BLD``` : the name of the sub-directory of `tests/` in which `STATION_ASF` has been compiled (default: `CONFIG_BLD="STATION_ASF2"`)
 
@@ -212,7 +211,8 @@ There, you can use the script ``launch_sasf.sh`` to launch `STATION_ASF` simulat
 
 
 Now, it's time to launch simulations: 
-```$ ./launch_sasf.sh```
+
+    $ ./launch_sasf.sh
 
 If everything goes according to plan, ``launch_sasf.sh`` should have generated the 4 following sets of output files into `${PROD_DIR}/output` (example for PAPA forcing, 4 algos tested):
 
@@ -233,16 +233,22 @@ If everything goes according to plan, ``launch_sasf.sh`` should have generated t
 #### Post-processing and figures
 
 Use the `plot_station_asf_OCE.py` script (Python 3) to generate a multitude of figures that compares the *open ocean* transfer coefficients and fluxes between the 4 algorithms, in our case with the `PAPA` forcing:
-```$ ./plot_station_asf_OCE.py -d <PROD_DIR> -f PAPA ```
+
+    $ ./plot_station_asf_OCE.py -d <PROD_DIR> -f PAPA
+
 Example of a comparison plot:
 ![plot](https://github.com/NEMO-ocean/NEMO-examples/blob/master/STATION_ASF/figs/Cd_PAPA_open-ocean.svg)
 
 If you have used a forcing with sea-ice support, such as `ERA5_NorthGreenland`, you can do the same for *sea-ice* transfer coefficients and fluxes, which will compare *air-ice* bulk algorithms:
-```$ ./plot_station_asf_ICE.py -d <PROD_DIR> -f ERA5_NorthGreenland ```
+
+    $ ./plot_station_asf_ICE.py -d <PROD_DIR> -f ERA5_NorthGreenland
+
 Example of a comparison plot:
 ![plot](https://github.com/NEMO-ocean/NEMO-examples/blob/master/STATION_ASF/figs/Cd_ERA5_NorthGreenland_sea-ice.svg)
-Note that when sea-ice support is enabled, typically by using the following `FORCING` configuration in script `launch_sasf.sh`:
-```FORCING="ERA5_NorthGreenland" ; i_sea_ice=1 ; SFORC="ERA5_NorthGreenland_surface_84N_-36E_1h"```
+Note: when sea-ice support is enabled, typically by using the following `FORCING` configuration in script `launch_sasf.sh`:
+
+    FORCING="ERA5_NorthGreenland" ; i_sea_ice=1 ; SFORC="ERA5_NorthGreenland_surface_84N_-36E_1h"
+    
 the fact that `i_sea_ice=1` trigers the computation of *air-ice* fluxes with different bulk *air-ice* algorithms, over the remaining open-ocean fraction the same *air-sea* algorithm is used: `ECMWF`.
 
 

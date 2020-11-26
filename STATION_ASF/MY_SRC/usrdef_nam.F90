@@ -12,16 +12,15 @@ MODULE usrdef_nam
 
    !!----------------------------------------------------------------------
    !!   usr_def_nam   : read user defined namelist and set global domain size
-   !!   usr_def_hgr   : initialize the horizontal mesh 
+   !!   usr_def_hgr   : initialize the horizontal mesh
    !!----------------------------------------------------------------------
    USE dom_oce  , ONLY: nimpp, njmpp       ! ocean space and time domain
-!!!   USE dom_oce  , ONLY: ln_zco, ln_zps, ln_sco   ! flag of type of coordinate
    USE par_oce        ! ocean space and time domain
    USE phycst         ! physical constants
    !
    USE in_out_manager ! I/O manager
    USE lib_mpp        ! MPP library
-   
+
    IMPLICIT NONE
    PRIVATE
 
@@ -32,7 +31,7 @@ MODULE usrdef_nam
 
    !!----------------------------------------------------------------------
    !! NEMO/OCE 4.0 , NEMO Consortium (2018)
-   !! $Id: usrdef_nam.F90 12377 2020-02-12 14:39:06Z acc $ 
+   !! $Id: usrdef_nam.F90 13216 2020-07-02 09:25:49Z rblod $
    !! Software governed by the CeCILL license (see ./LICENSE)
    !!----------------------------------------------------------------------
 CONTAINS
@@ -40,7 +39,7 @@ CONTAINS
    SUBROUTINE usr_def_nam( cd_cfg, kk_cfg, kpi, kpj, kpk, kperio )
       !!----------------------------------------------------------------------
       !!                     ***  ROUTINE dom_nam  ***
-      !!                    
+      !!
       !! ** Purpose :   read user defined namelist and define the domain size
       !!
       !! ** Method  :   read in namusr_def containing all the user specific namelist parameter
@@ -51,8 +50,8 @@ CONTAINS
       !!----------------------------------------------------------------------
       CHARACTER(len=*), INTENT(out) ::   cd_cfg          ! configuration name
       INTEGER         , INTENT(out) ::   kk_cfg          ! configuration resolution
-      INTEGER         , INTENT(out) ::   kpi, kpj, kpk   ! global domain sizes 
-      INTEGER         , INTENT(out) ::   kperio          ! lateral global domain b.c. 
+      INTEGER         , INTENT(out) ::   kpi, kpj, kpk   ! global domain sizes
+      INTEGER         , INTENT(out) ::   kperio          ! lateral global domain b.c.
       !
       INTEGER ::   ios   ! Local integer
       !!

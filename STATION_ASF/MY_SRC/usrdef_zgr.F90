@@ -12,7 +12,7 @@ MODULE usrdef_zgr
 
    !!----------------------------------------------------------------------
    !!   usr_def_zgr   : user defined vertical coordinate system
-   !!      zgr_z      : reference 1D z-coordinate 
+   !!      zgr_z      : reference 1D z-coordinate
    !!      zgr_top_bot: ocean top and bottom level indices
    !!      zgr_zco    : 3D verticl coordinate in pure z-coordinate case
    !!---------------------------------------------------------------------
@@ -30,7 +30,7 @@ MODULE usrdef_zgr
 
    !!----------------------------------------------------------------------
    !! NEMO/OCE 4.0 , NEMO Consortium (2018)
-   !! $Id: usrdef_zgr.F90 12377 2020-02-12 14:39:06Z acc $
+   !! $Id: usrdef_zgr.F90 13226 2020-07-02 14:24:31Z orioltp $
    !! Software governed by the CeCILL license (see ./LICENSE)
    !!----------------------------------------------------------------------
 CONTAINS
@@ -53,7 +53,7 @@ CONTAINS
       REAL(wp), DIMENSION(:)    , INTENT(out) ::   pe3t_1d , pe3w_1d           ! 1D grid-point depth     [m]
       REAL(wp), DIMENSION(:,:,:), INTENT(out) ::   pdept, pdepw                ! grid-point depth        [m]
       REAL(wp), DIMENSION(:,:,:), INTENT(out) ::   pe3t , pe3u , pe3v , pe3f   ! vertical scale factors  [m]
-      REAL(wp), DIMENSION(:,:,:), INTENT(out) ::   pe3w , pe3uw, pe3vw         ! i-scale factors 
+      REAL(wp), DIMENSION(:,:,:), INTENT(out) ::   pe3w , pe3uw, pe3vw         ! i-scale factors
       INTEGER , DIMENSION(:,:)  , INTENT(out) ::   k_top, k_bot                ! first & last ocean level
       !!----------------------------------------------------------------------
       !
@@ -84,7 +84,7 @@ CONTAINS
       pe3w(:,:,1)  = rn_dept1  ! LB???
       pe3uw(:,:,1) = rn_dept1  ! LB???
       pe3vw(:,:,1) = rn_dept1  ! LB???
-      
+
       !! 2nd level, technically useless (only for the sake of code stability)
       pdept_1d(2) = 3._wp*rn_dept1
       pdepw_1d(2) = 2._wp*rn_dept1
