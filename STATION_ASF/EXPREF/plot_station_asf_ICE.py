@@ -209,7 +209,8 @@ for jv in range(nb_var):
     fig = plt.figure(num = jv, figsize=size_fig, facecolor='w', edgecolor='k')
     ax1 = plt.axes([0.083, 0.23, 0.9, 0.7])
     ax1.set_xticks(vtime[::xticks_d])
-    ax1.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d %H:%M:%S'))
+    #ax1.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d %H:%M:%S'))
+    ax1.format_xdata = mdates.DateFormatter('%Y-%m-%d %H:%M:%S')
     plt.xticks(rotation='60', **font_x)
 
     for ja in range(nb_exp):
