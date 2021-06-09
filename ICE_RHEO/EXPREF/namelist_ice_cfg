@@ -1,0 +1,131 @@
+!!>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+!! SI3 configuration namelist: Overwrites SHARED/namelist_ice_ref
+!!              1 - Generic parameters                 (nampar)
+!!              2 - Ice thickness discretization       (namitd)
+!!              3 - Ice dynamics                       (namdyn)
+!!              4 - Ice ridging/rafting                (namdyn_rdgrft)
+!!              5 - Ice rheology                       (namdyn_rhg)
+!!              6 - Ice advection                      (namdyn_adv)
+!!              7 - Ice surface boundary conditions    (namsbc)
+!!              8 - Ice thermodynamics                 (namthd)
+!!              9 - Ice heat diffusion                 (namthd_zdf)
+!!             10 - Ice lateral melting                (namthd_da)
+!!             11 - Ice growth in open water           (namthd_do)
+!!             12 - Ice salinity                       (namthd_sal)
+!!             13 - Ice melt ponds                     (namthd_pnd)
+!!             14 - Ice initialization                 (namini)
+!!             15 - Ice/snow albedos                   (namalb)
+!!             16 - Ice diagnostics                    (namdia)
+!!>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+!
+!------------------------------------------------------------------------------
+&nampar         !   Generic parameters
+!------------------------------------------------------------------------------
+   jpl              =   1             !  number of ice  categories
+   ln_icedyn        = .true.          !  ice dynamics (T) or not (F)
+   ln_icethd        = .false.         !  ice thermo   (T) or not (F)
+/
+!------------------------------------------------------------------------------
+&namitd         !   Ice discretization
+!------------------------------------------------------------------------------
+/
+!------------------------------------------------------------------------------
+&namdyn         !   Ice dynamics
+!------------------------------------------------------------------------------
+   ln_dynALL        = .true.          !  dyn.: full ice dynamics               (rheology + advection + ridging/rafting + correction)
+   ln_dynRHGADV     = .false.         !  dyn.: no ridge/raft & no corrections  (rheology + advection)
+   ln_dynADV1D      = .false.         !  dyn.: only advection 1D                  (Schar & Smolarkiewicz 1996 test case)
+   ln_dynADV2D      = .false.         !  dyn.: only advection 2D w prescribed vel.(rn_uvice + advection)
+/
+!------------------------------------------------------------------------------
+&namdyn_rdgrft  !   Ice ridging/rafting
+!------------------------------------------------------------------------------
+   ln_str_H79       = .true.          !  ice strength param.: Hibler_79   => P = pstar*<h>*exp(-c_rhg*A)
+      rn_pstar      =   2700          !     ice strength thickness parameter [N/m2]
+      rn_crhg       =   20.0          !     ice strength conc. parameter (-)
+/
+!------------------------------------------------------------------------------
+&namdyn_rhg     !   Ice rheology
+!------------------------------------------------------------------------------
+   ln_rhg_EVP       = .false.         !  EVP rheology
+      ln_aEVP       = .false.         !     adaptive rheology (Kimmritz et al. 2016 & 2017)
+      rn_creepl     =   2.0e-9        !     creep limit [1/s]
+      rn_ecc        =   2.0           !     eccentricity of the elliptical yield curve          
+      nn_nevp       =   200           !     number of EVP subcycles                             
+      rn_relast     =   0.333         !     ratio of elastic timescale to ice time step: Telast = dt_ice * rn_relast 
+                                      !        advised value: 1/3 (rn_nevp=120) or 1/9 (rn_nevp=300)
+   ln_rhg_EAP       = .true.          !  EAP rheology
+   nn_rhg_chkcvg    =   0             !  check convergence of rheology
+                                      !     = 0  no check
+                                      !     = 1  check at the main time step (output xml: uice_cvg)
+                                      !     = 2  check at both main and rheology time steps (additional output: ice_cvg.nc)
+                                      !          this option 2 asks a lot of communications between cpu
+/
+!------------------------------------------------------------------------------
+&namdyn_adv     !   Ice advection
+!------------------------------------------------------------------------------
+   ln_adv_Pra       = .true.          !  Advection scheme (Prather)
+   ln_adv_UMx       = .false.         !  Advection scheme (Ultimate-Macho)
+      nn_UMx        =   5             !     order of the scheme for UMx (1-5 ; 20=centered 2nd order)
+/
+!------------------------------------------------------------------------------
+&namsbc         !   Ice surface boundary conditions
+!------------------------------------------------------------------------------
+/
+!------------------------------------------------------------------------------
+&namthd         !   Ice thermodynamics
+!------------------------------------------------------------------------------
+/
+!------------------------------------------------------------------------------
+&namthd_zdf     !   Ice heat diffusion
+!------------------------------------------------------------------------------
+/
+!------------------------------------------------------------------------------
+&namthd_da      !   Ice lateral melting
+!------------------------------------------------------------------------------
+/
+!------------------------------------------------------------------------------
+&namthd_do      !   Ice growth in open water
+!------------------------------------------------------------------------------
+/
+!------------------------------------------------------------------------------
+&namthd_sal     !   Ice salinity
+!------------------------------------------------------------------------------
+/
+!------------------------------------------------------------------------------
+&namthd_pnd     !   Melt ponds
+!------------------------------------------------------------------------------
+/
+!------------------------------------------------------------------------------
+&namini         !   Ice initialization
+!------------------------------------------------------------------------------
+   ln_iceini        = .true.          !  activate ice initialization (T) or not (F)
+   nn_iceini_file   =   1             !     0 = Initialise sea ice based on SSTs
+                                      !     1 = Initialise sea ice from single category netcdf file
+                                      !     2 = Initialise sea ice from multi category restart file
+   rn_thres_sst     =   2.0           !  max temp. above Tfreeze with initial ice = (sst - tfreeze)
+   rn_hti_ini_n     =   3.0           !  initial ice thickness       (m), North
+   rn_hts_ini_n     =   0.1           !  initial snow thickness      (m), North
+   rn_ati_ini_n     =   0.99          !  initial ice concentration   (-), North
+   rn_smi_ini_n     =   6.3           !  initial ice salinity     (g/kg), North
+   rn_tmi_ini_n     = 270.            !  initial ice temperature     (K), North
+   rn_tsu_ini_n     = 270.            !  initial surface temperature (K), North
+   rn_tms_ini_n     = 270.            !  initial snw temperature     (K), North
+   rn_apd_ini_n     =   0.0           !  initial pond fraction       (-), North
+   rn_hpd_ini_n     =   0.0           !  initial pond depth          (m), North
+   sn_hti = 'initice'                 , -12. ,'hti'   ,  .false.  , .true., 'yearly'  , '' , '', ''
+   sn_hts = 'initice'                 , -12. ,'hts'   ,  .false.  , .true., 'yearly'  , '' , '', ''
+   sn_ati = 'initice'                 , -12. ,'ati'   ,  .false.  , .true., 'yearly'  , '' , '', ''
+   sn_tsu = 'initice'                 , -12. ,'tsu'   ,  .false.  , .true., 'yearly'  , '' , '', ''
+   sn_tmi = 'initice'                 , -12. ,'tmi'   ,  .false.  , .true., 'yearly'  , '' , '', ''
+   sn_smi = 'initice'                 , -12. ,'smi'   ,  .false.  , .true., 'yearly'  , '' , '', ''
+   cn_dir='./'
+/
+!------------------------------------------------------------------------------
+&namalb         !   albedo parameters
+!------------------------------------------------------------------------------
+/
+!------------------------------------------------------------------------------
+&namdia         !   Diagnostics
+!------------------------------------------------------------------------------
+/

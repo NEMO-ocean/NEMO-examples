@@ -1,0 +1,54 @@
+-------
+purpose
+-------
+This demonstration case allows for examining the sea ice rheology under idealised
+forcing.  The set-up follows the paper "Stress and deformation characteristics of sea
+ice in a high-resolution, anisotropic sea ice model" by Heorton et al, Phil. Trans,
+R. Soc. 2018.
+
+-----------
+Experiments
+-----------
+A range of experiments can be configured:
+
+- The suggested experiment is to examine the different shear patterns formed
+  by different rheologies. The default set-up reproduces the leftmost panels
+  of figure 3a (ln_rhg_EAP true in namelist_ice_cfg) and 3b (ln_rhg_EVP true in
+  namelist_ice_cfg). Increase the last time step in namelist_cfg appropriately
+  to generate the other panels.
+
+- The resolution of the box can be changed analogous to figure 2 of the paper
+  (change rn_dx and rn_dy in namelist_cfg, default is 2000m)
+
+- The ratio of the windstress component can be changed to cause different modes 
+  of failure (Rwind in usrdef_sbc.F90, default is -0.8) 
+
+It takes about 10 minutes to run a simulation on 16 processors
+
+----------
+How to run
+----------
+
+a) Compile and run the model once to get mesh_mask_xxxx.nc files.
+   E.g., starting in the root NEMO directory:
+
+ ./makenemo -a ICE_RHEO -r ICE_RHEO_TEST -m X64_MOBILIS -j 4
+ cd tests/ICE_RHEO_TEST/EXP00
+ mpirun -np 1 ./nemo
+
+c) Create the initial condition file for sea-ice (initice.nc) by running
+   this python script:
+
+ python ../../ICE_RHEO/EXPREF/make_INITICE.py
+
+d) Run the model a second time
+
+ mpirun -np 16 ./nemo
+
+---------------
+What to look at
+---------------
+EVP rheology has less defined shear strain maxima (linear kinematic
+features). If the model is run longer one can see that the LKFs appearing
+with EVP rheology intersect at a different angle than with EAP rheology
+
