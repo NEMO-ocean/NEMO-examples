@@ -102,6 +102,14 @@
   (for now, Prather and Ultimate-Macho from 1st to 5th order),
   especially the constitency between concentration, thickness and volume, and the preservation of initial shapes.  
 
+
+### SEAMOUNT
+  This experiment is the Beckmann and Haidvogel (1993) SEAMOUNT test case :cite:`BECKMANN1993`.  It is a Gaussian bump in 
+  an East-West periodic channel initialised at rest with a horizontally uniform, exponential vertical density profile.
+  The domain is defined by a terrain-following coordinate.  The purpose of this configuration is to demonstrate
+  the relative performance of various hpg schemes in reducing the spurious velocities generated due to numerical
+  errors arising from the misalignment the grid s-level with the pure z-level.
+
 ## How to run these test cases 
 The complete and up-to-date set of test cases is available [on this NEMO test cases Github repository](http://github.com/NEMO-ocean/NEMO-examples).
 
