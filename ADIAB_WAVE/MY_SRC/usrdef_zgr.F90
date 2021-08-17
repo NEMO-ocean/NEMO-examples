@@ -100,9 +100,9 @@ CONTAINS
       IF(lwp) WRITE(numout,*) 'zht', zht(:,1)
       !
       ! at u-point: averaging zht
-      DO ji = 1, jpim1
-         zhu(ji,:) = 0.5_wp * ( zht(ji,:) + zht(ji+1,:) )
-      END DO
+      DO_2D(0,0,0,0)
+         zhu(ji,jj) = 0.5_wp * ( zht(ji,jj) + zht(ji+1,jj) )
+      END_2D
       CALL lbc_lnk( 'usrdef_zgr', zhu, 'U', 1. )     ! boundary condition: this mask the surrouding grid-points
       !                                ! ==>>>  set by hand non-zero value on first/last columns & rows 
       DO ji = mi0(1), mi1(1)              ! first row of global domain only
