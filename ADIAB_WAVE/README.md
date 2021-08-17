@@ -18,7 +18,7 @@ The initial characteristics of the wave field are a significant wave height Hs=1
 ## Exemple of run
 
 The Breivik implementation used for the calculation of the Stokes drift decay is based on the deep water approximation which is not valid in this test case. We added an additional parameterization in MY_SRC/sbcwave.F90. 
-The formulation for the Stokes drift decay is the one from Michaud et al, 2012 for intermediate/shallow water and is activated by the option ln_STOKES_ADIAB= .TRUE. in the namusr_def section of the namelist.
+The formulation for the Stokes drift decay is the one from Michaud et al (2012) for intermediate/shallow water and is activated by the option ln_STOKES_ADIAB= .TRUE. in the namusr_def section of the namelist.
 ~~~fortran
 !-----------------------------------------------------------------------
 &namusr_def    !   User defined :   ADIAB_WAVE configuration
