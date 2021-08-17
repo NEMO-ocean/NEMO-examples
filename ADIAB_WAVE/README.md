@@ -1,5 +1,9 @@
 # ADIAB_WAVE demonstration case
 
+We here provide a physical description of this experiment and additional details as to how to run this experiment within NEMO. This experiment is **created and tested** for NEMO **code at revision 15197**. 
+
+A ipython notebook is also provided as a demonstration of possible analysis.
+
 ## Objectives
 
 The ADIAB_WAVE test case is used to validate the implementation of the Generalized Lagrangian Mean equation in case of wave-current interaction. This test case was first proposed by Ardhuin et al. (2008) and is commonly used to test the implementation of the wave-current interaction in open ocean.
@@ -15,7 +19,7 @@ The initial characteristics of the wave field are a significant wave height Hs=1
 
 The Breivik implementation used for the calculation of the Stokes drift decay is based on the deep water approximation which is not valid in this test case. We added an additional parameterization in MY_SRC/sbcwave.F90. 
 The formulation for the Stokes drift decay is the one from Michaud et al, 2012 for intermediate/shallow water and is activated by the option ln_STOKES_ADIAB= .TRUE. in the namusr_def section of the namelist.
-
+~~~fortran
 !-----------------------------------------------------------------------
 &namusr_def    !   User defined :   ADIAB_WAVE configuration
 !-----------------------------------------------------------------------
@@ -27,11 +31,16 @@ The formulation for the Stokes drift decay is the one from Michaud et al, 2012 f
    rn_dy       =   10.
    rn_dz       =   0.05     ! vertical   resolution   [meters]
    ln_STOKES_ADIAB = .true.    ! Stokes Drift (Shallow/Intermediate water)
+ /
+~~~
 
 The input_data folder contains the wave forcing as well as the East and West open boundary forcing.
 The wave forcing file need to be uncompressed before running.
 
-Run the executable :  mpirun -np 1 ./nemo 
+Run the executable :  
+```
+mpirun -np 1 ./nemo 
+```
 
 After running, the ADIAB_GLM_grid_U.nc output file should be generated.
 
