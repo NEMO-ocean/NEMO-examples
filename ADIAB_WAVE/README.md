@@ -35,7 +35,7 @@ The calculation of the Stokes drift for intermediate water is activated by the o
  /
 ~~~
 
-The input_data folder contains the wave forcing as well as the East and West open boundary forcing ().
+The input_data folder contains the wave forcing as well as the East and West open boundary forcing.
 The wave forcing file (sdw_WW3_ADIABWAVE_y0001m01d01.nc.tar.gz) need to be uncompressed before running.
 
 Run the executable :  
