@@ -112,7 +112,7 @@
    ln_stshear  = .false.       !  include stokes shear in EKE computation
 
 !
-   cn_dir      = './'      !  root directory for the waves data location
+   cn_dir      = '../input_data/'      !  root directory for the waves data location
    !___________!_________________________!___________________!___________!_____________!________!___________!__________________!__________!_______________!
                !  file name          !freq(hrs)!  var      ! time int !  clim  ! 'yrly'/ ! weights filename ! rotation ! land/sea mask !
    !           !                         !  (if <0  months)  !   name    !   (logical) !  (T/F) ! 'monthly' !                  ! pairing  !    filename   !
@@ -194,7 +194,7 @@
 !-----------------------------------------------------------------------
    ln_zinterp  = .false.      !  T if a vertical interpolation is required. Variables gdep[tuv] and e3[tuv] must exist in the file
    ln_full_vel = .false.      !  T if [uv]3d are "full" velocities and not only its baroclinic components
-   cn_dir      = './'    !  root directory for the BDY data location
+   cn_dir      = '../input_data/'    !  root directory for the BDY data location
    !___________!_________________________!___________________!___________!_____________!________!___________!__________________!__________!_______________!
    !           !  file name              ! frequency (hours) ! variable  ! time interp.!  clim  ! 'yearly'/ ! weights filename ! rotation ! land/sea mask !
    !           !                         !  (if <0  months)  !   name    !   (logical) !  (T/F) ! 'monthly' !                  ! pairing  !    filename   !
@@ -207,7 +207,7 @@
 !-----------------------------------------------------------------------
    ln_zinterp  = .false.      !  T if a vertical interpolation is required. Variables gdep[tuv] and e3[tuv] must exist in the file
    ln_full_vel = .false.      !  T if [uv]3d are "full" velocities and not only its baroclinic components
-   cn_dir      = './'    !  root directory for the BDY data location
+   cn_dir      = '../input_data/'    !  root directory for the BDY data location
    !___________!_________________________!___________________!___________!_____________!________!___________!__________________!__________!_______________!
    !           !  file name              ! frequency (hours) ! variable  ! time interp.!  clim  ! 'yearly'/ ! weights filename ! rotation ! land/sea mask !
    !           !                         !  (if <0  months)  !   name    !   (logical) !  (T/F) ! 'monthly' !                  ! pairing  !    filename   !
