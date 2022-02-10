@@ -1,0 +1,37 @@
+<!--
+ ============================================================================================== 
+    NEMO context
+============================================================================================== 
+-->
+<context id="nemo">
+    <!-- $id$ -->
+    <variable_definition>
+       <!-- Year/Month/Day of time origin for NetCDF files; defaults to 1800-01-01 -->
+       <variable id="ref_year"  type="int"> 1900 </variable>
+       <variable id="ref_month" type="int"> 01 </variable>
+       <variable id="ref_day"   type="int"> 01 </variable>
+       <variable id="rho0"      type="float" > 1026.0 </variable>
+       <variable id="cpocean"   type="float" > 3991.86795711963 </variable>
+       <variable id="convSpsu"  type="float" > 0.99530670233846  </variable>
+       <variable id="rhoic"     type="float" > 917.0 </variable>
+       <variable id="rhosn"     type="float" > 330.0 </variable>
+       <variable id="missval"  type="float" > 1.e20 </variable>	       
+    </variable_definition>
+
+<!-- Fields definition -->
+    <field_definition src="./field_def_nemo-oce.xml"/>   <!--  NEMO ocean dynamics                     -->
+
+<!-- Files definition -->
+    <file_definition src="./file_def_nemo-oce.xml"/>     <!--  NEMO ocean dynamics                     -->
+
+<!-- Axis definition -->
+    <axis_definition src="./axis_def_nemo.xml"/>
+ 
+<!-- Domain definition -->
+    <domain_definition src="./domain_def_nemo.xml"/>
+
+<!-- Grids definition -->
+    <grid_definition   src="./grid_def_nemo.xml"/>
+  
+
+</context>
