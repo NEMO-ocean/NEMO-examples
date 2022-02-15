@@ -23,8 +23,6 @@ A range of experiments can be configured:
 - The ratio of the windstress component can be changed to cause different modes 
   of failure (Rwind in usrdef_sbc.F90, default is -0.8) 
 
-It takes about 10 minutes to run a simulation on 16 processors
-
 ----------
 How to run
 ----------
