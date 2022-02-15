@@ -14,6 +14,7 @@ MODULE usrdef_zgr
    !!---------------------------------------------------------------------
    USE oce            ! ocean variables
    USE usrdef_nam     ! User defined : namelist variables
+   USE dom_oce , ONLY :   mig, mjg
    !
    USE in_out_manager ! I/O manager
    USE lbclnk         ! ocean lateral boundary conditions (or mpp link)
@@ -24,6 +25,8 @@ MODULE usrdef_zgr
 
    PUBLIC   usr_def_zgr   ! called by domzgr.F90
 
+   !! * Substitutions
+#  include "do_loop_substitute.h90"
    !!----------------------------------------------------------------------
    !! NEMO/OCE 4.0 , NEMO Consortium (2018)
    !! $Id: usrdef_zgr.F90 10074 2018-08-28 16:15:49Z nicolasmartin $
@@ -53,6 +56,7 @@ CONTAINS
       INTEGER , DIMENSION(:,:)  , INTENT(out) ::   k_top, k_bot                ! first & last ocean level
       !
       INTEGER  ::   jk, k_dz  ! dummy indices
+      INTEGER  ::   ji, jj    ! dummy loop indices
       !!----------------------------------------------------------------------
       !
       IF(lwp) WRITE(numout,*)
@@ -85,6 +89,14 @@ CONTAINS
       !
       ! no ocean cavities : top ocean level is ONE, except over land
       k_top(:,:) = 1
+
+      ! add island
+         DO_2D( 1, 1, 1, 1 )
+         IF (mjg(jj)>=900000/rn_dy .and. mjg(jj)<1100000/rn_dy .and. mig(ji)>=900000/rn_dx .and. mig(ji)<1100000/rn_dx)  THEN
+            k_top(ji,jj) = 0
+         END IF
+         END_2D      
+
       !
       !                       !==  z-coordinate  ==!   (step-like topography)
       !                                !* bottom ocean compute from the depth of grid-points
