@@ -57,16 +57,15 @@ MODULE icedyn_rhg_eap
    INTEGER, PARAMETER ::   na_yield = 21
 
    REAL(wp), DIMENSION(nx_yield, ny_yield, na_yield) ::   s11r, s12r, s22r, s11s, s12s, s22s
-
-   !! * Substitutions
-#  include "do_loop_substitute.h90"
-#  include "domzgr_substitute.h90"
+   REAL(wp), DIMENSION(:,:), ALLOCATABLE ::   fimask   ! mask at F points for the ice
 
    !! for convergence tests
    INTEGER ::   ncvgid   ! netcdf file id
    INTEGER ::   nvarid   ! netcdf variable id
-   REAL(wp), ALLOCATABLE, DIMENSION(:,:) ::   aimsk00
-   REAL(wp), ALLOCATABLE, DIMENSION(:,:) ::   eap_res  , aimsk15
+
+   !! * Substitutions
+#  include "do_loop_substitute.h90"
+#  include "domzgr_substitute.h90"
    !!----------------------------------------------------------------------
    !! NEMO/ICE 4.0 , NEMO Consortium (2018)
    !! $Id: icedyn_rhg_eap.F90 11536 2019-09-11 13:54:18Z smasson $
@@ -154,7 +153,6 @@ CONTAINS
       REAL(wp) ::   zalphar, zalphas                                    ! for mechanical redistribution
       REAL(wp) ::   zmresult11, zmresult12, z1dtevpkth, zp5kth, z1_dtevp_A  ! for structure tensor evolution
       REAL(wp) ::   zinvw                                                ! for test case
-
       !
       REAL(wp), DIMENSION(jpi,jpj) ::   zstress12tmp                    ! anisotropic stress tensor component for regridding
       REAL(wp), DIMENSION(jpi,jpj) ::   zyield11, zyield22, zyield12    ! yield surface tensor for history
@@ -181,9 +179,9 @@ CONTAINS
       REAL(wp), DIMENSION(jpi,jpj) ::   ztaux_bi, ztauy_bi              ! ice-OceanBottom stress at U-V points (landfast)
       REAL(wp), DIMENSION(jpi,jpj) ::   ztaux_base, ztauy_base          ! ice-bottom stress at U-V points (landfast)
       !
+      REAL(wp), DIMENSION(jpi,jpj) ::   zmsk, zmsk00, zmsk15
       REAL(wp), DIMENSION(jpi,jpj) ::   zmsk01x, zmsk01y                ! dummy arrays
       REAL(wp), DIMENSION(jpi,jpj) ::   zmsk00x, zmsk00y                ! mask for ice presence
-      REAL(wp), DIMENSION(jpi,jpj) ::   zfmask                          ! mask at F points for the ice
 
       REAL(wp), PARAMETER          ::   zepsi  = 1.0e-20_wp             ! tolerance parameter
       REAL(wp), PARAMETER          ::   zmmin  = 1._wp                  ! ice mass (kg/m2)  below which ice velocity becomes very small
@@ -204,63 +202,45 @@ CONTAINS
 
       IF( kt == nit000 .AND. lwp )   WRITE(numout,*) '-- ice_dyn_rhg_eap: EAP sea-ice rheology'
       !
-      IF( kt == nit000 )  THEN 
-         !
-         ! for diagnostics 
-         ALLOCATE( aimsk00(jpi,jpj) )
-         ! for convergence tests
-         IF( nn_rhg_chkcvg > 0 ) ALLOCATE( eap_res(jpi,jpj), aimsk15(jpi,jpj) )
-      ENDIF
-      !
+      ! for diagnostics and convergence tests
       DO_2D( 1, 1, 1, 1 )
-         aimsk00(ji,jj) = MAX( 0._wp , SIGN( 1._wp , at_i(ji,jj) - epsi06  ) ) ! 1 if ice    , 0 if no ice
+         zmsk00(ji,jj) = MAX( 0._wp , SIGN( 1._wp , at_i(ji,jj) - epsi06  ) ) ! 1 if ice    , 0 if no ice
+         zmsk  (ji,jj) = MAX( 0._wp , SIGN( 1._wp , at_i(ji,jj) - epsi10  ) ) ! 1 if ice    , 0 if no ice
       END_2D
       IF( nn_rhg_chkcvg > 0 ) THEN
          DO_2D( 1, 1, 1, 1 )
-            aimsk15(ji,jj) = MAX( 0._wp , SIGN( 1._wp , at_i(ji,jj) - 0.15_wp ) ) ! 1 if 15% ice, 0 if less
+            zmsk15(ji,jj) = MAX( 0._wp , SIGN( 1._wp , at_i(ji,jj) - 0.15_wp ) ) ! 1 if 15% ice, 0 if less
          END_2D
       ENDIF
       !
-!!gm for Clem:  OPTIMIZATION:  I think zfmask can be computed one for all at the initialization....
       !------------------------------------------------------------------------------!
       ! 0) mask at F points for the ice
       !------------------------------------------------------------------------------!
-      ! ocean/land mask
-      DO_2D( 1, 0, 1, 0 )
-         zfmask(ji,jj) = tmask(ji,jj,1) * tmask(ji+1,jj,1) * tmask(ji,jj+1,1) * tmask(ji+1,jj+1,1)
-      END_2D
-      CALL lbc_lnk( 'icedyn_rhg_eap', zfmask, 'F', 1._wp )
-
-      ! Lateral boundary conditions on velocity (modify zfmask)
-      DO_2D( 0, 0, 0, 0 )
-         IF( zfmask(ji,jj) == 0._wp ) THEN
-            zfmask(ji,jj) = rn_ishlat * MIN( 1._wp , MAX( umask(ji,jj,1), umask(ji,jj+1,1), &
-               &                                          vmask(ji,jj,1), vmask(ji+1,jj,1) ) )
+      IF( kt == nit000 ) THEN
+         ! ocean/land mask
+         ALLOCATE( fimask(jpi,jpj) )
+         IF( rn_ishlat == 0._wp ) THEN
+            DO_2D( 0, 0, 0, 0 )
+               fimask(ji,jj) = tmask(ji,jj,1) * tmask(ji+1,jj,1) * tmask(ji,jj+1,1) * tmask(ji+1,jj+1,1)
+            END_2D
+         ELSE
+            DO_2D( 0, 0, 0, 0 )
+               fimask(ji,jj) = tmask(ji,jj,1) * tmask(ji+1,jj,1) * tmask(ji,jj+1,1) * tmask(ji+1,jj+1,1)
+               ! Lateral boundary conditions on velocity (modify fimask)
+               IF( fimask(ji,jj) == 0._wp ) THEN
+                  fimask(ji,jj) = rn_ishlat * MIN( 1._wp , MAX( umask(ji,jj,1), umask(ji,jj+1,1), &
+                     &                                          vmask(ji,jj,1), vmask(ji+1,jj,1) ) )
+               ENDIF
+            END_2D
          ENDIF
-      END_2D
-      DO jj = 2, jpjm1
-         IF( zfmask(1,jj) == 0._wp ) THEN
-            zfmask(1  ,jj) = rn_ishlat * MIN( 1._wp , MAX( vmask(2,jj,1), umask(1,jj+1,1), umask(1,jj,1) ) )
-         ENDIF
-         IF( zfmask(jpi,jj) == 0._wp ) THEN
-            zfmask(jpi,jj) = rn_ishlat * MIN( 1._wp , MAX( umask(jpi,jj+1,1), vmask(jpim1,jj,1), umask(jpi,jj-1,1) ) )
-         ENDIF
-      END DO
-      DO ji = 2, jpim1
-         IF( zfmask(ji,1) == 0._wp ) THEN
-            zfmask(ji, 1 ) = rn_ishlat * MIN( 1._wp , MAX( vmask(ji+1,1,1), umask(ji,2,1), vmask(ji,1,1) ) )
-         ENDIF
-         IF( zfmask(ji,jpj) == 0._wp ) THEN
-            zfmask(ji,jpj) = rn_ishlat * MIN( 1._wp , MAX( vmask(ji+1,jpj,1), vmask(ji-1,jpj,1), umask(ji,jpjm1,1) ) )
-         ENDIF
-      END DO
-      CALL lbc_lnk( 'icedyn_rhg_eap', zfmask, 'F', 1.0_wp )
+         CALL lbc_lnk( 'icedyn_rhg_eap', fimask, 'F', 1.0_wp )
+      ENDIF
 
       !------------------------------------------------------------------------------!
       ! 1) define some variables and initialize arrays
       !------------------------------------------------------------------------------!
       zrhoco = rho0 * rn_cio
-!extra code for test case boundary conditions
+      !extra code for test case boundary conditions
       zinvw=1._wp/(zrhoco*0.5_wp)
 
       ! ecc2: square of yield ellipse eccenticrity
@@ -404,7 +384,7 @@ CONTAINS
             ! shear at F points
             zds(ji,jj) = ( ( u_ice(ji,jj+1) * r1_e1u(ji,jj+1) - u_ice(ji,jj) * r1_e1u(ji,jj) ) * e1f(ji,jj) * e1f(ji,jj)   &
                &         + ( v_ice(ji+1,jj) * r1_e2v(ji+1,jj) - v_ice(ji,jj) * r1_e2v(ji,jj) ) * e2f(ji,jj) * e2f(ji,jj)   &
-               &         ) * r1_e1e2f(ji,jj) * zfmask(ji,jj)
+               &         ) * r1_e1e2f(ji,jj) * fimask(ji,jj)
 
          END_2D
 
@@ -428,7 +408,7 @@ CONTAINS
             zdt2 = zdt * zdt
 
             ! delta at T points
-            zdelta(ji,jj) = SQRT( zdiv2 + ( zdt2 + zds2 ) * z1_ecc2 )
+            zdelta(ji,jj) = SQRT( zdiv2 + ( zdt2 + zds2 ) * z1_ecc2 ) * zmsk(ji,jj)        ! zmsk is for reducing cpu
 
          END_2D
          CALL lbc_lnk( 'icedyn_rhg_eap', zdelta, 'T', 1.0_wp )
@@ -462,8 +442,8 @@ CONTAINS
             ! structure tensor update
                CALL calc_ffrac(zstressptmp, zstressmtmp, zstress12tmp(ji,jj), paniso_11(ji,jj), paniso_12(ji,jj), zmresult11,  zmresult12)
 
-               paniso_11(ji,jj) = (paniso_11(ji,jj)  + 0.5*2.e-5*zdtevp + zmresult11*zdtevp) / (1. + 2.e-5*zdtevp) ! implicit
-               paniso_12(ji,jj) = (paniso_12(ji,jj)                     + zmresult12*zdtevp) / (1. + 2.e-5*zdtevp) ! implicit
+               paniso_11(ji,jj) = zmsk00(ji,jj) * (paniso_11(ji,jj)  + 0.5*2.e-5*zdtevp + zmresult11*zdtevp) / (1. + 2.e-5*zdtevp) ! implicit
+               paniso_12(ji,jj) = zmsk00(ji,jj) * (paniso_12(ji,jj)                     + zmresult12*zdtevp) / (1. + 2.e-5*zdtevp) ! implicit
 
             IF (jter == nn_nevp) THEN
                zyield11(ji,jj) = 0.5_wp * (zstressptmp + zstressmtmp)
@@ -488,8 +468,8 @@ CONTAINS
             ENDIF
 
             ! stress at T points (zkt/=0 if landfast)
-            zs1(ji,jj) = ( zs1(ji,jj) * zalph1 + zstressptmp ) * z1_alph1
-            zs2(ji,jj) = ( zs2(ji,jj) * zalph1 + zstressmtmp ) * z1_alph1
+            zs1(ji,jj) = ( zs1(ji,jj) * zalph1 + zstressptmp ) * z1_alph1 * zmsk(ji,jj) ! zmsk is for reducing cpu
+            zs2(ji,jj) = ( zs2(ji,jj) * zalph1 + zstressmtmp ) * z1_alph1 * zmsk(ji,jj) ! zmsk is for reducing cpu
          END_2D
          CALL lbc_lnk( 'icedyn_rhg_eap', zstress12tmp, 'T', 1.0_wp , paniso_11, 'T', 1.0_wp , paniso_12, 'T', 1.0_wp)
 
@@ -593,11 +573,10 @@ CONTAINS
                      &              ) * zmsk01y(ji,jj) + v_oce(ji,jj) * 0.01_wp * ( 1._wp - zmsk01y(ji,jj) )                  & ! v_ice = v_oce/100 if mass < zmmin & conc < zamin
                      &            )   * zmsk00y(ji,jj)
                ENDIF
-!extra code for test case boundary conditions
+               !extra code for test case boundary conditions
                IF (mjg(jj)<25 .or. mjg(jj)>975 .or. mig(ji)<25 .or. mig(ji)>975) THEN
                   v_ice(ji,jj) = zinvw*(ztauy_ai(ji,jj) + zCorV(ji,jj) + zspgV(ji,jj) + ztauy_oi(ji,jj))
                END IF
-
             END_2D
             CALL lbc_lnk( 'icedyn_rhg_eap', v_ice, 'V', -1.0_wp )
             !
@@ -650,11 +629,10 @@ CONTAINS
                      &              ) * zmsk01x(ji,jj) + u_oce(ji,jj) * 0.01_wp * ( 1._wp - zmsk01x(ji,jj) )                  & ! v_ice = v_oce/100 if mass < zmmin & conc < zamin
                      &            )   * zmsk00x(ji,jj)
                ENDIF
-!extra code for test case boundary conditions
+               !extra code for test case boundary conditions
                IF (mjg(jj)<25 .or. mjg(jj)>975 .or. mig(ji)<25 .or. mig(ji)>975) THEN
                   u_ice(ji,jj) = zinvw*(ztaux_ai(ji,jj) + zCorU(ji,jj) + zspgU(ji,jj) + ztaux_oi(ji,jj))
                END IF
-
             END_2D
             CALL lbc_lnk( 'icedyn_rhg_eap', u_ice, 'U', -1.0_wp )
             !
@@ -709,7 +687,7 @@ CONTAINS
                      &              ) * zmsk01x(ji,jj) + u_oce(ji,jj) * 0.01_wp * ( 1._wp - zmsk01x(ji,jj) )                  & ! v_ice = v_oce/100 if mass < zmmin & conc < zamin
                      &            )   * zmsk00x(ji,jj)
                ENDIF
-!extra code for test case boundary conditions
+               !extra code for test case boundary conditions
                IF (mjg(jj)<25 .or. mjg(jj)>975 .or. mig(ji)<25 .or. mig(ji)>975) THEN
                   u_ice(ji,jj) = zinvw*(ztaux_ai(ji,jj) + zCorU(ji,jj) + zspgU(ji,jj) + ztaux_oi(ji,jj))
                END IF
@@ -765,11 +743,11 @@ CONTAINS
                      &              ) * zmsk01y(ji,jj) + v_oce(ji,jj) * 0.01_wp * ( 1._wp - zmsk01y(ji,jj) )                  & ! v_ice = v_oce/100 if mass < zmmin & conc < zamin
                      &            )   * zmsk00y(ji,jj)
                ENDIF
-!extra code for test case boundary conditions
+               !extra code for test case boundary conditions
                IF (mjg(jj)<25 .or. mjg(jj)>975 .or. mig(ji)<25 .or. mig(ji)>975) THEN
                   v_ice(ji,jj) = zinvw*(ztauy_ai(ji,jj) + zCorV(ji,jj) + zspgV(ji,jj) + ztauy_oi(ji,jj))
                END IF
-            END_2D
+               END_2D
             CALL lbc_lnk( 'icedyn_rhg_eap', v_ice, 'V', -1.0_wp )
             !
 #if defined key_agrif
@@ -781,7 +759,7 @@ CONTAINS
          ENDIF
 
          ! convergence test
-         IF( nn_rhg_chkcvg == 2 )   CALL rhg_cvg_eap( kt, jter, nn_nevp, u_ice, v_ice, zu_ice, zv_ice )
+         IF( nn_rhg_chkcvg == 2 )   CALL rhg_cvg_eap( kt, jter, nn_nevp, u_ice, v_ice, zu_ice, zv_ice, zmsk15 )
          !
          !                                                ! ==================== !
       END DO                                              !  end loop over jter  !
@@ -798,7 +776,7 @@ CONTAINS
          ! shear at F points
          zds(ji,jj) = ( ( u_ice(ji,jj+1) * r1_e1u(ji,jj+1) - u_ice(ji,jj) * r1_e1u(ji,jj) ) * e1f(ji,jj) * e1f(ji,jj)   &
             &         + ( v_ice(ji+1,jj) * r1_e2v(ji+1,jj) - v_ice(ji,jj) * r1_e2v(ji,jj) ) * e2f(ji,jj) * e2f(ji,jj)   &
-            &         ) * r1_e1e2f(ji,jj) * zfmask(ji,jj)
+            &         ) * r1_e1e2f(ji,jj) * fimask(ji,jj)
 
       END_2D
 
@@ -818,15 +796,15 @@ CONTAINS
             &   ) * 0.25_wp * r1_e1e2t(ji,jj)
 
          ! shear at T points
-         pshear_i(ji,jj) = SQRT( zdt2 + zds2 )
+         pshear_i(ji,jj) = SQRT( zdt2 + zds2 ) * zmsk(ji,jj)
 
          ! divergence at T points
          pdivu_i(ji,jj) = ( e2u(ji,jj) * u_ice(ji,jj) - e2u(ji-1,jj) * u_ice(ji-1,jj)   &
             &             + e1v(ji,jj) * v_ice(ji,jj) - e1v(ji,jj-1) * v_ice(ji,jj-1)   &
-            &             ) * r1_e1e2t(ji,jj)
+            &             ) * r1_e1e2t(ji,jj) * zmsk(ji,jj)
 
          ! delta at T points
-         zfac            = SQRT( pdivu_i(ji,jj) * pdivu_i(ji,jj) + ( zdt2 + zds2 ) * z1_ecc2 ) ! delta
+         zfac            = SQRT( pdivu_i(ji,jj) * pdivu_i(ji,jj) + ( zdt2 + zds2 ) * z1_ecc2 ) * zmsk(ji,jj) ! delta
          rswitch         = 1._wp - MAX( 0._wp, SIGN( 1._wp, -zfac ) ) ! 0 if delta=0
          pdelta_i(ji,jj) = zfac + rn_creepl * rswitch ! delta+creepl
 
@@ -851,19 +829,19 @@ CONTAINS
          CALL lbc_lnk( 'icedyn_rhg_eap', ztaux_oi, 'U', -1.0_wp, ztauy_oi, 'V', -1.0_wp, ztaux_ai, 'U', -1.0_wp, &
             &                            ztauy_ai, 'V', -1.0_wp, ztaux_bi, 'U', -1.0_wp, ztauy_bi, 'V', -1.0_wp )
          !
-         CALL iom_put( 'utau_oi' , ztaux_oi * aimsk00 )
-         CALL iom_put( 'vtau_oi' , ztauy_oi * aimsk00 )
-         CALL iom_put( 'utau_ai' , ztaux_ai * aimsk00 )
-         CALL iom_put( 'vtau_ai' , ztauy_ai * aimsk00 )
-         CALL iom_put( 'utau_bi' , ztaux_bi * aimsk00 )
-         CALL iom_put( 'vtau_bi' , ztauy_bi * aimsk00 )
+         CALL iom_put( 'utau_oi' , ztaux_oi * zmsk00 )
+         CALL iom_put( 'vtau_oi' , ztauy_oi * zmsk00 )
+         CALL iom_put( 'utau_ai' , ztaux_ai * zmsk00 )
+         CALL iom_put( 'vtau_ai' , ztauy_ai * zmsk00 )
+         CALL iom_put( 'utau_bi' , ztaux_bi * zmsk00 )
+         CALL iom_put( 'vtau_bi' , ztauy_bi * zmsk00 )
       ENDIF
 
       ! --- divergence, shear and strength --- !
-      IF( iom_use('icediv') )   CALL iom_put( 'icediv' , pdivu_i  * aimsk00 )   ! divergence
-      IF( iom_use('iceshe') )   CALL iom_put( 'iceshe' , pshear_i * aimsk00 )   ! shear
-      IF( iom_use('icedlt') )   CALL iom_put( 'icedlt' , pdelta_i * aimsk00 )   ! delta
-      IF( iom_use('icestr') )   CALL iom_put( 'icestr' , strength * aimsk00 )   ! strength
+      IF( iom_use('icediv') )   CALL iom_put( 'icediv' , pdivu_i  * zmsk00 )   ! divergence
+      IF( iom_use('iceshe') )   CALL iom_put( 'iceshe' , pshear_i * zmsk00 )   ! shear
+      IF( iom_use('icedlt') )   CALL iom_put( 'icedlt' , pdelta_i * zmsk00 )   ! delta
+      IF( iom_use('icestr') )   CALL iom_put( 'icestr' , strength * zmsk00 )   ! strength
 
       ! --- Stress tensor invariants (SIMIP diags) --- !
       IF( iom_use('normstr') .OR. iom_use('sheastr') ) THEN
@@ -882,14 +860,14 @@ CONTAINS
             zsig12           =   zfac * z1_ecc2 * pshear_i(ji,jj)
 
             ! Stress invariants (sigma_I, sigma_II, Coon 1974, Feltham 2008)
-            zsig_I (ji,jj)   =   zsig1 * 0.5_wp                                           ! 1st stress invariant, aka average normal stress, aka negative pressure
-            zsig_II(ji,jj)   =   SQRT ( MAX( 0._wp, zsig2 * zsig2 * 0.25_wp + zsig12 ) )  ! 2nd  ''       '', aka maximum shear stress
+            zsig_I (ji,jj)   =   zsig1 * 0.5_wp                                      ! 1st stress invariant, aka average normal stress, aka negative pressure
+            zsig_II(ji,jj)   =   SQRT ( zsig2 * zsig2 * 0.25_wp + zsig12 * zsig12 )  ! 2nd  ''       ''    , aka maximum shear stress
 
          END_2D
          !
          ! Stress tensor invariants (normal and shear stress N/m) - SIMIP diags - definitions following Coon (1974) and Feltham (2008)
-         IF( iom_use('normstr') )   CALL iom_put( 'normstr', zsig_I (:,:) * aimsk00(:,:) ) ! Normal stress
-         IF( iom_use('sheastr') )   CALL iom_put( 'sheastr', zsig_II(:,:) * aimsk00(:,:) ) ! Maximum shear stress
+         IF( iom_use('normstr') )   CALL iom_put( 'normstr', zsig_I (:,:) * zmsk00(:,:) ) ! Normal stress
+         IF( iom_use('sheastr') )   CALL iom_put( 'sheastr', zsig_II(:,:) * zmsk00(:,:) ) ! Maximum shear stress
 
          DEALLOCATE ( zsig_I, zsig_II )
 
@@ -914,8 +892,8 @@ CONTAINS
             zsig12           =   zfac * z1_ecc2 * pshear_i(ji,jj)
 
             ! Stress invariants (sigma_I, sigma_II, Coon 1974, Feltham 2008), T-point
-            zsig_I(ji,jj)    =   zsig1 * 0.5_wp                                           ! 1st stress invariant, aka average normal stress, aka negative pressure
-            zsig_II(ji,jj)   =   SQRT ( MAX( 0._wp, zsig2 * zsig2 * 0.25_wp + zsig12 ) )  ! 2nd  ''       '', aka maximum shear stress
+            zsig_I(ji,jj)    =   zsig1 * 0.5_wp                                      ! 1st stress invariant, aka average normal stress, aka negative pressure
+            zsig_II(ji,jj)   =   SQRT ( zsig2 * zsig2 * 0.25_wp + zsig12 * zsig12 )  ! 2nd  ''       ''    , aka maximum shear stress
 
             ! Normalized  principal stresses (used to display the ellipse)
             z1_strength      =   1._wp / MAX( 1._wp, strength(ji,jj) )
@@ -923,8 +901,8 @@ CONTAINS
             zsig2_p(ji,jj)   =   ( zsig_I(ji,jj) - zsig_II(ji,jj) ) * z1_strength
          END_2D
          !
-         CALL iom_put( 'sig1_pnorm' , zsig1_p )
-         CALL iom_put( 'sig2_pnorm' , zsig2_p )
+         IF( iom_use('sig1_pnorm') ) CALL iom_put( 'sig1_pnorm' , zsig1_p(:,:) * zmsk00(:,:) )
+         IF( iom_use('sig2_pnorm') ) CALL iom_put( 'sig2_pnorm' , zsig2_p(:,:) * zmsk00(:,:) )
 
          DEALLOCATE( zsig1_p , zsig2_p , zsig_I, zsig_II )
 
@@ -935,15 +913,15 @@ CONTAINS
 
          CALL lbc_lnk( 'icedyn_rhg_eap', zyield11, 'T', 1.0_wp, zyield22, 'T', 1.0_wp, zyield12, 'T', 1.0_wp )
 
-         CALL iom_put( 'yield11', zyield11 * aimsk00 )
-         CALL iom_put( 'yield22', zyield22 * aimsk00 )
-         CALL iom_put( 'yield12', zyield12 * aimsk00 )
+         CALL iom_put( 'yield11', zyield11 * zmsk00 )
+         CALL iom_put( 'yield22', zyield22 * zmsk00 )
+         CALL iom_put( 'yield12', zyield12 * zmsk00 )
       ENDIF
 
       ! --- anisotropy tensor --- !
       IF( iom_use('aniso') ) THEN
          CALL lbc_lnk( 'icedyn_rhg_eap', paniso_11, 'T', 1.0_wp )
-         CALL iom_put( 'aniso' , paniso_11 * aimsk00 )
+         CALL iom_put( 'aniso' , paniso_11 * zmsk00 )
       ENDIF
 
       ! --- SIMIP --- !
@@ -954,12 +932,12 @@ CONTAINS
             &                            zCorU, 'U', -1.0_wp, zCorV, 'V', -1.0_wp, &
             &                              zfU, 'U', -1.0_wp,   zfV, 'V', -1.0_wp )
 
-         CALL iom_put( 'dssh_dx' , zspgU * aimsk00 )   ! Sea-surface tilt term in force balance (x)
-         CALL iom_put( 'dssh_dy' , zspgV * aimsk00 )   ! Sea-surface tilt term in force balance (y)
-         CALL iom_put( 'corstrx' , zCorU * aimsk00 )   ! Coriolis force term in force balance (x)
-         CALL iom_put( 'corstry' , zCorV * aimsk00 )   ! Coriolis force term in force balance (y)
-         CALL iom_put( 'intstrx' , zfU   * aimsk00 )   ! Internal force term in force balance (x)
-         CALL iom_put( 'intstry' , zfV   * aimsk00 )   ! Internal force term in force balance (y)
+         CALL iom_put( 'dssh_dx' , zspgU * zmsk00 )   ! Sea-surface tilt term in force balance (x)
+         CALL iom_put( 'dssh_dy' , zspgV * zmsk00 )   ! Sea-surface tilt term in force balance (y)
+         CALL iom_put( 'corstrx' , zCorU * zmsk00 )   ! Coriolis force term in force balance (x)
+         CALL iom_put( 'corstry' , zCorV * zmsk00 )   ! Coriolis force term in force balance (y)
+         CALL iom_put( 'intstrx' , zfU   * zmsk00 )   ! Internal force term in force balance (x)
+         CALL iom_put( 'intstry' , zfV   * zmsk00 )   ! Internal force term in force balance (y)
       ENDIF
 
       IF(  iom_use('xmtrpice') .OR. iom_use('ymtrpice') .OR. &
@@ -970,8 +948,8 @@ CONTAINS
          !
          DO_2D( 0, 0, 0, 0 )
             ! 2D ice mass, snow mass, area transport arrays (X, Y)
-            zfac_x = 0.5 * u_ice(ji,jj) * e2u(ji,jj) * aimsk00(ji,jj)
-            zfac_y = 0.5 * v_ice(ji,jj) * e1v(ji,jj) * aimsk00(ji,jj)
+            zfac_x = 0.5 * u_ice(ji,jj) * e2u(ji,jj) * zmsk00(ji,jj)
+            zfac_y = 0.5 * v_ice(ji,jj) * e1v(ji,jj) * zmsk00(ji,jj)
 
             zdiag_xmtrp_ice(ji,jj) = rhoi * zfac_x * ( vt_i(ji+1,jj) + vt_i(ji,jj) ) ! ice mass transport, X-component
             zdiag_ymtrp_ice(ji,jj) = rhoi * zfac_y * ( vt_i(ji,jj+1) + vt_i(ji,jj) ) !        ''           Y-   ''
@@ -1005,10 +983,10 @@ CONTAINS
          IF( iom_use('uice_cvg') ) THEN
             IF( ln_aEVP ) THEN   ! output: beta * ( u(t=nn_nevp) - u(t=nn_nevp-1) )
                CALL iom_put( 'uice_cvg', MAX( ABS( u_ice(:,:) - zu_ice(:,:) ) * zbeta(:,:) * umask(:,:,1) , &
-                  &                           ABS( v_ice(:,:) - zv_ice(:,:) ) * zbeta(:,:) * vmask(:,:,1) ) * aimsk15(:,:) )
+                  &                           ABS( v_ice(:,:) - zv_ice(:,:) ) * zbeta(:,:) * vmask(:,:,1) ) * zmsk15(:,:) )
             ELSE                 ! output: nn_nevp * ( u(t=nn_nevp) - u(t=nn_nevp-1) )
                CALL iom_put( 'uice_cvg', REAL( nn_nevp ) * MAX( ABS( u_ice(:,:) - zu_ice(:,:) ) * umask(:,:,1) , &
-                  &                                             ABS( v_ice(:,:) - zv_ice(:,:) ) * vmask(:,:,1) ) * aimsk15(:,:) )
+                  &                                             ABS( v_ice(:,:) - zv_ice(:,:) ) * vmask(:,:,1) ) * zmsk15(:,:) )
             ENDIF
          ENDIF
       ENDIF
@@ -1016,7 +994,7 @@ CONTAINS
    END SUBROUTINE ice_dyn_rhg_eap
 
 
-   SUBROUTINE rhg_cvg_eap( kt, kiter, kitermax, pu, pv, pub, pvb )
+   SUBROUTINE rhg_cvg_eap( kt, kiter, kitermax, pu, pv, pub, pvb, pmsk15 )
       !!----------------------------------------------------------------------
       !!                    ***  ROUTINE rhg_cvg_eap  ***
       !!
@@ -1031,6 +1009,7 @@ CONTAINS
       !!----------------------------------------------------------------------
       INTEGER ,                 INTENT(in) ::   kt, kiter, kitermax       ! ocean time-step index
       REAL(wp), DIMENSION(:,:), INTENT(in) ::   pu, pv, pub, pvb          ! now and before velocities
+      REAL(wp), DIMENSION(:,:), INTENT(in) ::   pmsk15
       !!
       INTEGER           ::   it, idtime, istatus
       INTEGER           ::   ji, jj          ! dummy loop indices
@@ -1059,22 +1038,20 @@ CONTAINS
       ENDIF
 
       ! time
-      it = ( kt - 1 ) * kitermax + kiter
+      it = ( kt - nit000 ) * kitermax + kiter
 
       ! convergence
       IF( kiter == 1 ) THEN ! remove the first iteration for calculations of convergence (always very large)
          zresm = 0._wp
       ELSE
-         DO_2D( 1, 1, 1, 1 )
-            eap_res(ji,jj) = MAX( ABS( pu(ji,jj) - pub(ji,jj) ) * umask(ji,jj,1), &
-               &               ABS( pv(ji,jj) - pvb(ji,jj) ) * vmask(ji,jj,1) ) * aimsk15(ji,jj)
+         zresm = 0._wp
+         DO_2D( 0, 0, 0, 0 )
             ! cut of the boundary of the box (forced velocities)
-            IF (mjg(jj)<=30 .or. mjg(jj)>970 .or. mig(ji)<=30 .or. mig(ji)>970) THEN
-               eap_res(ji,jj) = 0._wp
-            END IF
-         END_2D
-
-         zresm = MAXVAL( eap_res )
+            IF (mjg0(jj)>30 .AND. mjg0(jj)<=970 .AND. mig0(ji)>30 .AND. mig0(ji)<=970) THEN
+            zresm = MAX( zresm, MAX( ABS( pu(ji,jj) - pub(ji,jj) ) * umask(ji,jj,1), &
+               &                     ABS( pv(ji,jj) - pvb(ji,jj) ) * vmask(ji,jj,1) ) * pmsk15(ji,jj) )
+            ENDIF
+       END_2D
          CALL mpp_max( 'icedyn_rhg_evp', zresm )   ! max over the global domain
       ENDIF
 
@@ -1082,7 +1059,7 @@ CONTAINS
          ! write variables
          istatus = NF90_PUT_VAR( ncvgid, nvarid, (/zresm/), (/it/), (/1/) )
          ! close file
-         IF( kt == nitend )   istatus = NF90_CLOSE(ncvgid)
+         IF( kt == nitend - nn_fsbc + 1 .AND. kiter == kitermax )   istatus = NF90_CLOSE(ncvgid)
       ENDIF
 
    END SUBROUTINE rhg_cvg_eap
