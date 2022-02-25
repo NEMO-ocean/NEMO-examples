@@ -19,7 +19,7 @@ MODULE usrdef_istate
    !
    USE in_out_manager ! I/O manager
    USE lib_mpp        ! MPP library
-   USE eosbn2, ONLY: rn_a0 
+   USE eosbn2, ONLY: rn_a0, rho0 
    USE usrdef_nam
    
    IMPLICIT NONE
@@ -56,28 +56,27 @@ CONTAINS
       INTEGER :: ji, jj, jk  ! dummy loop indices
       !!----------------------------------------------------------------------
       IF(lwp) WRITE(numout,*)
-      IF(lwp) WRITE(numout,*) 'usr_def_istate : SEAMOUNT_TEST_CASE configuration, analytical definition of initial state'
-      IF(lwp) WRITE(numout,*) '~~~~~~~~~~~~~~   Ocean at rest, with an initial density profile = rho_ref + rho_pert     '
-      IF(lwp) WRITE(numout,*) '                 defined via temperature.  Constant salinity (not used as rho=F(T)       '
+      IF(lwp) WRITE(numout,*) 'usr_def_istate : SEAMOUNT_TEST_CASE configuration, analytical definition of initial state.'
+      IF(lwp) WRITE(numout,*) '~~~~~~~~~~~~~~   Ocean at rest, with an initial density profile                           '
+      IF(lwp) WRITE(numout,*) '                                rho_ini = rn_drho * exp(z / rn_delta)'
+      IF(lwp) WRITE(numout,*) '                 This test case uses a linear EOS only function of temperature.'
       !
-      IF(lwp) WRITE(numout,*) '                 Surface-floor density delta for Burger number S = ', rn_s, ' is rho_delta = ', rn_drho 
+      IF(lwp) WRITE(numout,*) ''
+      IF(lwp) WRITE(numout,*) '                 Initial condition settings:'
+      IF(lwp) WRITE(numout,*) '                     *) Surface-bottom density difference    rn_drho  = ', rn_drho
+      IF(lwp) WRITE(numout,*) '                     *) Steepness of the stratification      rn_delta = ', rn_delta
+      IF(lwp) WRITE(numout,*) '                     *) Estimated Burger number              rn_Snum  = ', rn_Snum
       !
       pu  (:,:,:) = 0._wp        ! ocean at rest
       pv  (:,:,:) = 0._wp
       !
       !                          ! T & S profiles
-      IF (ln_exp_init) THEN
-         IF (lwp) WRITE(numout,*) 'Setting exponential initial density perturbation'
-         DO jk = 1, jpk
-            pts(:,:,jk,jp_tem) = - ptmask(:,:,jk) * ( 28._wp - rn_drho * EXP( - pdept(:,:,jk) / 1000._wp ) - rn_initrho * EXP( - pdept(:,:,jk) / 1000._wp ) ) / rn_a0
-         END DO
-      END IF
-      IF (ln_linear_init) THEN
-         IF (lwp) WRITE(numout,*) 'Setting linear initial density perturbation'
-         DO jk = 1, jpk
-            pts(:,:,jk,jp_tem) = - ptmask(:,:,jk) * ( 28._wp - rn_drho * EXP( - pdept(:,:,jk) / 1000._wp ) + rn_initrho * pdept(:,:,jk) / 4500._wp ) / rn_a0
-         END DO
-      END IF
+      T0 = 10._wp
+      S0 = 35._wp
+      DO jk = 1, jpk
+         rho(:,:,k) = rho0 - rn_drho * EXP(pdept(:,:,jk) / rn_delta)
+         pts(:,:,jk,jp_tem) = ( T0 + (rho0 - rho) / rn_a0 ) * ptmask(:,:,jk)
+      END DO
       !
       pts(:,:,:,jp_sal) = 35._wp * ptmask(:,:,:)
       !!----------------------------------------------------------------------

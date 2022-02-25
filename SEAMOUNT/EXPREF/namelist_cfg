@@ -33,21 +33,36 @@
 !-----------------------------------------------------------------------
 &namusr_def    !    SEAMOUNT TEST CASE
 !-----------------------------------------------------------------------
-   ln_zco            = .false.      ! z-coordinate
-   ln_zps            = .false.      ! z-partial-step coordinate
-   ln_sco            = .true.       ! s-coordinate
-   rn_dx             = 4000.0       ! horizontal resolution  [m]
-   rn_length         = 380.0        ! length of domain      [km]
-   rn_width          = 288.0        ! width of domain       [km]
-   rn_dz             = 450.0        ! vertical   resolution  [m]
-   rn_initrho        = 0.1          ! Initial density perturbation magnitude
-   rn_s              = 2.0          ! Burger number (to control background density profile)
-   rn_bathy          = 4500.0       ! Max Depth
-   rn_seamountheight = 4050.0       ! Seamount height
-   rn_l              = 25000.0      ! Gaussian scale factor
-   rn_f              = 0.0001       ! Coriolis parameter
-   ln_exp_init       = .true.       ! Exponential decay density perturbation profile
-   ln_linear_init    = .false.      ! Linearly decreasing density perturbation
+!! PHYSICAL DOMAIN  
+   rn_xdim    = 320.     ! x-dimension of the domain [km]
+   rn_ydim    = 320.     ! y-dimension of the domain [km]
+   rn_bot_max = 5000.    ! max ocean depth (>0) [m]
+   rn_smnt_H  = 4500.    ! seamount height (>0) [m]
+   rn_smnt_L  = 40.      ! seamount width [km]
+   rn_fplane  = 0.0001   ! Coriolis parameter for f-plane approximation             
+!! NUMERICAL DISCRETIZATION
+   rn_dx      = 6700.    ! horizontal resolution [m] 
+   rn_dz      = 454.55   ! vertical resolution far from the seamount 
+                         ! and assuming no stretching [m]
+!! VERTICAL COORDINATE
+   ln_zco     = .false.  ! z-coordinate
+   ln_zps     = .false.  ! z-partial-step coordinate
+   ln_sco     = .true.   ! s-coordinate
+   ! Stretched s-levels (ln_sco = .true.)
+   ln_s_sh94  = .true.   ! TRUE:  s-levels using Song & Haidvogel 1994 (SH94)
+                         !        stretching function 
+                         ! FALSE: uniform sigma-levels
+   rn_theta   = 3.0      ! SH94 surface control parameter (0<=theta<=20)
+   rn_bb      = 0.0      ! SH94 bottom control parameter (0<=bb<=1)
+   rn_hc      = 500      ! SH94 critical depth for transition to stretched coordinates [m]
+   ! Paramaters for vqs-coordinate (ln_sco = .true.)
+   ln_vqs     = .false.  ! activating vanishing quasi-sigma levels (TRUE)   
+   rn_rmax    = 0.3      ! maximum cut-off slope parameter value allowed 
+                         ! if using vqs-levels (0<r_max<1)
+!! INITIAL CONDITION
+   rn_drho    = 3.0      ! Surface-bottom density difference
+   rn_delta   = 500.0    ! Parameter controlling the steepness of the 
+                         ! stratification
 /
 !-----------------------------------------------------------------------
 &namrun        !   parameters of the run
@@ -179,8 +194,8 @@
 !-----------------------------------------------------------------------
    ln_teos10   = .false.         !  = Use TEOS-10
    ln_eos80    = .false.         !  = Use EOS80
-   ln_seos     = .false.         !  = Use S-EOS (simplified Eq.)
-   ln_eeos     = .true.          !  = Use E-EOS (exponential eq.)
+   ln_seos     = .true.          !  = Use S-EOS (simplified Eq.)
+   ln_eeos     = .false.         !  = Use E-EOS (exponential eq.)
                                  !
    !                     ! S-EOS coefficients (ln_seos=T):
    !                             !  rd(T,S,Z)*rho0 = -a0*(1+.5*lambda*dT+mu*Z+nu*dS)*dT+b0*dS
