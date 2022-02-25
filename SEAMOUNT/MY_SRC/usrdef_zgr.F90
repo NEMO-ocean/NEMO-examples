@@ -83,9 +83,9 @@ CONTAINS
       DO jj = 1, jpj
          DO ji = 1, jpi
             bathy(ji,jj) = rn_bot_max - rn_smnt_H * EXP(              &
-               &           ( ( 1000._wp * glamt(ji,jj) - zlam_mid)**2 + &
-               &             ( 1000._wp * gphit(ji,jj) - zphi_mid)**2 ) & 
-               &           / rn_smnt_L**2)
+               &           -( ( 1000._wp * glamt(ji,jj) - zlam_mid)**2 + &
+               &              ( 1000._wp * gphit(ji,jj) - zphi_mid)**2 ) & 
+               &            / ( 1000._wp * rn_smnt_L)**2 )
          END DO
       END DO
       ! 
