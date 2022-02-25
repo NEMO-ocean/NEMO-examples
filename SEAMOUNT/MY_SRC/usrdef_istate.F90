@@ -53,7 +53,9 @@ CONTAINS
       REAL(wp), DIMENSION(jpi,jpj,jpk)     , INTENT(  out) ::   pu      ! i-component of the velocity  [m/s] 
       REAL(wp), DIMENSION(jpi,jpj,jpk)     , INTENT(  out) ::   pv      ! j-component of the velocity  [m/s] 
       !
-      INTEGER :: ji, jj, jk  ! dummy loop indices
+      INTEGER                                              :: ji, jj, jk  ! dummy loop indices
+      REAL(wp)                                             :: T0, S0
+      REAL(wp), DIMENSION(jpi,jpj)                         :: rho
       !!----------------------------------------------------------------------
       IF(lwp) WRITE(numout,*)
       IF(lwp) WRITE(numout,*) 'usr_def_istate : SEAMOUNT_TEST_CASE configuration, analytical definition of initial state.'
@@ -74,8 +76,8 @@ CONTAINS
       T0 = 10._wp
       S0 = 35._wp
       DO jk = 1, jpk
-         rho(:,:,k) = rho0 - rn_drho * EXP(pdept(:,:,jk) / rn_delta)
-         pts(:,:,jk,jp_tem) = ( T0 + (rho0 - rho) / rn_a0 ) * ptmask(:,:,jk)
+         rho(:,:) = rho0 - rn_drho * EXP(-pdept(:,:,jk) / rn_delta)
+         pts(:,:,jk,jp_tem) = ( T0 + (rho0 - rho(:,:)) / rn_a0 ) * ptmask(:,:,jk)
       END DO
       !
       pts(:,:,:,jp_sal) = 35._wp * ptmask(:,:,:)

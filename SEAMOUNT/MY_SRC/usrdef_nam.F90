@@ -49,7 +49,7 @@ MODULE usrdef_nam
    REAL(wp), PUBLIC :: rn_hc      ! SH94 critical depth for transition to
                                   ! stretched coordinates [m]
    ! Paramaters for vqs-coordinate (ln_sco = .true.)
-   REAL(wp), PUBLIC :: ln_vqs     ! activating vanishing quasi-sigma levels (TRUE)
+   LOGICAL,  PUBLIC :: ln_vqs     ! activating vanishing quasi-sigma levels (TRUE)
    REAL(wp), PUBLIC :: rn_rmax    ! maximum cut-off slope parameter value allowed
                                   ! if using vqs-levels (0<r_max<1)
    !! INITIAL CONDITION
@@ -86,9 +86,9 @@ CONTAINS
 
       !
       INTEGER                       ::   ios    ! Local integer
-      CHARACTER(len=3)              ::   ioptio ! Local string
+      INTEGER                       ::   ioptio ! Local string
       !!
-      NAMELIST/namusr_def/ rn_xdim , rn_ydim, rn_bot_max, rn_bot_min, rn_bot_fac, rn_fplane,  &
+      NAMELIST/namusr_def/ rn_xdim , rn_ydim, rn_bot_max, rn_smnt_H , rn_smnt_L , rn_fplane,  &
          &                 rn_dx   , rn_dz  , ln_zco    , ln_zps    , ln_sco    , ln_s_sh94,  &
          &                 rn_theta, rn_bb  , rn_hc     , ln_vqs    , rn_rmax   , rn_drho  ,  &
          &                 rn_delta

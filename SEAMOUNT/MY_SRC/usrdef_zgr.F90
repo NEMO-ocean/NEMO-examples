@@ -94,22 +94,22 @@ CONTAINS
       !
       CALL zgr_msk_top_bot( k_top , k_bot )                 ! masked top and bottom ocean t-level indices
       !
-      IF ( ln_zco ) CALL zgr_zco( bathy    ,                                       &  ! in : 2D bathymetry
-            &                     pdept_1d , pdepw_1d, pe3t_1d, pe3w_1d,           &  !      1D ref. z-coord.
-            &                     pdept    , pdepw   ,                             &  ! out: 3D T & W-points depth
-            &                     pe3t     , pe3u    , pe3v    , pe3f   ,          &  !      vertical scale factors
-            &                     pe3w     , pe3uw   , pe3vw   , k_bot  , k_top    )  
+      IF ( ln_zco ) CALL zgr_zco( bathy    ,                                    &  ! in : 2D bathymetry
+            &                     pdept_1d , pdepw_1d, pe3t_1d , pe3w_1d,       &  !      1D ref. z-coord.
+            &                     pdept    , pdepw   ,                          &  ! out: 3D T & W-points depth
+            &                     pe3t     , pe3u    , pe3v    , pe3f   ,       &  !      vertical scale factors
+            &                     pe3w     , pe3uw   , pe3vw   , k_bot  , k_top )  
       !
-      IF ( ln_zps ) CALL zgr_zps( bathy    ,                                       &  ! in : 2D bathymetry
-            &                     pdept_1d , pdepw_1d, pe3t_1d, pe3w_1d, &         &  !      1D ref. z-coord.
-            &                     pdept    , pdepw   ,                             &  ! out: 3D T & W-points depth
-            &                     pe3t     , pe3u    , pe3v    , pe3f   ,          &  !      vertical scale factors
-            &                     pe3w     , pe3uw   , pe3vw   , k_bot  , k_top    )    
+      IF ( ln_zps ) CALL zgr_zps( bathy    ,                                    &  ! in : 2D bathymetry
+            &                     pdept_1d , pdepw_1d, pe3t_1d , pe3w_1d,       &  !      1D ref. z-coord.
+            &                     pdept    , pdepw   ,                          &  ! out: 3D T & W-points depth
+            &                     pe3t     , pe3u    , pe3v    , pe3f   ,       &  !      vertical scale factors
+            &                     pe3w     , pe3uw   , pe3vw   , k_bot  , k_top )    
       !
-      IF ( ln_sco ) CALL zgr_sco( bathy    ,                                       &  ! in : 2D bathymetry
-            &                     pdept    , pdepw   ,                             &  ! out: 3D T & W-points depth
-            &                     pe3t     , pe3u    , pe3v    , pe3f   ,          &  !      vertical scale factors
-            &                     pe3w     , pe3uw   , pe3vw   , k_bot  , k_top    )
+      IF ( ln_sco ) CALL zgr_sco( bathy    ,                                    &  ! in : 2D bathymetry
+            &                     pdept    , pdepw   ,                          &  ! out: 3D T & W-points depth
+            &                     pe3t     , pe3u    , pe3v    , pe3f   ,       &  !      vertical scale factors
+            &                     pe3w     , pe3uw   , pe3vw   , k_bot  , k_top )
 
       !
    END SUBROUTINE usr_def_zgr
@@ -379,11 +379,17 @@ CONTAINS
       INTEGER , DIMENSION(:,:)  , INTENT(inout) ::   pk_bot, pk_top              !    -       -      -
       !
       INTEGER                                   ::   ji,jj,jk
-      REAL(wp), DIMENSION(jpk)                  ::   sigt_1d, sigw_1d 
+      REAL(wp), DIMENSION(jpk)                  ::   sigt_1d, sigw_1d
+      REAL(wp), DIMENSION(jpi,jpj)              ::   pht_w 
       !!----------------------------------------------------------------------
       !
+      pht_w(:,:) = pht(:,:)
       ! Computing envelope bathymetry if using vanishing quasi-sigma levels
-      IF( ln_vqs ) CALL s_vqs( pht )
+      IF( ln_vqs ) THEN 
+        CALL s_vqs( pht, pht_w )
+      ELSE
+        pht_w(:,:) = pht(:,:)
+      END IF
 
       ! Computing uniform sigma-coordinate 
       CALL sigma_coord(sigt_1d, sigw_1d)
@@ -401,8 +407,8 @@ CONTAINS
          DO ji = 1, jpi
             ! Depth of model levels
             DO jk = 1, jpk
-               pdept(ji,jj,jk) = rn_hc * sigt_1d(jk) + sigt_1d(jk) * (pht(ji,jj) - rn_hc)
-               pdepw(ji,jj,jk) = rn_hc * sigw_1d(jk) + sigw_1d(jk) * (pht(ji,jj) - rn_hc)
+               pdept(ji,jj,jk) = rn_hc * sigt_1d(jk) + sigt_1d(jk) * (pht_w(ji,jj) - rn_hc)
+               pdepw(ji,jj,jk) = rn_hc * sigw_1d(jk) + sigw_1d(jk) * (pht_W(ji,jj) - rn_hc)
             END DO
             ! Vertical scale factors as finite differences
             DO jk = 1, jpkm1
@@ -419,7 +425,7 @@ CONTAINS
         DO jj = 1, jpj
            DO ji = 1, jpi 
               DO jk = jpkm1, 1, -1
-                 IF ( pht(ji,jj) < pdept(ji,jj,jk) ) THEN   
+                 IF ( pht_w(ji,jj) < pdept(ji,jj,jk) ) THEN   
                     pk_bot(ji,jj) = jk-1
                     CYCLE
                  ENDIF
@@ -460,7 +466,7 @@ CONTAINS
       !
    END SUBROUTINE zgr_sco
 
-   SUBROUTINE s_vqs( pht )
+   SUBROUTINE s_vqs( pht, zenv )
       !!------------------------------------------------------------------------
       !!                  ***  ROUTINE s_vqs  ***
       !!
@@ -480,12 +486,12 @@ CONTAINS
       !! 
       !! Reference:     Martinho & Batteen, Oce. Mod. 13(2):166-175, 2006.
       !!------------------------------------------------------------------------
-      REAL(wp), DIMENSION(:,:)  , INTENT(inout) ::   pht                 ! 2D bathymetry  [m]
-      REAL(wp), DIMENSION(:,:)                  ::   eht                 ! 2D envelope bathymetry [m]
+      REAL(wp), DIMENSION(:,:)  , INTENT(in   ) ::   pht            ! 2D bathymetry [m]
+      REAL(wp), DIMENSION(:,:)  , INTENT(  out) ::   zenv           ! 2D envelope   [m]
       !
       INTEGER                                   ::   ji,jj,jk,jl
+      INTEGER                                   ::   iip1, ijp1
       REAL(wp)                                  ::   zrmax, zrfact
-      REAL(wp), DIMENSION(jpi, jpj)             ::   zenv
       REAL(wp), DIMENSION(jpi, jpj)             ::   ztmpi1, ztmpi2
       REAL(wp), DIMENSION(jpi, jpj)             ::   ztmpj1, ztmpj2
       REAL(wp), DIMENSION(jpi, jpj)             ::   zri, zrj
@@ -519,17 +525,17 @@ CONTAINS
          ! if set after current r-value calculation (as previously)
          ! we could exit DO WHILE prematurely before checking r-value
          ! of current zenv
-         DO jj = 1, nlcj
-            DO ji = 1, nlci
+         DO jj = 1, jpj
+            DO ji = 1, jpi
                zrmax = MAX( zrmax, ABS(zri(ji,jj)), ABS(zrj(ji,jj)) )
             END DO
          END DO
          zri(:,:) = 0._wp
          zrj(:,:) = 0._wp
-         DO jj = 1, nlcj
-            DO ji = 1, nlci
-               iip1 = MIN( ji+1, nlci )      ! force zri = 0 on last line (ji=ncli+1 to jpi)
-               ijp1 = MIN( jj+1, nlcj )      ! force zrj = 0 on last raw  (jj=nclj+1 to jpj)
+         DO jj = 1, jpj
+            DO ji = 1, jpi
+               iip1 = MIN( ji+1, jpi )      ! force zri = 0 on last line (ji=ncli+1 to jpi)
+               ijp1 = MIN( jj+1, jpj )      ! force zrj = 0 on last raw  (jj=nclj+1 to jpj)
                IF( (zenv(ji,jj) > 0._wp) .AND. (zenv(iip1,jj) > 0._wp)) THEN
                   zri(ji,jj) = ( zenv(iip1,jj  ) - zenv(ji,jj) ) / &
                     &          ( zenv(iip1,jj  ) + zenv(ji,jj) )
@@ -546,8 +552,8 @@ CONTAINS
          END DO
          IF(lwp)WRITE(numout,*) 's_vqs :   iter= ',jl, ' rmax= ', zrmax
          !
-         DO jj = 1, nlcj
-            DO ji = 1, nlci
+         DO jj = 1, jpj
+            DO ji = 1, jpi
                zenv(ji,jj) = MAX(zenv(ji,jj), ztmpi1(ji,jj), ztmpi2(ji,jj), ztmpj1(ji,jj), ztmpj2(ji,jj) )
             END DO
          END DO
@@ -557,27 +563,6 @@ CONTAINS
          !CALL lbc_lnk( zenv, 'T', 1._wp, 'no0' )         
          !                                                  ! ================ !
       END DO                                                !     End loop     !               
-      !                                                     ! ================ !
-     
-      ! Envelope bathymetry saved in eht
-      eht(:,:) = zenv(:,:)
-      ehu(:,:) = 0.
-      ehv(:,:) = 0.
-      ehf(:,:) = 0.
-      DO jj = 1, jpjm1
-        DO ji = 1, jpim1   ! NO vector opt.
-           ehu(ji,jj) = 0.50_wp * ( eht(ji  ,jj) + eht(ji+1,jj  ) )
-           ehv(ji,jj) = 0.50_wp * ( eht(ji  ,jj) + eht(ji  ,jj+1) )
-           ehf(ji,jj) = 0.25_wp * ( eht(ji  ,jj) + eht(ji  ,jj+1)   &
-              &                   + eht(ji+1,jj) + eht(ji+1,jj+1) )
-        END DO
-      END DO
-      ! Apply lateral boundary condition
-      ! CAUTION: retain non zero value in the initial file this should be OK for
-      ! orca cfg, not for EEL ????
-      CALL lbc_lnk( 'usrdef_zgr', ehu, 'U', 1. )
-      CALL lbc_lnk( 'usrdef_zgr', ehv, 'V', 1. )
-      CALL lbc_lnk( 'usrdef_zgr', ehf, 'F', 1. )
       !
    END SUBROUTINE s_vqs
 
@@ -601,7 +586,7 @@ CONTAINS
       DO jk = 1, jpk
          sigT(jk) = ( REAL (jk-1, wp) + 0.5_wp ) / REAL ( jpkm1 )
          sigW(jk) =   REAL (jk-1, wp)            / REAL ( jpkm1 )
-         IF( lwp ) WRITE(numout, *) 'sigt_1d(jk), sigw_1d(jk)', jk, sigt_1d(jk), sigw_1d(jk)
+         IF( lwp ) WRITE(numout, *) 'sigt_1d(jk), sigw_1d(jk)', jk, sigT(jk), sigW(jk)
       END DO
 
    END SUBROUTINE sigma_coord
@@ -614,19 +599,20 @@ CONTAINS
       !!                stretching function for s-coordinate.
       !!
       !!----------------------------------------------------------------------
-      REAL,   DIMENSION(:),   INTENT (in) ::   sigT, sigW ! uniform sigma-coord 
-      REAL,                               ::   sT, sW     ! work variables
+      REAL,   DIMENSION(:),   INTENT (inout) ::   sigT, sigW ! uniform sigma-coord 
+      INTEGER                                ::   jk
+      REAL                                   ::   sT, sW     ! work variables
       !!----------------------------------------------------------------------                                          
       IF ( rn_theta > 0 ) THEN
          DO jk = 1, jpk 
-            sT = -sigT(k)
-            sW = -sigW(k)     
-            sigT(k) = (1._wp - rn_bb) * SINH(rn_theta * sT) / SINH(rn_theta) + rn_bb * &
-              &       ( ( TANH(rn_theta * (sT + 0.5_wp)) - TANH(0.5_wp * rn_theta) ) / &
-              &       (2._wp * TANH(0.5_wp * rn_theta) ) )
-            sigW(k) = (1._wp - rn_bb) * SINH(rn_theta * sW) / SINH(rn_theta) + rn_bb * &
-              &       ( ( TANH(rn_theta * (sW + 0.5_wp)) - TANH(0.5_wp * rn_theta) ) / &
-              &       (2._wp * TANH(0.5_wp * rn_theta) ) )
+            sT = -sigT(jk)
+            sW = -sigW(jk)     
+            sigT(jk) = (1._wp - rn_bb) * SINH(rn_theta * sT) / SINH(rn_theta) + rn_bb * &
+              &        ( ( TANH(rn_theta * (sT + 0.5_wp)) - TANH(0.5_wp * rn_theta) ) / &
+              &        (2._wp * TANH(0.5_wp * rn_theta) ) )
+            sigW(jk) = (1._wp - rn_bb) * SINH(rn_theta * sW) / SINH(rn_theta) + rn_bb * &
+              &        ( ( TANH(rn_theta * (sW + 0.5_wp)) - TANH(0.5_wp * rn_theta) ) / &
+              &        (2._wp * TANH(0.5_wp * rn_theta) ) )
          END DO
       END IF
 
