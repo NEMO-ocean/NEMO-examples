@@ -195,7 +195,6 @@
    ln_teos10   = .false.         !  = Use TEOS-10
    ln_eos80    = .false.         !  = Use EOS80
    ln_seos     = .true.          !  = Use S-EOS (simplified Eq.)
-   ln_eeos     = .false.         !  = Use E-EOS (exponential eq.)
                                  !
    !                     ! S-EOS coefficients (ln_seos=T):
    !                             !  rd(T,S,Z)*rho0 = -a0*(1+.5*lambda*dT+mu*Z+nu*dS)*dT+b0*dS
