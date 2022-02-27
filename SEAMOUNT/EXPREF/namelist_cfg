@@ -68,7 +68,7 @@
 !-----------------------------------------------------------------------
    cn_exp      =  "SEAMOUNT_xxx"!  experience name
    nn_it000    =       1        !  first time step
-   nn_itend    =       2400     !  last  time step (10 days)
+   nn_itend    =       1200     !  last  time step (10 days)
    nn_date0    =  19000101
    nn_leapy    =      30        !  Leap year calendar (1) or not (0)
    nn_stock    =    48000       !  frequency of creation of a restart file (modulo referenced to 1)
