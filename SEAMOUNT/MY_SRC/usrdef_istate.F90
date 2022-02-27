@@ -55,32 +55,48 @@ CONTAINS
       !
       INTEGER                                              :: ji, jj, jk  ! dummy loop indices
       REAL(wp)                                             :: T0, S0
+      REAL(wp)                                             :: drho, dtem, delta
       REAL(wp), DIMENSION(jpi,jpj)                         :: rho
       !!----------------------------------------------------------------------
-      IF(lwp) WRITE(numout,*)
-      IF(lwp) WRITE(numout,*) 'usr_def_istate : SEAMOUNT_TEST_CASE configuration, analytical definition of initial state.'
-      IF(lwp) WRITE(numout,*) '~~~~~~~~~~~~~~   Ocean at rest, with an initial density profile                           '
-      IF(lwp) WRITE(numout,*) '                                rho_ini = rn_drho * exp(z / rn_delta)'
-      IF(lwp) WRITE(numout,*) '                 This test case uses a linear EOS only function of temperature.'
       !
+      IF(lwp) WRITE(numout,*)
+      IF(lwp) WRITE(numout,*) 'usr_def_istate : SEAMOUNT_TEST_CASE configuration:'
+      IF(lwp) WRITE(numout,*) '~~~~~~~~~~~~~~   Ocean at rest with analytical initial stratification'
       IF(lwp) WRITE(numout,*) ''
-      IF(lwp) WRITE(numout,*) '                 Initial condition settings:'
-      IF(lwp) WRITE(numout,*) '                     *) Surface-bottom density difference    rn_drho  = ', rn_drho
-      IF(lwp) WRITE(numout,*) '                     *) Steepness of the stratification      rn_delta = ', rn_delta
-      IF(lwp) WRITE(numout,*) '                     *) Estimated Burger number              rn_Snum  = ', rn_Snum
       !
       pu  (:,:,:) = 0._wp        ! ocean at rest
       pv  (:,:,:) = 0._wp
       !
-      !                          ! T & S profiles
-      T0 = 10._wp
-      S0 = 35._wp
-      DO jk = 1, jpk
-         rho(:,:) = rho0 - rn_drho * EXP(-pdept(:,:,jk) / rn_delta)
-         pts(:,:,jk,jp_tem) = ( T0 + (rho0 - rho(:,:)) / rn_a0 ) * ptmask(:,:,jk)
-      END DO
+      SELECT CASE (nn_ini_cond)
+         CASE (0)
+            IF(lwp) WRITE(numout,*) '                 Shchepetkin & McWilliams (2003) initial density profile'
+            IF(lwp) WRITE(numout,*) '                 and linear EOS only function of temperature.'
+            !
+            drho = 3._wp
+            delta = 500._wp
+            T0 = 10._wp
+            DO jk = 1, jpk
+               rho(:,:) = rho0 - drho * EXP(-pdept(:,:,jk) / delta)
+               pts(:,:,jk,jp_tem) = ( T0 + (rho0 - rho(:,:)) / rn_a0 ) * ptmask(:,:,jk)
+            END DO
+         CASE (1)
+            IF(lwp) WRITE(numout,*) '                 Ezer, Arango and Shchepetkin (2002) initial temperature profile'
+            IF(lwp) WRITE(numout,*) '                 and non-linear TEOS10.'
+            dtem  = 15._wp
+            delta = 1000._wp
+            T0 = 5._wp
+            DO jk = 1, jpk
+               pts(:,:,jk,jp_tem) = T0 + dtem * EXP(-pdept(:,:,jk) / delta) * ptmask(:,:,jk)
+            END DO
+      END SELECT
       !
+      S0 = 35._wp
       pts(:,:,:,jp_sal) = 35._wp * ptmask(:,:,:)
+
+      !IF(lwp) WRITE(numout,*) '                     *) Estimated Burger number              rn_Snum  = ', rn_Snum
+      ! Estimating Burger Number for initial density profile:
+      ! S = (N * H) / (f * L) = SQRT(g * H * drho / rho_ref) / (f * L)
+      !rn_Snum = SQRT(grav * rn_bot_max * rn_drho / 1000._wp) / (rn_fplane * rn_smnt_L * 1000._wp)
       !!----------------------------------------------------------------------
       !
    END SUBROUTINE usr_def_istate

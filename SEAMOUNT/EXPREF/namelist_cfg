@@ -34,42 +34,41 @@
 &namusr_def    !    SEAMOUNT TEST CASE
 !-----------------------------------------------------------------------
 !! PHYSICAL DOMAIN  
-   rn_xdim    = 320.     ! x-dimension of the domain [km]
-   rn_ydim    = 320.     ! y-dimension of the domain [km]
-   rn_bot_max = 5000.    ! max ocean depth (>0) [m]
-   rn_smnt_H  = 4500.    ! seamount height (>0) [m]
-   rn_smnt_L  = 40.      ! seamount width [km]
-   rn_fplane  = 0.0001   ! Coriolis parameter for f-plane approximation             
+   rn_xdim      = 504.    ! x-dimension of the domain [km]
+   rn_ydim      = 504.    ! y-dimension of the domain [km]
+   rn_bot_max   = 4500.   ! max ocean depth (>0) [m]
+   rn_smnt_H    = 4050.   ! seamount height (>0) [m]
+   rn_smnt_L    = 25.     ! seamount width [km]
+   rn_fplane    = 0.0001  ! Coriolis parameter for f-plane approximation             
 !! NUMERICAL DISCRETIZATION
-   rn_dx      = 6700.    ! horizontal resolution [m] 
-   rn_dz      = 454.55   ! vertical resolution far from the seamount 
-                         ! and assuming no stretching [m]
+   rn_dx        = 8000.   ! horizontal resolution [m] 
+   rn_dz        = 236.8   ! vertical resolution far from the seamount 
+                          ! and assuming no stretching [m]
 !! VERTICAL COORDINATE
-   ln_zco     = .false.  ! z-coordinate
-   ln_zps     = .false.  ! z-partial-step coordinate
-   ln_sco     = .true.   ! s-coordinate
+   ln_zco       = .false. ! z-coordinate
+   ln_zps       = .false. ! z-partial-step coordinate
+   ln_sco       = .true.  ! s-coordinate
    ! Stretched s-levels (ln_sco = .true.)
-   ln_s_sh94  = .true.   ! TRUE:  s-levels using Song & Haidvogel 1994 (SH94)
-                         !        stretching function 
-                         ! FALSE: uniform sigma-levels
-   rn_theta   = 3.0      ! SH94 surface control parameter (0<=theta<=20)
-   rn_bb      = 0.0      ! SH94 bottom control parameter (0<=bb<=1)
-   rn_hc      = 500      ! SH94 critical depth for transition to stretched coordinates [m]
+   ln_s_sh94    = .false.  ! TRUE:  s-levels using Song & Haidvogel 1994 (SH94)
+                          !        stretching function 
+                          ! FALSE: uniform sigma-levels
+   rn_theta     = 3.0     ! SH94 surface control parameter (0<=theta<=20)
+   rn_bb        = 0.0     ! SH94 bottom control parameter (0<=bb<=1)
+   rn_hc        = 500     ! SH94 critical depth for transition to stretched coordinates [m]
    ! Paramaters for vqs-coordinate (ln_sco = .true.)
-   ln_vqs     = .false.  ! activating vanishing quasi-sigma levels (TRUE)   
-   rn_rmax    = 0.3      ! maximum cut-off slope parameter value allowed 
-                         ! if using vqs-levels (0<r_max<1)
+   ln_vqs       = .false. ! activating vanishing quasi-sigma levels (TRUE)   
+   rn_rmax      = 0.3     ! maximum cut-off slope parameter value allowed 
+                          ! if using vqs-levels (0<r_max<1)
 !! INITIAL CONDITION
-   rn_drho    = 3.0      ! Surface-bottom density difference
-   rn_delta   = 500.0    ! Parameter controlling the steepness of the 
-                         ! stratification
+   nn_ini_cond  = 1       ! 0: Shchepetkin and McWilliams (2002)
+                          ! 1: Ezer, Arango and Shchepetkin (2002)
 /
 !-----------------------------------------------------------------------
 &namrun        !   parameters of the run
 !-----------------------------------------------------------------------
    cn_exp      =  "SEAMOUNT_xxx"!  experience name
    nn_it000    =       1        !  first time step
-   nn_itend    =       2000     !  last  time step (10 days)
+   nn_itend    =       2400     !  last  time step (10 days)
    nn_date0    =  19000101
    nn_leapy    =      30        !  Leap year calendar (1) or not (0)
    nn_stock    =    48000       !  frequency of creation of a restart file (modulo referenced to 1)
@@ -82,7 +81,7 @@
 !-----------------------------------------------------------------------
    ln_linssh   = .false.   !  =T  linear free surface  ==>>  model level are fixed in time
    !
-   rn_Dt       = 432.     !  time step for the dynamics and tracer
+   rn_Dt       = 360.     !  time step for the dynamics and tracer
    ln_meshmask = .true.   !  =T create a mesh file
 /
 !-----------------------------------------------------------------------
@@ -193,8 +192,8 @@
 &nameos        !   ocean Equation Of Seawater                           (default: NO selection)
 !-----------------------------------------------------------------------
    ln_teos10   = .false.         !  = Use TEOS-10
-   ln_eos80    = .false.         !  = Use EOS80
-   ln_seos     = .true.          !  = Use S-EOS (simplified Eq.)
+   ln_eos80    = .true.          !  = Use EOS80
+   ln_seos     = .false.         !  = Use S-EOS (simplified Eq.)
                                  !
    !                     ! S-EOS coefficients (ln_seos=T):
    !                             !  rd(T,S,Z)*rho0 = -a0*(1+.5*lambda*dT+mu*Z+nu*dS)*dT+b0*dS
@@ -258,20 +257,20 @@
 &namdyn_adv    !   formulation of the momentum advection                (default: NO selection)
 !-----------------------------------------------------------------------
    ln_dynadv_OFF = .false. !  linear dynamics (no momentum advection)
-   ln_dynadv_vec = .false. !  vector form - 2nd centered scheme
+   ln_dynadv_vec = .true. !  vector form - 2nd centered scheme
      nn_dynkeg     = 0        ! grad(KE) scheme: =0   C2  ;  =1   Hollingsworth correction
-   ln_dynadv_cen2 = .true. !  flux form - 2nd order centered scheme
-   ln_dynadv_ubs = .false. !  flux form - 3rd order UBS      scheme
+   ln_dynadv_cen2 = .false. !  flux form - 2nd order centered scheme
+   ln_dynadv_ubs = .false.  !  flux form - 3rd order UBS      scheme
 /
 !-----------------------------------------------------------------------
 &namdyn_vor    !   Vorticity / Coriolis scheme                          (default: NO selection)
 !-----------------------------------------------------------------------
-   ln_dynvor_ene = .true. !  energy    conserving scheme
+   ln_dynvor_ene = .false. !  energy    conserving scheme
    ln_dynvor_ens = .false. !  enstrophy conserving scheme
    ln_dynvor_mix = .false. !  mixed scheme
    ln_dynvor_enT = .false. !  energy conserving scheme (T-point)
    ln_dynvor_eeT = .false. !  energy conserving scheme (een using e3t)
-   ln_dynvor_een = .false. !  energy & enstrophy scheme
+   ln_dynvor_een = .true.  !  energy & enstrophy scheme
    !
    ln_dynvor_msk = .false. !  vorticity multiplied by fmask (=T)        ==>>> PLEASE DO NOT ACTIVATE
    !                       !  (f-point vorticity schemes only)
@@ -284,9 +283,9 @@
 !-----------------------------------------------------------------------
    ln_hpg_zco  = .false.   !  z-coordinate - full steps
    ln_hpg_zps  = .false.   !  z-coordinate - partial steps (interpolation)
-   ln_hpg_sco  = .true.   !  s-coordinate (standard jacobian formulation)
+   ln_hpg_sco  = .false.   !  s-coordinate (standard jacobian formulation)
    ln_hpg_isf  = .false.   !  s-coordinate (sco ) adapted to isf
-   ln_hpg_djc  = .false.   !  s-coordinate (Density Jacobian with Cubic polynomial)
+   ln_hpg_djc  = .true.   !  s-coordinate (Density Jacobian with Cubic polynomial)
       ln_hpg_djc_vnh = .true.  !  hor.  bc type for djc scheme (T=von Neumann, F=linear extrapolation)
       ln_hpg_djc_vnv = .true.  !  vert. bc type for djc scheme (T=von Neumann, F=linear extrapolation)
    ln_hpg_prj  = .false.   !  s-coordinate (Pressure Jacobian scheme)
@@ -296,7 +295,7 @@
 !-----------------------------------------------------------------------
    ln_dynspg_exp  = .false.   ! explicit free surface
    ln_dynspg_ts   = .true.   ! split-explicit free surface
-         nn_e         = 36          ! =F : the number of sub-step in rn_Dt seconds
+         nn_e     = 30          ! =F : the number of sub-step in rn_Dt seconds
 /
 !-----------------------------------------------------------------------
 &namdyn_ldf    !   lateral diffusion on momentum                        (default: NO selection)
@@ -322,7 +321,7 @@
       !                             !  = 32  F(i,j,k)=F(local gridscale and deformation rate)
       !                        !  time invariant coefficients :  ahm = 1/2  Uv*Lv   (lap case)
       !                             !                            or  = 1/12 Uv*Lv^3 (blp case)
-      rn_Uv      = 2.0              !  lateral viscous velocity [m/s] (nn_ahm_ijk_t= 0, 10, 20, 30)
+      rn_Uv      = 1.0              !  lateral viscous velocity [m/s] (nn_ahm_ijk_t= 0, 10, 20, 30)
       rn_Lv      = 1.e+3            !  lateral viscous length   [m]   (nn_ahm_ijk_t= 0, 10)
 /
 !!======================================================================
@@ -367,8 +366,8 @@
    ln_zdfswm   = .false.      ! surface  wave-induced mixing            (T => ln_wave=ln_sdw=T )
    !
    !                       ! coefficients
-   rn_avm0     =  0.0         !  vertical eddy viscosity   [m2/s]       (background Kz if ln_zdfcst=F)
-   rn_avt0     =  0.0         !  vertical eddy diffusivity [m2/s]       (background Kz if ln_zdfcst=F)
+   rn_avm0     =  2.e-5       !  vertical eddy viscosity   [m2/s]       (background Kz if ln_zdfcst=F)
+   rn_avt0     =  2.e-5       !  vertical eddy diffusivity [m2/s]       (background Kz if ln_zdfcst=F)
    nn_avb      =    0         !  profile for background avt & avm (=1) or not (=0)
    nn_havtb    =    0         !  horizontal shape for avtb (=1) or not (=0)
 /

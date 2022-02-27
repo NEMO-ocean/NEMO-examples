@@ -28,34 +28,33 @@ MODULE usrdef_nam
 
    !                              !!* namusr_def namelist *!!
    !! PHYSICAL DOMAIN
-   REAL(wp), PUBLIC :: rn_xdim    ! x-dimension of the domain [km]
-   REAL(wp), PUBLIC :: rn_ydim    ! y-dimension of the domain [km]
-   REAL(wp), PUBLIC :: rn_bot_max ! max ocean depth (>0) [m]
-   REAL(wp), PUBLIC :: rn_smnt_H  ! seamount height (>0) [m]
-   REAL(wp), PUBLIC :: rn_smnt_L  ! seamount width [km]
-   REAL(wp), PUBLIC :: rn_fplane  ! Coriolis parameter for f-plane approximation   
-   REAL(wp), PUBLIC :: rn_Snum    ! Burger number of the initial stratification
+   REAL(wp), PUBLIC :: rn_xdim     ! x-dimension of the domain [km]
+   REAL(wp), PUBLIC :: rn_ydim     ! y-dimension of the domain [km]
+   REAL(wp), PUBLIC :: rn_bot_max  ! max ocean depth (>0) [m]
+   REAL(wp), PUBLIC :: rn_smnt_H   ! seamount height (>0) [m]
+   REAL(wp), PUBLIC :: rn_smnt_L   ! seamount width [km]
+   REAL(wp), PUBLIC :: rn_fplane   ! Coriolis parameter for f-plane approximation   
+   REAL(wp), PUBLIC :: rn_Snum     ! Burger number of the initial stratification
    !! NUMERICAL DISCRETIZATION
-   REAL(wp), PUBLIC :: rn_dx      ! horizontal resolution [m]          
-   REAL(wp), PUBLIC :: rn_dz      ! vertical resolution far from the seamount
-                                  ! and assuming no stretching [m]
+   REAL(wp), PUBLIC :: rn_dx       ! horizontal resolution [m]          
+   REAL(wp), PUBLIC :: rn_dz       ! vertical resolution far from the seamount
+                                   ! and assuming no stretching [m]
    !! VERTICAL COORDINATE
    ! Stretched s-levels (ln_sco = .true.)
-   LOGICAL,  PUBLIC :: ln_s_sh94  ! TRUE:  s-levels using Song & Haidvogel 1994 (SH94)
-                                  !        stretching function
-                                  ! FALSE: uniform sigma-levels
-   REAL(wp), PUBLIC :: rn_theta   ! SH94 surface control parameter (0<=theta<=20)
-   REAL(wp), PUBLIC :: rn_bb      ! SH94 bottom control parameter (0<=bb<=1)
-   REAL(wp), PUBLIC :: rn_hc      ! SH94 critical depth for transition to
-                                  ! stretched coordinates [m]
+   LOGICAL,  PUBLIC :: ln_s_sh94   ! TRUE:  s-levels using Song & Haidvogel 1994 (SH94)
+                                   !        stretching function
+                                   ! FALSE: uniform sigma-levels
+   REAL(wp), PUBLIC :: rn_theta    ! SH94 surface control parameter (0<=theta<=20)
+   REAL(wp), PUBLIC :: rn_bb       ! SH94 bottom control parameter (0<=bb<=1)
+   REAL(wp), PUBLIC :: rn_hc       ! SH94 critical depth for transition to
+                                   ! stretched coordinates [m]
    ! Paramaters for vqs-coordinate (ln_sco = .true.)
-   LOGICAL,  PUBLIC :: ln_vqs     ! activating vanishing quasi-sigma levels (TRUE)
-   REAL(wp), PUBLIC :: rn_rmax    ! maximum cut-off slope parameter value allowed
-                                  ! if using vqs-levels (0<r_max<1)
+   LOGICAL,  PUBLIC :: ln_vqs      ! activating vanishing quasi-sigma levels (TRUE)
+   REAL(wp), PUBLIC :: rn_rmax     ! maximum cut-off slope parameter value allowed
+                                   ! if using vqs-levels (0<r_max<1)
    !! INITIAL CONDITION
-   REAL(wp), PUBLIC ::   rn_drho  ! Surface-bottom density difference
-   REAL(wp), PUBLIC ::   rn_delta ! Parameter controlling the steepness of the 
-                                  ! stratification
+   INTEGER,  PUBLIC :: nn_ini_cond ! 0: Shchepetkin and McWilliams (2002)
+                                   ! 1: Ezer, Arango and Shchepetkin (2002)
 
    !!----------------------------------------------------------------------
    !! NEMO/OCE 4.0 , NEMO Consortium (2018)
@@ -73,7 +72,7 @@ CONTAINS
       !! ** Method  :   read in namusr_def containing all the user specific namelist parameter
       !!
       !!                Here SEAMOUNT configuration defined as in 
-      !!                Shchepetkin & McWilliams (2003)
+      !!                Shchepetkin & McWilliams (2003) or Ezer, Arango and Shchepetkin (2002)
       !!
       !! ** input   : - namusr_def namelist found in namelist_cfg
       !!----------------------------------------------------------------------
@@ -88,10 +87,10 @@ CONTAINS
       INTEGER                       ::   ios    ! Local integer
       INTEGER                       ::   ioptio ! Local string
       !!
-      NAMELIST/namusr_def/ rn_xdim , rn_ydim, rn_bot_max, rn_smnt_H , rn_smnt_L , rn_fplane,  &
-         &                 rn_dx   , rn_dz  , ln_zco    , ln_zps    , ln_sco    , ln_s_sh94,  &
-         &                 rn_theta, rn_bb  , rn_hc     , ln_vqs    , rn_rmax   , rn_drho  ,  &
-         &                 rn_delta
+      NAMELIST/namusr_def/ rn_xdim  , rn_ydim  , rn_bot_max , rn_smnt_H   , rn_smnt_L, & 
+         &                 rn_fplane, rn_dx    , rn_dz      , ln_zco      , ln_zps   , &
+         &                 ln_sco   , ln_s_sh94, rn_theta   , rn_bb       , rn_hc    , &
+         &                 ln_vqs   , rn_rmax  , nn_ini_cond
       !!----------------------------------------------------------------------
       !
       READ  ( numnam_cfg, namusr_def, IOSTAT = ios, ERR = 902 )
@@ -103,9 +102,17 @@ CONTAINS
       cd_cfg = 'Seamount'      ! name & resolution (not used)
       kk_cfg = 0
 
-      !                             ! Set the lateral boundary condition of the global domain
-      ldIperio = .TRUE.    ;   ldJperio = .FALSE.   ! basin with cyclic Est-West
-      ldNFold  = .FALSE.   ;   cdNFtype = '-'
+      !                        ! Set the lateral boundary condition of the global domain
+      SELECT CASE (nn_ini_cond)
+         CASE (0)             ! Shchepetkin and McWilliams (2002):
+            ldIperio = .TRUE. ! basin with cyclic Est-West
+         CASE (1)             ! Ezer, Arango and Shchepetkin (2002):   
+            ldIperio = .FALSE.! basin with closed boundaries
+      END SELECT
+      
+      ldJperio = .FALSE.
+      ldNFold  = .FALSE.
+      cdNFtype = '-'
 
       !
       ! Global Domain size:
@@ -113,10 +120,6 @@ CONTAINS
       kpj = INT(  1000._wp * rn_ydim / rn_dx ) + 1
       kpk = INT(  rn_bot_max  / rn_dz ) + 1
       
-      ! Estimating Burger Number for initial density profile:
-      ! S = (N * H) / (f * L) = SQRT(g * H * drho / rho_ref) / (f * L)
-      rn_Snum = SQRT(grav * rn_bot_max * rn_drho / 1000._wp) / (rn_fplane * rn_smnt_L * 1000._wp)
-
       ! Check vertical coordinate options
       ioptio = 0           
       IF( ln_zco      )   ioptio = ioptio + 1
@@ -149,9 +152,11 @@ CONTAINS
            WRITE(numout,*) '           maximum slope parameter allowed      rn_rmax   = ', rn_rmax
          ENDIF
          WRITE(numout,*) '      *) initial condition:                    '
-         WRITE(numout,*) '           surface-bottom density difference    rn_drho   = ', rn_drho
-         WRITE(numout,*) '           steepness of the stratification      rn_delta  = ', rn_delta
-         WRITE(numout,*) '           The estimated Burger number rn_Snum is ', rn_Snum        
+         IF( nn_ini_cond == 0 ) THEN
+           WRITE(numout,*) '           Shchepetkin and McWilliams (2002)'
+         ELSE IF( nn_ini_cond == 1 ) THEN
+           WRITE(numout,*) '           Ezer, Arango and Shchepetkin (2002)'
+         ENDIF         
          WRITE(numout,*) ''
          WRITE(numout,*) '   Global domain size:                   '
          WRITE(numout,*) '          1st dimension of glob. dom. i-dir.     jpiglo  =  ', kpi

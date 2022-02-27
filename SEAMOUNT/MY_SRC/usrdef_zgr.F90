@@ -41,7 +41,7 @@ CONTAINS
       &                    pdept , pdepw ,                             &   ! 3D t & w-points depth
       &                    pe3t  , pe3u  , pe3v   , pe3f ,             &   ! vertical scale factors
       &                    pe3w  , pe3uw , pe3vw         ,             &   !     -      -      -
-      &                    k_top  , k_bot    )                             ! top & bottom ocean level
+      &                    k_top  , k_bot                              )   ! top & bottom ocean level
       !!---------------------------------------------------------------------
       !!              ***  ROUTINE usr_def_zgr  ***
       !!
@@ -82,10 +82,10 @@ CONTAINS
       bathy(:,:) = 0._wp
       DO jj = 1, jpj
          DO ji = 1, jpi
-            bathy(ji,jj) = rn_bot_max - rn_smnt_H * EXP(              &
-               &           -( ( 1000._wp * glamt(ji,jj) - zlam_mid)**2 + &
-               &              ( 1000._wp * gphit(ji,jj) - zphi_mid)**2 ) & 
-               &            / ( 1000._wp * rn_smnt_L)**2 )
+            bathy(ji,jj) = rn_bot_max - rn_smnt_H * EXP(                 &
+               &           -(( 1000._wp * glamt(ji,jj) - zlam_mid)**2 + &
+               &             ( 1000._wp * gphit(ji,jj) - zphi_mid)**2 ) & 
+               &           / ( 1000._wp * rn_smnt_L)**2 )
          END DO
       END DO
       ! 
@@ -605,8 +605,8 @@ CONTAINS
       !!----------------------------------------------------------------------                                          
       IF ( rn_theta > 0 ) THEN
          DO jk = 1, jpk 
-            sT = -sigT(jk)
-            sW = -sigW(jk)     
+            sT = sigT(jk)
+            sW = sigW(jk)     
             sigT(jk) = (1._wp - rn_bb) * SINH(rn_theta * sT) / SINH(rn_theta) + rn_bb * &
               &        ( ( TANH(rn_theta * (sT + 0.5_wp)) - TANH(0.5_wp * rn_theta) ) / &
               &        (2._wp * TANH(0.5_wp * rn_theta) ) )
