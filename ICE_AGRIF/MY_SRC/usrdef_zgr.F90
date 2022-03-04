@@ -24,11 +24,9 @@ MODULE usrdef_zgr
 
    PUBLIC   usr_def_zgr   ! called by domzgr.F90
 
-  !! * Substitutions
-#  include "vectopt_loop_substitute.h90"
    !!----------------------------------------------------------------------
    !! NEMO/OCE 4.0 , NEMO Consortium (2018)
-   !! $Id: usrdef_zgr.F90 10516 2019-01-15 16:31:25Z clem $
+   !! $Id: usrdef_zgr.F90 12597 2020-03-25 08:57:21Z smasson $
    !! Software governed by the CeCILL license (see ./LICENSE)
    !!----------------------------------------------------------------------
 CONTAINS             
@@ -90,7 +88,7 @@ CONTAINS
       !
       !                       !==  z-coordinate  ==!   (step-like topography)
       !                                !* bottom ocean compute from the depth of grid-points
-      jpkm1 = jpk
+      jpkm1 = jpk-1
       k_bot(:,:) = 1    ! here use k_top as a land mask
       !                                !* horizontally uniform coordinate (reference z-co everywhere)
       DO jk = 1, jpk

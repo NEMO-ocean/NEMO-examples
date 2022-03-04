@@ -8,6 +8,7 @@ maxcore=${3:-0} # maximum number of core to be tested
 
 machine=$( hostname | sed -e "s/[0-9]*//g" )
 case $machine in 
+    "jean-zay")     ncore_node=40 ;;
     "beaufixlogin") ncore_node=40 ;;
     "curie")        ncore_node=16 ;;
     "irene")        ncore_node=48 ;;

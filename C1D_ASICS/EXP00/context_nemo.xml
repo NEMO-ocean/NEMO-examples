@@ -1,0 +1,25 @@
+<!--
+ ============================================================================================== 
+    NEMO context
+============================================================================================== 
+-->
+<context id="nemo">
+    <!-- $id$ -->
+
+<!-- Fields definition -->
+    <field_definition src="./field_def_nemo-oce.xml"/>   <!--  NEMO ocean dynamics                     -->
+
+<!-- Files definition -->
+    <file_definition src="./file_def_nemo-oce.xml"/>     <!--  NEMO ocean dynamics                     -->
+
+<!-- Axis definition -->
+    <axis_definition src="./axis_def_nemo.xml"/>
+ 
+<!-- Domain definition -->
+    <domain_definition src="./domain_def_nemo.xml"/>
+
+<!-- Grids definition -->
+    <grid_definition   src="./grid_def_nemo.xml"/>
+  
+
+</context>

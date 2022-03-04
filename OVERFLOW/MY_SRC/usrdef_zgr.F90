@@ -14,8 +14,8 @@ MODULE usrdef_zgr
    !!       zgr_z1d   : reference 1D z-coordinate 
    !!---------------------------------------------------------------------
    USE oce            ! ocean variables
-   USE dom_oce ,  ONLY: mi0, mi1, nimpp, njmpp   ! ocean space and time domain
-   USE dom_oce ,  ONLY: glamt                    ! ocean space and time domain
+   USE dom_oce ,  ONLY: mi0, mi1   ! ocean space and time domain
+   USE dom_oce ,  ONLY: glamt      ! ocean space and time domain
    USE usrdef_nam     ! User defined : namelist variables
    !
    USE in_out_manager ! I/O manager
@@ -28,11 +28,11 @@ MODULE usrdef_zgr
 
    PUBLIC   usr_def_zgr   ! called by domzgr.F90
 
-  !! * Substitutions
-#  include "vectopt_loop_substitute.h90"
+   !! * Substitutions
+#  include "do_loop_substitute.h90"
    !!----------------------------------------------------------------------
    !! NEMO/OCE 4.0 , NEMO Consortium (2018)
-   !! $Id: usrdef_zgr.F90 10425 2018-12-19 21:54:16Z smasson $
+   !! $Id: usrdef_zgr.F90 15033 2021-06-21 10:24:45Z smasson $
    !! Software governed by the CeCILL license (see ./LICENSE)
    !!----------------------------------------------------------------------
 CONTAINS             
@@ -89,16 +89,16 @@ CONTAINS
       zht(:,:) = + (  500. + 0.5 * 1500. * ( 1.0 + tanh( (glamt(:,:) - 40.) / 7. ) )  )
       !
       ! at u-point: averaging zht
-      DO ji = 1, jpim1
-         zhu(ji,:) = 0.5_wp * ( zht(ji,:) + zht(ji+1,:) )
-      END DO
+      DO_2D( 0, 0, 0, 0 )
+         zhu(ji,jj) = 0.5_wp * ( zht(ji,jj) + zht(ji+1,jj) )
+      END_2D
       CALL lbc_lnk( 'usrdef_zgr', zhu, 'U', 1. )     ! boundary condition: this mask the surrouding grid-points
       !                                ! ==>>>  set by hand non-zero value on first/last columns & rows 
       DO ji = mi0(1), mi1(1)              ! first row of global domain only
-         zhu(ji,2) = zht(1,2)
+         zhu(ji,2) = zht(ji,2)
       END DO
-       DO ji = mi0(jpi), mi1(jpi)         ! last  row of global domain only
-         zhu(ji,2) = zht(jpi,2)
+       DO ji = mi0(jpiglo), mi1(jpiglo)   ! last  row of global domain only
+         zhu(ji,2) = zht(ji,2)
       END DO
       zhu(:,1) = zhu(:,2)
       zhu(:,3) = zhu(:,2)
@@ -109,9 +109,9 @@ CONTAINS
       !                       !==  top masked level bathymetry  ==!  (all coordinates)
       !
       ! no ocean cavities : top ocean level is ONE, except over land
-      ! the ocean basin surrounded by land (1 grid-point) set through lbc_lnk call as jperio=0 
+      ! the ocean basin surrounded by land (1+nn_hls grid-points) set through lbc_lnk call
       z2d(:,:) = 1._wp                    ! surface ocean is the 1st level
-      CALL lbc_lnk( 'usrdef_zgr', z2d, 'T', 1. )        ! closed basin since jperio = 0 (see userdef_nam.F90)
+      CALL lbc_lnk( 'usrdef_zgr', z2d, 'T', 1. )        ! closed basin, see userdef_nam.F90
       k_top(:,:) = NINT( z2d(:,:) )
       !
       !                              
@@ -183,18 +183,17 @@ CONTAINS
             pe3uw(:,:,jk) = pe3w_1d (jk)
             pe3vw(:,:,jk) = pe3w_1d (jk)
          END DO
-         DO jj = 1, jpj                      ! bottom scale factors and depth at T- and W-points
-            DO ji = 1, jpi
-               ik = k_bot(ji,jj)
-                  pdepw(ji,jj,ik+1) = MIN( zht(ji,jj) , pdepw_1d(ik+1) )
-                  pe3t (ji,jj,ik  ) = pdepw(ji,jj,ik+1) - pdepw(ji,jj,ik)
-                  pe3t (ji,jj,ik+1) = pe3t (ji,jj,ik  ) 
-                  !
-                  pdept(ji,jj,ik  ) = pdepw(ji,jj,ik  ) + pe3t (ji,jj,ik  ) * 0.5_wp
-                  pdept(ji,jj,ik+1) = pdepw(ji,jj,ik+1) + pe3t (ji,jj,ik+1) * 0.5_wp
-                  pe3w (ji,jj,ik+1) = pdept(ji,jj,ik+1) - pdept(ji,jj,ik)              ! = pe3t (ji,jj,ik  )
-            END DO
-         END DO         
+         DO_2D( nn_hls, nn_hls, nn_hls, nn_hls )
+            ik = k_bot(ji,jj)
+            pdepw(ji,jj,ik+1) = MIN( zht(ji,jj) , pdepw_1d(ik+1) )
+            pe3t (ji,jj,ik  ) = pdepw(ji,jj,ik+1) - pdepw(ji,jj,ik)
+            pe3t (ji,jj,ik+1) = pe3t (ji,jj,ik  ) 
+            !
+            pdept(ji,jj,ik  ) = pdepw(ji,jj,ik  ) + pe3t (ji,jj,ik  ) * 0.5_wp
+            pdept(ji,jj,ik+1) = pdepw(ji,jj,ik+1) + pe3t (ji,jj,ik+1) * 0.5_wp
+            pe3w (ji,jj,ik+1) = pdept(ji,jj,ik+1) - pdept(ji,jj,ik)              ! = pe3t (ji,jj,ik  )
+            pe3w (ji,jj,ik  ) = pdept(ji,jj,ik  ) - pdept(ji,jj,ik-1)            ! st caution ik > 1
+         END_2D         
          !                                   ! bottom scale factors and depth at  U-, V-, UW and VW-points
          !                                   ! usually Computed as the minimum of neighbooring scale factors
          pe3u (:,:,:) = pe3t(:,:,:)          ! HERE OVERFLOW configuration : 

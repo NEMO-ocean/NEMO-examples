@@ -19,6 +19,7 @@ MODULE usrdef_sbc
    USE phycst          ! physical constants
    USE ice, ONLY       : at_i_b, a_i_b
    USE icethd_dh       ! for CALL ice_thd_snwblow
+   USE sbc_phy, ONLY : pp_cldf
    !
    USE in_out_manager  ! I/O manager
    USE lib_mpp         ! distribued memory computing library
@@ -32,16 +33,14 @@ MODULE usrdef_sbc
    PUBLIC   usrdef_sbc_ice_tau  ! routine called by icestp.F90 for ice dynamics
    PUBLIC   usrdef_sbc_ice_flx  ! routine called by icestp.F90 for ice thermo
 
-   !! * Substitutions
-#  include "vectopt_loop_substitute.h90"
    !!----------------------------------------------------------------------
    !! NEMO/OCE 4.0 , NEMO Consortium (2018)
-   !! $Id: usrdef_sbc.F90 10516 2019-01-15 16:31:25Z clem $
+   !! $Id: usrdef_sbc.F90 14273 2021-01-06 10:57:45Z smasson $
    !! Software governed by the CeCILL license (see ./LICENSE)
    !!----------------------------------------------------------------------
 CONTAINS
 
-   SUBROUTINE usrdef_sbc_oce( kt )
+   SUBROUTINE usrdef_sbc_oce( kt, Kbb )
       !!---------------------------------------------------------------------
       !!                    ***  ROUTINE usr_def_sbc  ***
       !!              
@@ -56,6 +55,7 @@ CONTAINS
       !!
       !!----------------------------------------------------------------------
       INTEGER, INTENT(in) ::   kt   ! ocean time step
+      INTEGER, INTENT(in) ::   Kbb  ! ocean time index
       !!---------------------------------------------------------------------
       !
       IF( kt == nit000 ) THEN
@@ -107,8 +107,10 @@ CONTAINS
       REAL(wp), DIMENSION(:,:,:), INTENT(in)  ::   phs    ! snow thickness
       REAL(wp), DIMENSION(:,:,:), INTENT(in)  ::   phi    ! ice thickness
       !!
+      INTEGER  ::   jl
       REAL(wp) ::   zfr1, zfr2                 ! local variables
       REAL(wp), DIMENSION(jpi,jpj) ::   zsnw   ! snw distribution after wind blowing
+      REAL(wp), DIMENSION(jpi,jpj) ::   ztri
       !!---------------------------------------------------------------------
       !
       IF( kt==nit000 .AND. lwp)   WRITE(numout,*)' usrdef_sbc_ice : ICE_AGRIF case: NO flux forcing'
@@ -116,12 +118,13 @@ CONTAINS
       ! ocean variables (renaming)
       emp_oce (:,:)   = 0._wp   ! uniform value for freshwater budget (E-P)
       qsr_oce (:,:)   = 0._wp   ! uniform value for     solar radiation
-      qns_oce (:,:)   = 0._wp   ! uniform value for non-solar radiation
+      qns_oce (:,:)   = 0._wp   ! uniform value for non-solar heat flux
 
       ! ice variables
       alb_ice (:,:,:) = 0.7_wp  ! useless
       qsr_ice (:,:,:) = 0._wp   ! uniform value for     solar radiation
-      qns_ice (:,:,:) = 0._wp   ! uniform value for non-solar radiation
+      qns_ice (:,:,:) = 0._wp   ! uniform value for non-solar heat flux
+      dqns_ice(:,:,:) = 0._wp   ! uniform value for non solar heat flux sensitivity for ice
       sprecip (:,:)   = 0._wp   ! uniform value for snow precip
       evap_ice(:,:,:) = 0._wp   ! uniform value for sublimation
 
@@ -141,16 +144,18 @@ CONTAINS
       qsr_tot (:,:) = at_i_b(:,:) * qsr_oce(:,:) + SUM( a_i_b(:,:,:) * qsr_ice(:,:,:), dim=3 )
 
       ! --- shortwave radiation transmitted below the surface (W/m2, see Grenfell Maykut 77) --- !
-      zfr1 = ( 0.18 * ( 1.0 - cldf_ice ) + 0.35 * cldf_ice )            ! transmission when hi>10cm
-      zfr2 = ( 0.82 * ( 1.0 - cldf_ice ) + 0.65 * cldf_ice )            ! zfr2 such that zfr1 + zfr2 to equal 1
+      cloud_fra(:,:) = pp_cldf
+      ztri(:,:) = 0.18 * ( 1.0 - cloud_fra(:,:) ) + 0.35 * cloud_fra(:,:)  ! surface transmission when hi>10cm
       !
-      WHERE    ( phs(:,:,:) <= 0._wp .AND. phi(:,:,:) <  0.1_wp )       ! linear decrease from hi=0 to 10cm  
-         qtr_ice_top(:,:,:) = qsr_ice(:,:,:) * ( zfr1 + zfr2 * ( 1._wp - phi(:,:,:) * 10._wp ) )
-      ELSEWHERE( phs(:,:,:) <= 0._wp .AND. phi(:,:,:) >= 0.1_wp )       ! constant (zfr1) when hi>10cm
-         qtr_ice_top(:,:,:) = qsr_ice(:,:,:) * zfr1
-      ELSEWHERE                                                         ! zero when hs>0
-         qtr_ice_top(:,:,:) = 0._wp 
-      END WHERE
+      DO jl = 1, jpl
+         WHERE    ( phs(:,:,jl) <= 0._wp .AND. phi(:,:,jl) <  0.1_wp )     ! linear decrease from hi=0 to 10cm  
+            qtr_ice_top(:,:,jl) = qsr_ice(:,:,jl) * ( ztri(:,:) + ( 1._wp - ztri(:,:) ) * ( 1._wp - phi(:,:,jl) * 10._wp ) )
+         ELSEWHERE( phs(:,:,jl) <= 0._wp .AND. phi(:,:,jl) >= 0.1_wp )     ! constant (ztri) when hi>10cm
+            qtr_ice_top(:,:,jl) = qsr_ice(:,:,jl) * ztri(:,:)
+         ELSEWHERE                                                         ! zero when hs>0
+            qtr_ice_top(:,:,jl) = 0._wp
+         END WHERE
+      ENDDO
           
    END SUBROUTINE usrdef_sbc_ice_flx
 

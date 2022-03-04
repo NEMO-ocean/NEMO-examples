@@ -15,18 +15,18 @@ fcoord='mesh_mask.nc'
 # output file
 fflx='initice.nc'
 
-print '   creating init ice file  ' +fflx
+print ('   creating init ice file  ' +fflx)
 
 # Reading coordinates file
 nccoord=netcdf(fcoord,'r')
-nav_lon=nccoord.variables['nav_lon']
-nav_lat=nccoord.variables['nav_lat']
+nav_lon=nccoord.variables['glamt']
+nav_lat=nccoord.variables['gphit']
 time_counter=1
 LON1= nav_lon.shape[1]
-LAT1= nav_lon.shape[0]
-print 'nav_lon.shape[1]' ,nav_lon.shape[1]
-print 'LON1 ', LON1
-print 'LAT1 ', LAT1
+LAT1= nav_lon.shape[1]
+print ('nav_lon.shape[1]' ,nav_lon.shape[1])
+print ('LON1 ', LON1)
+print ('LAT1 ', LAT1)
 
 # Creating INITICE netcdf file
 nc=netcdf(fflx,'w')

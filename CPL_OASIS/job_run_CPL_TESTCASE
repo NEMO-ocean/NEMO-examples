@@ -1,0 +1,91 @@
+#!/bin/bash
+###################################
+## Definitions for batch system
+#SBATCH -A omr@cpu                 # Accounting information
+#SBATCH --job-name=CPL_TESTCASE    # Job name
+##SBATCH --partition=cpu_p1        # Partition Name
+#SBATCH --ntasks=29                # Total number of MPI processes
+#SBATCH --ntasks-per-node=40       # Number of MPI processes per node
+#SBATCH --hint=nomultithread       # 1  MPI process per node  (no hyperthreading)
+#SBATCH --time=00:10:00            # Maximum execution time (HH:MM:SS)
+#SBATCH --output=cpltestcase_%j    # Name of output listing file
+#SBATCH --error=cpltestcase_%j     # Name of error listing file (the same)
+###################################
+##
+## CONFIG_DIR is submission directory
+##
+CONFIG_DIR=${SLURM_SUBMIT_DIR}
+#
+cd ${CONFIG_DIR}
+pwd
+##
+## Define and create execution directory and move there
+##
+XXD=`date +%F%H%M%S`
+echo " XXD " $XXD
+mkdir -p $WORK/OUT/CPLTESTCASE/$XXD
+cd $WORK/OUT/CPLTESTCASE/$XXD
+echo "RUN directory " `pwd`
+##
+## Get input files for NEMO
+##
+DATA1DIR=$WORK/FORCING/ORCA2_ICE_PISCES_v4.0
+for file in $DATA1DIR/* 
+do
+ln -s $file . || exit 2
+done
+# Get input namelist  and xml files
+for file in $CONFIG_DIR/*namelist*_ref $CONFIG_DIR/*namelist*_cfg $CONFIG_DIR/*.xml
+do
+    cp $file . || exit 3
+done
+##
+## Get input files for TOYATM, including the namcouple file
+##
+TOYATM_DIR=$CONFIG_DIR/../../../tools/TOYATM/EXP
+for file in $TOYATM_DIR/*
+do
+    cp $file . || exit 4
+done
+##
+## Get Executables
+##
+cp $CONFIG_DIR/nemo nemo.exe  || exit 5
+cp $TOYATM_DIR/toyatm.exe . || exit 5
+##
+## Get script generating summary report
+cp $CONFIG_DIR/gen_report.sh .
+
+echo "DIR BEFORE EXEC"
+ls -l
+echo '(3) Prepare launch of the run'
+echo '----------------'
+export MPIRUN="srun --mpi=pmi2 --cpu-bind=cores -K1"
+NB_PROCS_NEMO=28
+NB_PROCS_OASIS=1
+NB_PROCS_TOYATM=1
+date  
+touch ./run_file
+echo 0-27 ./nemo.exe >>./run_file
+echo 28 ./toyatm.exe >>./run_file
+echo run_file
+cat ./run_file
+##
+## Run the CPL test case using 27 processes for nemo and 1 for toyatm
+##
+echo '(4) Run the code'
+echo '----------------'
+time srun --multi-prog ./run_file
+echo "DIR AFTER EXEC"
+ls -l
+date
+pwd
+##
+## simple report generator for the test case
+##
+./gen_report.sh | tee CPL_OASIS_results
+
+
+cat CPL_OASIS_results
+## Copy Summary of results back into submission directory
+cp CPL_OASIS_results ${CONFIG_DIR}

@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+    <!-- 
+============================================================================================================
+=                                           output files definition                                        =
+=                                            Define your own files                                         =
+=                                         put the variables you want...                                    =
+============================================================================================================
+    -->
+    
+    <file_definition type="one_file" name="@expname@" sync_freq="10d" min_digits="4">
+      <file_group id="1ts" output_freq="1ts"  output_level="10" enabled=".TRUE." >  <!-- 5d files -->  
+ 
+	<file id="file1" >
+	  <field field_ref="baro_u" />
+	  <field field_ref="baro_v" />
+	  <field field_ref="ssh"    />
+	</file>
+
+      </file_group>
+
+   </file_definition>

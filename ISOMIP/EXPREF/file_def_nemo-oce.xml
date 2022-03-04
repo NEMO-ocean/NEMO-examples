@@ -26,8 +26,7 @@
 	  <field field_ref="soce"         name="vosaline"  />
 	  <field field_ref="ssh"          name="sossheig"  />
           <!-- variable for ice shelf -->
-          <field field_ref="qlatisf"      name="sohflisf"  />
-          <field field_ref="fwfisf"       name="sowflisf"  />
+          <field field_ref="fwfisf_cav"       name="sowflisf"  />
           <field field_ref="isfgammat"    name="sogammat"  />
           <field field_ref="isfgammas"    name="sogammas"  />
         </file>

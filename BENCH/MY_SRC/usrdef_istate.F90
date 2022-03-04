@@ -25,8 +25,11 @@ MODULE usrdef_istate
    IMPLICIT NONE
    PRIVATE
 
-   PUBLIC   usr_def_istate   ! called by istate.F90
+   PUBLIC   usr_def_istate       ! called by istate.F90
+   PUBLIC   usr_def_istate_ssh   ! called by domqco.F90
 
+   !! * Substitutions
+#  include "do_loop_substitute.h90"
    !!----------------------------------------------------------------------
    !! NEMO/OPA 4.0 , NEMO Consortium (2016)
    !! $Id$ 
@@ -34,7 +37,7 @@ MODULE usrdef_istate
    !!----------------------------------------------------------------------
 CONTAINS
   
-   SUBROUTINE usr_def_istate( pdept, ptmask, pts, pu, pv, pssh )
+   SUBROUTINE usr_def_istate( pdept, ptmask, pts, pu, pv ) !!st, pssh )
       !!----------------------------------------------------------------------
       !!                   ***  ROUTINE usr_def_istate  ***
       !! 
@@ -49,7 +52,6 @@ CONTAINS
       REAL(wp), DIMENSION(jpi,jpj,jpk,jpts), INTENT(  out) ::   pts     ! T & S fields      [Celsius ; g/kg]
       REAL(wp), DIMENSION(jpi,jpj,jpk)     , INTENT(  out) ::   pu      ! i-component of the velocity  [m/s] 
       REAL(wp), DIMENSION(jpi,jpj,jpk)     , INTENT(  out) ::   pv      ! j-component of the velocity  [m/s] 
-      REAL(wp), DIMENSION(jpi,jpj)         , INTENT(  out) ::   pssh    ! sea-surface height
       !
       REAL(wp), DIMENSION(jpi,jpj) ::   z2d   ! 2D workspace
       REAL(wp) ::   zfact
@@ -60,34 +62,58 @@ CONTAINS
       IF(lwp) WRITE(numout,*) 'usr_def_istate : BENCH configuration, analytical definition of initial state'
       IF(lwp) WRITE(numout,*) '~~~~~~~~~~~~~~   '
       !
-      ! define unique value on each point. z2d ranging from 0.05 to -0.05
-      DO jj = 1, jpj
-         DO ji = 1, jpi
-            z2d(ji,jj) = 0.1 * ( 0.5 - REAL( nimpp + ji - 1 + ( njmpp + jj - 2 ) * jpiglo, wp ) / REAL( jpiglo * jpjglo, wp ) )
-         ENDDO
-      ENDDO
+      ! define unique value on each point of the inner global domain. z2d ranging from 0.05 to -0.05
       !
-      ! sea level:
-      pssh(:,:) = z2d(:,:)                                                ! +/- 0.05 m
+      DO_2D( 0, 0, 0, 0 )   !  +/- 0.05
+         z2d(ji,jj) = 0.1 * ( 0.5 - REAL( mig0(ji) + (mjg0(jj)-1) * Ni0glo, wp ) / REAL( Ni0glo * Nj0glo, wp ) )
+      END_2D
       !
-      DO jk = 1, jpk
+      DO_3D( 0, 0, 0, 0, 1, jpkm1 )
          zfact = REAL(jk-1,wp) / REAL(jpk-1,wp)   ! 0 to 1 to add a basic stratification
-         ! temperature choosen to lead to 20% ice
-         pts(:,:,jk,jp_tem) = 2._wp - 0.1_wp * zfact + z2d(:,:) * 100._wp ! 2 to 1.9 +/- 5 degG
-         WHERE ( pts(:,:,jk,jp_tem) < -1.5_wp ) pts(:,:,jk,jp_tem) = -1.5_wp + z2d(:,:) * 0.2_wp  
+         ! temperature choosen to lead to ~50% ice at the beginning if rn_thres_sst = 0.5
+         pts(ji,jj,jk,jp_tem) = 20._wp*z2d(ji,jj) - 1._wp - 0.5_wp * zfact    ! -1 to -1.5 +/- 1.0 degG
          ! salinity:  
-         pts(:,:,jk,jp_sal) = 30._wp + 1._wp * zfact + z2d(:,:)           ! 30 to 31 +/- 0.05 psu
+         pts(ji,jj,jk,jp_sal) = 30._wp + 1._wp * zfact + z2d(ji,jj)           ! 30 to 31   +/- 0.05 psu
          ! velocities:
-         pu(:,:,jk) = z2d(:,:) * 0.1_wp                                   ! +/- 0.005  m/s
-         pv(:,:,jk) = z2d(:,:) * 0.01_wp                                  ! +/- 0.0005 m/s
-      ENDDO
+         pu(ji,jj,jk) = z2d(ji,jj) *  0.1_wp * umask(ji,jj,jk)                ! +/- 0.005  m/s
+         pv(ji,jj,jk) = z2d(ji,jj) * 0.01_wp * vmask(ji,jj,jk)                ! +/- 0.0005 m/s
+      END_3D
+      pts(:,:,jpk,:) = 0._wp
+      pu( :,:,jpk  ) = 0._wp
+      pv( :,:,jpk  ) = 0._wp
       !
-      CALL lbc_lnk('usrdef_istate', pssh, 'T',  1. )            ! apply boundary conditions
-      CALL lbc_lnk( 'usrdef_istate', pts, 'T',  1. )            ! apply boundary conditions
-      CALL lbc_lnk(  'usrdef_istate', pu, 'U', -1. )            ! apply boundary conditions
-      CALL lbc_lnk(  'usrdef_istate', pv, 'V', -1. )            ! apply boundary conditions
+      CALL lbc_lnk('usrdef_istate',  pts, 'T',  1. )            ! apply boundary conditions
+      CALL lbc_lnk('usrdef_istate',   pu, 'U', -1. )            ! apply boundary conditions
+      CALL lbc_lnk('usrdef_istate',   pv, 'V', -1. )            ! apply boundary conditions
       
    END SUBROUTINE usr_def_istate
 
+
+   SUBROUTINE usr_def_istate_ssh( ptmask, pssh )
+      !!----------------------------------------------------------------------
+      !!                   ***  ROUTINE usr_def_istate_ssh  ***
+      !! 
+      !! ** Purpose :   Initialization of ssh
+      !!                Here BENCH configuration 
+      !!
+      !! ** Method  :   Set ssh
+      !!----------------------------------------------------------------------
+      REAL(wp), DIMENSION(jpi,jpj,jpk)     , INTENT(in   ) ::   ptmask  ! t-point ocean mask   [m]
+      REAL(wp), DIMENSION(jpi,jpj)         , INTENT(  out) ::   pssh    ! sea-surface height   [m]
+      !
+      INTEGER  ::   ji, jj
+      !!----------------------------------------------------------------------
+      !
+      IF(lwp) WRITE(numout,*)
+      IF(lwp) WRITE(numout,*) 'usr_def_istate_ssh : BENCH configuration, analytical definition of initial ssh'
+      !
+      DO_2D( 0, 0, 0, 0 )                              ! sea level:  +/- 0.05 m
+         pssh(ji,jj) = 0.1 * ( 0.5 - REAL( mig0(ji) + (mjg0(jj)-1) * Ni0glo, wp ) / REAL( Ni0glo * Nj0glo, wp ) )
+      END_2D
+      !
+      CALL lbc_lnk('usrdef_istate', pssh, 'T',  1. )   ! apply boundary conditions
+      !
+   END SUBROUTINE usr_def_istate_ssh
+   
    !!======================================================================
 END MODULE usrdef_istate

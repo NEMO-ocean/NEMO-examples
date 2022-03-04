@@ -30,11 +30,9 @@ MODULE usrdef_zgr
 
    PUBLIC   usr_def_zgr        ! called by domzgr.F90
 
-  !! * Substitutions
-#  include "vectopt_loop_substitute.h90"
    !!----------------------------------------------------------------------
    !! NEMO/OCE 4.0 , NEMO Consortium (2018)
-   !! $Id: usrdef_zgr.F90 10425 2018-12-19 21:54:16Z smasson $
+   !! $Id: usrdef_zgr.F90 14433 2021-02-11 08:06:49Z smasson $
    !! Software governed by the CeCILL license (see ./LICENSE)
    !!----------------------------------------------------------------------
 CONTAINS             
@@ -198,14 +196,14 @@ CONTAINS
       CASE(1)
          zmaxlam = MAXVAL(glamt)
          CALL mpp_max( 'usrdef_zgr', zmaxlam )                 ! max over the global domain
-         zscl = rpi / zmaxlam
-         z2d(:,:) = 0.5 * ( 1. - COS( glamt(:,:) * zscl ) )
-         z2d(:,:) = REAL(jpkm1 - NINT( 0.75 * REAL(jpkm1,wp) * z2d(:,:) ), wp)
+         zscl = 0.5 * rpi / zmaxlam
+         z2d(:,:) = COS( glamt(:,:) * zscl )
+         z2d(:,:) = REAL(jpkm1 - NINT( 0.5 * REAL(jpkm1,wp) * z2d(:,:) ), wp)
       END SELECT
       !
-      CALL lbc_lnk( 'usrdef_zgr', z2d, 'T', 1. )           ! set surrounding land to zero (here jperio=0 ==>> closed)
+      CALL lbc_lnk( 'usrdef_zgr', z2d, 'T', 1. )           ! set surrounding land to zero (closed boundaries)
       !
-      k_bot(:,:) = INT( z2d(:,:) )           ! =jpkm1 over the ocean point, =0 elsewhere
+      k_bot(:,:) = NINT( z2d(:,:) )          ! =jpkm1 over the ocean point, =0 elsewhere
       !
       k_top(:,:) = MIN( 1 , k_bot(:,:) )     ! = 1    over the ocean point, =0 elsewhere
       !

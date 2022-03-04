@@ -33,7 +33,7 @@ MODULE nemogcm
    USE lib_mpp        ! distributed memory computing
    USE mppini         ! shared/distributed memory setting (mpp_init routine)
    USE lib_fortran    ! Fortran utilities (allows no signed zero when 'key_nosignedzero' defined)
-#if defined key_iomput
+#if defined key_xios
    USE xios           ! xIOserver
 #endif
 
@@ -45,7 +45,7 @@ MODULE nemogcm
 
    CHARACTER(lc) ::   cform_aaa="( /, 'AAAAAAAA', / ) "     ! flag for output listing
 
-#if defined key_mpp_mpi
+#if ! defined key_mpi_off
    ! need MPI_Wtime
    INCLUDE 'mpif.h'
 #endif
@@ -112,7 +112,7 @@ CONTAINS
       !
       CALL nemo_closefile
       !
-#if defined key_iomput
+#if defined key_xios
       CALL xios_finalize  ! end mpp communications with xios
 #else
       IF( lk_mpp )                  CALL mppstop      ! end mpp communications
@@ -147,7 +147,7 @@ CONTAINS
       !                             !  must be done as soon as possible to get narea  !
       !                             !-------------------------------------------------!
       !
-#if defined key_iomput
+#if defined key_xios
       IF( Agrif_Root() ) THEN
          CALL xios_initialize( "for_xios_mpi_id", return_comm=ilocal_comm )   ! nemo local communicator given by xios
       ENDIF
@@ -242,9 +242,9 @@ CONTAINS
 904   IF( ios >  0 )   CALL ctl_nam ( ios , 'namcfg in configuration namelist' )
       !
       IF( ln_read_cfg ) THEN            ! Read sizes in domain configuration file
-         CALL domain_cfg ( cn_cfg, nn_cfg, Ni0glo, Nj0glo, jpkglo, jperio )
+         CALL domain_cfg ( cn_cfg, nn_cfg, Ni0glo, Nj0glo, jpkglo, l_Iperio, l_Jperio, l_NFold, c_NFtype )
       ELSE                              ! user-defined namelist
-         CALL usr_def_nam( cn_cfg, nn_cfg, Ni0glo, Nj0glo, jpkglo, jperio )
+         CALL usr_def_nam( cn_cfg, nn_cfg, Ni0glo, Nj0glo, jpkglo, l_Iperio, l_Jperio, l_NFold, c_NFtype )
       ENDIF
       !
       IF(lwm)   WRITE( numond, namcfg )
@@ -270,17 +270,17 @@ CONTAINS
       IF( ln_timing    )   CALL timing_init     ! timing
       IF( ln_timing    )   CALL timing_start( 'nemo_init')
       !
-      CALL     phy_cst         ! Physical constants
-      CALL     eos_init        ! Equation of state
-      IF( lk_c1d       )   CALL     c1d_init        ! 1D column configuration
-      CALL     dom_init( Nbb, Nnn, Naa, "OPA") ! Domain
+                           CALL     phy_cst         ! Physical constants
+                           CALL     eos_init        ! Equation of state
+      IF( ln_c1d       )   CALL     c1d_init        ! 1D column configuration
+                           CALL     dom_init( Nbb, Nnn, Naa ) ! Domain
       IF( sn_cfctl%l_prtctl )   &
          &                 CALL prt_ctl_init        ! Print control
 
-      CALL  istate_init( Nbb, Nnn, Naa )    ! ocean initial state (Dynamics and tracers)
+                           CALL  istate_init( Nbb, Nnn, Naa )    ! ocean initial state (Dynamics and tracers)
 
       !                                      ! external forcing
-      CALL     sbc_init( Nbb, Nnn, Naa )    ! surface boundary conditions (including sea-ice)
+                           CALL     sbc_init( Nbb, Nnn, Naa )    ! surface boundary conditions (including sea-ice)
 
       !#LB:
 #if defined key_si3
@@ -372,7 +372,7 @@ CONTAINS
       !!----------------------------------------------------------------------
       !!                     ***  ROUTINE nemo_alloc  ***
       !!
-      !! ** Purpose :   Allocate all the dynamic arrays of the OPA modules
+      !! ** Purpose :   Allocate all the dynamic arrays of the OCE modules
       !!
       !! ** Method  :
       !!----------------------------------------------------------------------

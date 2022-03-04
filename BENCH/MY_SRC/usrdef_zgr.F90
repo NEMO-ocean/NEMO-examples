@@ -29,8 +29,6 @@ MODULE usrdef_zgr
 
    PUBLIC   usr_def_zgr        ! called by domzgr.F90
 
-  !! * Substitutions
-#  include "vectopt_loop_substitute.h90"
    !!----------------------------------------------------------------------
    !! NEMO/OPA 4.0 , NEMO Consortium (2016)
    !! $Id$
@@ -193,7 +191,23 @@ CONTAINS
       !
       z2d(:,:) = REAL( jpkm1 , wp )          ! flat bottom
       !
-      CALL lbc_lnk( 'usrdef_zgr', z2d, 'T', 1. )           ! set surrounding land to zero (here jperio=0 ==>> closed)
+      !
+      ! BENCH should work without these 2 small islands on the 2 poles of the folding...
+      !   -> Comment out these lines if instabilities are too large...
+      !
+      
+!!$      IF( c_NFtype == 'T' ) THEN   ! add a small island in the upper corners to avoid model instabilities...
+!!$         z2d(mi0(       nn_hls):mi1(                  nn_hls+2 ),mj0(jpjglo-nn_hls-1):mj1(jpjglo-nn_hls+1)) = 0._wp
+!!$         z2d(mi0(jpiglo-nn_hls):mi1(MIN(jpiglo,jpiglo-nn_hls+2)),mj0(jpjglo-nn_hls-1):mj1(jpjglo-nn_hls+1)) = 0._wp
+!!$         z2d(mi0(jpiglo/2     ):mi1(           jpiglo/2     +2 ),mj0(jpjglo-nn_hls-1):mj1(jpjglo-nn_hls+1)) = 0._wp
+!!$      ENDIF
+!!$      !
+      IF( c_NFtype == 'F' ) THEN   ! Must mask the 2 pivot-points 
+         z2d(mi0(nn_hls+1):mi1(nn_hls+1),mj0(jpjglo-nn_hls):mj1(jpjglo-nn_hls)) = 0._wp
+         z2d(mi0(jpiglo/2):mi1(jpiglo/2),mj0(jpjglo-nn_hls):mj1(jpjglo-nn_hls)) = 0._wp
+      ENDIF
+      !
+      CALL lbc_lnk( 'usrdef_zgr', z2d, 'T', 1._wp )           ! set surrounding land to zero (closed boundaries)
       !
       k_bot(:,:) = INT( z2d(:,:) )           ! =jpkm1 over the ocean point, =0 elsewhere
       !

@@ -11,9 +11,9 @@
 !!   namwad       Wetting and drying                                    (default: OFF)
 !!   namtsd       data: temperature & salinity                          (default: OFF)
 !!   namcrs       coarsened grid (for outputs and/or TOP)               (ln_crs =T)
-!!   namc1d       1D configuration options                              ("key_c1d")
-!!   namc1d_dyndmp 1D newtonian damping applied on currents             ("key_c1d")
-!!   namc1d_uvd   1D data (currents)                                    ("key_c1d")
+!!   namc1d       1D configuration options                              (ln_c1d =T)
+!!   namc1d_dyndmp 1D newtonian damping applied on currents             (ln_c1d =T)
+!!   namc1d_uvd   1D data (currents)                                    (ln_c1d =T)
 !!======================================================================
 !
 !-----------------------------------------------------------------------
@@ -42,7 +42,7 @@
    ln_linssh   = .false.   !  =T  linear free surface  ==>>  model level are fixed in time
    !
    ln_meshmask = .true.    !  create (>0) a mesh file or not (=0)
-   rn_rdt      =    18.    !  time step for the dynamics 
+   rn_Dt      =    18.    !  time step for the dynamics 
 /
 !-----------------------------------------------------------------------
 &namcfg        !   parameters of the configuration                      (default: user defined GYRE)
@@ -50,6 +50,10 @@
    ln_read_cfg = .false.   !  (=T) read the domain configuration file
       !                    !  (=F) user defined configuration  ==>>>  see usrdef(_...) modules
    ln_write_cfg = .true.    !  (=T) create the domain configuration file
+/
+!-----------------------------------------------------------------------
+&namtile        !   parameters of the tiling
+!-----------------------------------------------------------------------
 /
 !-----------------------------------------------------------------------
 &namwad        !   Wetting and Drying (WaD)                             (default: OFF)
@@ -168,9 +172,9 @@
 &nambdy_index
 !-----------------------------------------------------------------------
     ctypebdy = 'E'
-    nbdyind  = 50
+    nbdyind  = 33
     nbdybeg  = 1
-    nbdyend  = 34
+    nbdyend  = 23
     !ctypebdy = 'W'
     !nbdyind  = 2
     !nbdybeg  = 1
@@ -179,13 +183,17 @@
 !-----------------------------------------------------------------------
 &nambdy_dta    !  open boundaries - external data                       
 !-----------------------------------------------------------------------
+   ln_zinterp  = .false.      !  T if a vertical interpolation is required. Variables gdep[tuv] and e3[tuv] must exist in the file
+   !                          !  automatically defined to T if the number of vertical levels in bdy dta /= jpk
+   ln_full_vel = .false.      !  T if [uv]3d are "full" velocities and not only its baroclinic components
+   !                          !  in this case, baroclinic and barotropic velocities will be recomputed -> [uv]2d not needed
+   !
+   cn_dir  =  './'
 !              !  file name      ! frequency (hours) ! variable  ! time interp. !  clim   ! 'yearly'/ ! weights  ! rotation ! land/sea mask !
 !              !                 !  (if <0  months)  !   name    !  (logical)   !  (T/F ) ! 'monthly' ! filename ! pairing  ! filename      !
-   bn_ssh =     'bdyssh_tc7' ,         1        , 'sshbdy',     .true.     , .true.  ,  'daily'  ,    ''    ,   ''     , ''
-   bn_u2d =     'bdyuv_tc7'  ,         1        , 'ubdy'  ,     .true.     , .true.  ,  'daily'  ,    ''    ,   ''     , ''
-   bn_v2d =     'bdyuv_tc7'  ,         1        , 'vbdy'  ,     .true.     , .true.  ,  'daily'  ,    ''    ,   ''     , ''
-   cn_dir      =    './'   !  root directory for the location of the bulk files
-   ln_full_vel = .false.        !
+   bn_ssh =     'bdyssh_tc7' ,         1.       , 'sshbdy',     .true.     , .true.  ,  'daily'  ,    ''    ,   ''     , ''
+   bn_u2d =     'bdyuv_tc7'  ,         1.       , 'ubdy'  ,     .true.     , .true.  ,  'daily'  ,    ''    ,   ''     , ''
+   bn_v2d =     'bdyuv_tc7'  ,         1.       , 'vbdy'  ,     .true.     , .true.  ,  'daily'  ,    ''    ,   ''     , ''
 /
 !-----------------------------------------------------------------------
 &nambdy_tide   !  tidal forcing at open boundaries
@@ -195,8 +203,8 @@
 !!                ***  Top/Bottom boundary condition  ***             !!
 !!                                                                    !!
 !!   namdrg        top/bottom drag coefficient                          (default: NO selection)
-!!   namdrg_top    top    friction                                      (ln_OFF=F & ln_isfcav=T)
-!!   namdrg_bot    bottom friction                                      (ln_OFF=F)
+!!   namdrg_top    top    friction                                      (ln_drg_OFF=F & ln_isfcav=T)
+!!   namdrg_bot    bottom friction                                      (ln_drg_OFF=F)
 !!   nambbc        bottom temperature boundary condition                (default: OFF)
 !!   nambbl        bottom boundary layer scheme                         (default: OFF)
 !!======================================================================
@@ -248,7 +256,7 @@
    ln_seos     = .true.          !  = Use simplified equation of state (S-EOS)
                                  !
    !                     ! S-EOS coefficients (ln_seos=T):
-   !                             !  rd(T,S,Z)*rau0 = -a0*(1+.5*lambda*dT+mu*Z+nu*dS)*dT+b0*dS
+   !                             !  rd(T,S,Z)*rho0 = -a0*(1+.5*lambda*dT+mu*Z+nu*dS)*dT+b0*dS
    rn_a0       =  1.6550e-1      !  thermal expension coefficient (nn_eos= 1)
    rn_b0       =  7.6554e-1      !  saline  expension coefficient (nn_eos= 1)
    rn_lambda1  =  5.9520e-2      !  cabbeling coeff in T^2  (=0 for linear eos)
@@ -258,7 +266,7 @@
    rn_nu       =  2.4341e-3      !  cabbeling coeff in T*S  (=0 for linear eos)
 !!org GYRE   rn_alpha    =   2.0e-4  !  thermal expension coefficient (nn_eos= 1 or 2)
 !!org GYRE   rn_beta     =   7.7e-4  !  saline  expension coefficient (nn_eos= 2)
-!!org  caution  now a0 = alpha / rau0   with rau0 = 1026
+!!org  caution  now a0 = alpha / rho0   with rho0 = 1026
 /
 !-----------------------------------------------------------------------
 &namtra_adv    !   advection scheme for tracer                          (default: NO selection)
@@ -325,7 +333,6 @@
    ln_dynvor_ens = .false. !  energy conserving scheme
    ln_dynvor_mix = .false. !  mixed scheme
    ln_dynvor_een = .true.  !  energy & enstrophy scheme
-      nn_een_e3f = 0             !  e3f = masked averaging of e3t divided by 4 (=0) or by the sum of mask (=1)
 /
 !-----------------------------------------------------------------------
 &namdyn_hpg    !   Hydrostatic pressure gradient option                 (default: NO selection)
@@ -339,7 +346,7 @@
 !-----------------------------------------------------------------------
    ln_dynspg_ts  = .true.  !  split-explicit free surface
    ln_bt_auto    = .false. ! Number of sub-step defined from:
-   nn_baro       =  12     ! =F : the number of sub-step in rn_rdt seconds
+   nn_e       =  12     ! =F : the number of sub-step in rn_Dt seconds
 /
 !-----------------------------------------------------------------------
 &namdyn_ldf    !   lateral diffusion on momentum                        (default: NO selection)
@@ -412,14 +419,11 @@
 !!                  ***  Diagnostics namelists  ***                   !!
 !!                                                                    !!
 !!   namtrd       dynamics and/or tracer trends                         (default: OFF)
-!!   namptr       Poleward Transport Diagnostics                        (default: OFF)
 !!   namhsb       Heat and salt budgets                                 (default: OFF)
 !!   namdiu       Cool skin and warm layer models                       (default: OFF)
 !!   namdiu       Cool skin and warm layer models                       (default: OFF)
-!!   namflo       float parameters                                      ("key_float")
-!!   nam_diaharm  Harmonic analysis of tidal constituents               ("key_diaharm")
-!!   namdct       transports through some sections                      ("key_diadct")
-!!   nam_diatmb   Top Middle Bottom Output                              (default: OFF)
+!!   namflo       float parameters                                      (default: OFF)
+!!   nam_diadct   transports through some sections                      (default: OFF)
 !!   nam_dia25h   25h Mean Output                                       (default: OFF)
 !!   namnc4       netcdf4 chunking and compression settings             ("key_netcdf4")
 !!======================================================================
@@ -438,8 +442,9 @@
    nn_trd      = 365       !  print frequency (ln_glo_trd=T) (unit=time step)
 /
 !-----------------------------------------------------------------------
-&namdct        ! transports through some sections                       ("key_diadct")
+&nam_diadct    !   transports through some sections                     (default: OFF)
 !-----------------------------------------------------------------------
+    ln_diadct  = .false.   ! Calculate transport thru sections or not
     nn_dct      = 60       !  time step frequency for transports computing
     nn_dctwri   = 60       !  time step frequency for transports writing
     nn_secdebug = 0        !      0 : no section to debug
@@ -454,13 +459,13 @@
 !!======================================================================
 !!                  ***  Miscellaneous namelists  ***                 !!
 !!                                                                    !!
-!!   nammpp            Massively Parallel Processing                    ("key_mpp_mpi")
+!!   nammpp            Massively Parallel Processing
 !!   namctl            Control prints                                   (default: OFF)
 !!   namsto            Stochastic parametrization of EOS                (default: OFF)
 !!======================================================================
 !
 !-----------------------------------------------------------------------
-&nammpp        !   Massively Parallel Processing                        ("key_mpp_mpi")
+&nammpp        !   Massively Parallel Processing
 !-----------------------------------------------------------------------
 /
 !-----------------------------------------------------------------------

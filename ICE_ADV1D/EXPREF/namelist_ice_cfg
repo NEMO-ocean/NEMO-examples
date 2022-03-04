@@ -87,7 +87,7 @@
 &namini         !   Ice initialization
 !------------------------------------------------------------------------------
    ln_iceini        = .true.          !  activate ice initialization (T) or not (F)
-   ln_iceini_file   = .true.          !  netcdf file provided for initialization (T) or not (F)
+   nn_iceini_file   =  1              !  netcdf file provided for initialization
 
    sn_hti = 'initice_60pts'                 , -12 ,'hti'   ,  .false.  , .true., 'yearly'  , '' , '', ''
    sn_hts = 'initice_60pts'                 , -12 ,'hts'   ,  .false.  , .true., 'yearly'  , '' , '', ''

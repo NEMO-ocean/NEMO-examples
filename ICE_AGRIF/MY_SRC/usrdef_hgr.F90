@@ -23,11 +23,15 @@ MODULE usrdef_hgr
    IMPLICIT NONE
    PRIVATE
 
+   REAL(wp) :: roffsetx, roffsety ! Offset in km to first f-point
+
    PUBLIC   usr_def_hgr   ! called by domhgr.F90
 
+   !! * Substitutions
+#  include "do_loop_substitute.h90"
    !!----------------------------------------------------------------------
    !! NEMO/OCE 4.0 , NEMO Consortium (2018)
-   !! $Id: usrdef_hgr.F90 10516 2019-01-15 16:31:25Z clem $ 
+   !! $Id: usrdef_hgr.F90 15119 2021-07-13 14:43:22Z jchanut $ 
    !! Software governed by the CeCILL license (see ./LICENSE)
    !!----------------------------------------------------------------------
 CONTAINS
@@ -47,7 +51,7 @@ CONTAINS
       !!                ICE_AGRIF configuration : uniform grid spacing (rn_dx)
       !!                without Coriolis force (f=0)
       !!
-      !! ** Action  : - define longitude & latitude of t-, u-, v- and f-points (in degrees) 
+      !! ** Action  : - define longitude & latitude of t-, u-, v- and f-points (in kms) 
       !!              - define coriolis parameter at f-point if the domain in not on the sphere (on beta-plane)
       !!              - define i- & j-scale factors at t-, u-, v- and f-points (in meters)
       !!              - define u- & v-surfaces (if gridsize reduction is used in some straits) (in m2)
@@ -61,9 +65,9 @@ CONTAINS
       INTEGER                 , INTENT(out) ::   ke1e2u_v                     ! =1 u- & v-surfaces computed here, =0 otherwise 
       REAL(wp), DIMENSION(:,:), INTENT(out) ::   pe1e2u, pe1e2v               ! u- & v-surfaces (if reduction in strait)   [m2]
       !
-      INTEGER  ::   ji, jj   ! dummy loop indices
-      REAL(wp) ::   zphi0, zlam0, zbeta, zf0
-      REAL(wp) ::   zti, zui, ztj, zvj   ! local scalars
+      INTEGER  ::   ji, jj     ! dummy loop indices
+      REAL(wp) ::   zbeta, zf0
+      REAL(wp) ::   zti, ztj   ! local scalars
       !!-------------------------------------------------------------------------------
       !
       IF(lwp) WRITE(numout,*)
@@ -71,41 +75,43 @@ CONTAINS
       IF(lwp) WRITE(numout,*)
       IF(lwp) WRITE(numout,*) '          f-plane with irregular grid-spacing (+- 10%)'
       IF(lwp) WRITE(numout,*) '          the max is given by rn_dx and rn_dy' 
-
+      !
+      !
+      ! Position coordinates (in kilometers)
       !                          ==========
-      zlam0 = -(jpiglo-1)/2 * 1.e-3 * rn_dx
-      zphi0 = -(jpjglo-1)/2 * 1.e-3 * rn_dy
-
-#if defined key_agrif 
-      IF( .NOT. Agrif_Root() ) THEN
-!clem         zlam0  = Agrif_Parent(zlam0) + (Agrif_ix())*Agrif_Parent(rn_dx) * 1.e-5
-!clem         zphi0  = Agrif_Parent(zphi0) + (Agrif_iy())*Agrif_Parent(rn_dy) * 1.e-5
-         zlam0 = ( 0.5_wp - ( Agrif_parent(jpiglo) - 1 ) / 2 ) * 1.e-3 * Agrif_irhox() * rn_dx  &
-            &  + ( Agrif_Ix() + nbghostcells - 1 ) * Agrif_irhox() * rn_dx * 1.e-3 - ( 0.5_wp + nbghostcells ) * rn_dx * 1.e-3
-         zphi0 = ( 0.5_wp - ( Agrif_parent(jpjglo) - 1 ) / 2 ) * 1.e-3 * Agrif_irhoy() * rn_dy  &
-            &  + ( Agrif_Iy() + nbghostcells - 1 ) * Agrif_irhoy() * rn_dy * 1.e-3 - ( 0.5_wp + nbghostcells ) * rn_dy * 1.e-3
+      ! Offset is given at first f-point, i.e. at (i,j) = (nn_hls+1, nn_hls+1)
+      ! Here we assume the grid is centred around a T-point at the middle of
+      ! of the domain (hence domain size is odd)
+      roffsetx = (-REAL(Ni0glo-1, wp) + 1._wp) * 0.5 * 1.e-3 * rn_dx
+      roffsety = (-REAL(Nj0glo-1, wp) + 1._wp) * 0.5 * 1.e-3 * rn_dy
+#if defined key_agrif
+      IF( .NOT.Agrif_Root() ) THEN
+         ! deduce offset from parent:
+         roffsetx = Agrif_Parent(roffsetx) &
+            & + (-(nbghostcells_x_w - 1) + (Agrif_Parent(nbghostcells_x_w) &
+            & + Agrif_Ix()-2)*Agrif_Rhox()) * 1.e-3 * rn_dx
+         roffsety = Agrif_Parent(roffsety) &
+            & + (-(nbghostcells_y_s - 1) + (Agrif_Parent(nbghostcells_y_s) &
+            & + Agrif_Iy()-2)*Agrif_Rhoy()) * 1.e-3 * rn_dy
       ENDIF
-#endif         
+#endif
+      DO_2D( nn_hls, nn_hls, nn_hls, nn_hls )
+         zti = REAL( mig0(ji)-1, wp )  ! start at i=0 in the global grid without halos
+         ztj = REAL( mjg0(jj)-1, wp )  ! start at j=0 in the global grid without halos
 
-      DO jj = 1, jpj
-         DO ji = 1, jpi
-            zti = FLOAT( ji - 1 + nimpp - 1 )          ;  ztj = FLOAT( jj - 1 + njmpp - 1 )
-            zui = FLOAT( ji - 1 + nimpp - 1 ) + 0.5_wp ;  zvj = FLOAT( jj - 1 + njmpp - 1 ) + 0.5_wp
+         plamt(ji,jj) = roffsetx + rn_dx * 1.e-3 * ( zti - 0.5_wp )
+         plamu(ji,jj) = roffsetx + rn_dx * 1.e-3 *   zti
+         plamv(ji,jj) = plamt(ji,jj)
+         plamf(ji,jj) = plamu(ji,jj)
 
-            plamt(ji,jj) = zlam0 + rn_dx * 1.e-3 * zti
-            plamu(ji,jj) = zlam0 + rn_dx * 1.e-3 * zui
-            plamv(ji,jj) = plamt(ji,jj) 
-            plamf(ji,jj) = plamu(ji,jj) 
-   
-            pphit(ji,jj) = zphi0 + rn_dy * 1.e-3 * ztj
-            pphiv(ji,jj) = zphi0 + rn_dy * 1.e-3 * zvj
-            pphiu(ji,jj) = pphit(ji,jj) 
-            pphif(ji,jj) = pphiv(ji,jj) 
-         END DO
-      END DO
-         
-         ! Horizontal scale factors (in meters)
-         !                              ======
+         pphit(ji,jj) = roffsety + rn_dy * 1.e-3 * ( ztj - 0.5_wp )
+         pphiv(ji,jj) = roffsety + rn_dy * 1.e-3 *   ztj
+         pphiu(ji,jj) = pphit(ji,jj)
+         pphif(ji,jj) = pphiv(ji,jj)
+      END_2D
+      !
+      ! Horizontal scale factors (in meters)
+      !                              ======
 !! ==> EITHER 1) variable scale factors
 !! clem: This can be used with a 1proc simulation but I think it breaks repro when >1procs are used      
 !!         DO jj = 1, jpj

@@ -17,8 +17,8 @@ CONFIG_BLD="STATION_ASF2" ; # name of config as build in NEMO... (directory insi
 #     => FORCING: name of forcing
 #     => i_sea_ice: whether to compute fluxes over sea-ice as well
 #     => SFORC: string sufficient to copy relevant files as in "*${SFORC}*.nc"
-#FORCING="PAPA"                 ; i_sea_ice=0 ; SFORC="Station_PAPA_50N-145W"
-FORCING="ERA5_NorthGreenland" ; i_sea_ice=1 ; SFORC="ERA5_NorthGreenland_surface_84N_-36E_1h" ; # WITH ice/air flux computation
+FORCING="PAPA"                 ; i_sea_ice=0 ; SFORC="Station_PAPA_50N-145W"
+#FORCING="ERA5_NorthGreenland" ; i_sea_ice=1 ; SFORC="ERA5_NorthGreenland_surface_84N_-36E_1h" ; # WITH ice/air flux computation
 #FORCING="ERA5_NorthGreenland" ; i_sea_ice=0 ; SFORC="ERA5_NorthGreenland_surface_84N_-36E_1h" ; # "ERA5_arctic" WITHOUT ice/air flux computation
 
 

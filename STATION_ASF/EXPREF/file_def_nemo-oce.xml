@@ -27,7 +27,9 @@
       <field field_ref="precip"       name="precip" />
       <!-- <field field_ref="empmr"   name="empmr" /> -->
       <!-- -->
-      <field field_ref="taum"         name="taum"   />
+      <field field_ref="taum_oce"     name="taum"   />
+      <field field_ref="utau_oce"     name="utau"   />
+      <field field_ref="vtau_oce"     name="vtau"   />
       <field field_ref="wspd"         name="windsp" />
       <!-- -->
       <field field_ref="Cd_oce"       name="Cd_oce" />
@@ -40,14 +42,6 @@
       <field field_ref="q_zu"         name="q_zu" />
       <field field_ref="ssq"          name="ssq" />
       <field field_ref="wspd_blk"     name="wspd_blk" />      
-    </file>
-
-    <file id="file2" name_suffix="_gridU" description="ocean U grid variables" compression_level="3" >
-      <field field_ref="utau"         name="tauuo"    />
-    </file>
-
-    <file id="file3" name_suffix="_gridV" description="ocean V grid variables" compression_level="3" >
-      <field field_ref="vtau"         name="tauvo"    />
     </file>
 
   </file_group>

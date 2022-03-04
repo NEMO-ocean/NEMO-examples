@@ -7,6 +7,7 @@ MODULE usrdef_istate
    !! User defined : set the initial state of a user configuration
    !!==============================================================================
    !! History :  NEMO ! 2016-03  (S. Flavoni, G. Madec) Original code
+   !!                 ! 2020-11  (S. Techene, G. Madec) separate tsuv from ssh
    !!----------------------------------------------------------------------
 
    !!----------------------------------------------------------------------
@@ -22,16 +23,17 @@ MODULE usrdef_istate
    IMPLICIT NONE
    PRIVATE
 
-   PUBLIC   usr_def_istate   ! called by istate.F90
-
+   PUBLIC   usr_def_istate       ! called by istate.F90
+   PUBLIC   usr_def_istate_ssh   ! called by domqco.F90
+   
    !!----------------------------------------------------------------------
    !! NEMO/OCE 4.0 , NEMO Consortium (2018)
-   !! $Id: usrdef_istate.F90 10074 2018-08-28 16:15:49Z nicolasmartin $ 
+   !! $Id: usrdef_istate.F90 14053 2020-12-03 13:48:38Z techene $ 
    !! Software governed by the CeCILL license (see ./LICENSE)
    !!----------------------------------------------------------------------
 CONTAINS
   
-   SUBROUTINE usr_def_istate( pdept, ptmask, pts, pu, pv, pssh )
+   SUBROUTINE usr_def_istate( pdept, ptmask, pts, pu, pv )
       !!----------------------------------------------------------------------
       !!                   ***  ROUTINE usr_def_istate  ***
       !! 
@@ -46,7 +48,6 @@ CONTAINS
       REAL(wp), DIMENSION(jpi,jpj,jpk,jpts), INTENT(  out) ::   pts     ! T & S fields      [Celsius ; g/kg]
       REAL(wp), DIMENSION(jpi,jpj,jpk)     , INTENT(  out) ::   pu      ! i-component of the velocity  [m/s] 
       REAL(wp), DIMENSION(jpi,jpj,jpk)     , INTENT(  out) ::   pv      ! j-component of the velocity  [m/s] 
-      REAL(wp), DIMENSION(jpi,jpj)         , INTENT(  out) ::   pssh    ! sea-surface height
       !
       INTEGER  ::   jk     ! dummy loop indices
       REAL(wp) ::   zdam   ! location of dam [Km]
@@ -59,12 +60,11 @@ CONTAINS
       IF(lwp) WRITE(numout,*) '                 (i.e. a temperature difference of 10 degrees with rn_a0 = 0.2'
       !
       !  rn_a0 =  0.2   !  thermal expension coefficient (nn_eos= 1)
-      !  rho = rau0 - rn_a0 * (T-10) 
+      !  rho = rho0 - rn_a0 * (T-10) 
       !  delta_T = 10 degrees  ==>>  delta_rho = 10 * rn_a0 = 2 kg/m3
       !
       pu  (:,:,:) = 0._wp        ! ocean at rest
       pv  (:,:,:) = 0._wp
-      pssh(:,:)   = 0._wp
       !
       !                          ! T & S profiles
       zdam = 20.                      ! density front position in kilometers
@@ -76,6 +76,27 @@ CONTAINS
       pts(:,:,:,jp_sal) = 35._wp * ptmask(:,:,:)
       !   
    END SUBROUTINE usr_def_istate
+
+
+   SUBROUTINE usr_def_istate_ssh( ptmask, pssh )
+      !!----------------------------------------------------------------------
+      !!                   ***  ROUTINE usr_def_istate_ssh  ***
+      !! 
+      !! ** Purpose :   Initialization of the ssh
+      !!                Here  OVERFLOW configuration 
+      !!
+      !! ** Method  :   set ssh to 0
+      !!----------------------------------------------------------------------
+      REAL(wp), DIMENSION(jpi,jpj,jpk)     , INTENT(in   ) ::   ptmask  ! t-point ocean mask   [m]
+      REAL(wp), DIMENSION(jpi,jpj)         , INTENT(  out) ::   pssh    ! sea-surface height   [m]
+      !!----------------------------------------------------------------------
+      !
+      IF(lwp) WRITE(numout,*)
+      IF(lwp) WRITE(numout,*) 'usr_def_istate_ssh : OVERFLOW configuration, analytical definition of initial state'
+      !
+      pssh(:,:)   = 0._wp
+      !
+   END SUBROUTINE usr_def_istate_ssh
 
    !!======================================================================
 END MODULE usrdef_istate

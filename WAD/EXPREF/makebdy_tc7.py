@@ -3,7 +3,7 @@ import numpy as np
 
 pathout = "bdyssh_tc7"
 
-nx = 34 
+nx = 23 
 ny = 1
 nt = 24
 ndays=4
@@ -17,7 +17,7 @@ for nd in range(ndays):
  print pathstart
  ssh = np.zeros((nt,ny,nx))
  for nnt in range(nd*nt,(nd+1)*nt):
-   tx = 2.5*np.cos((3.141592654/6.0)*(nnt+1.0))
+   tx = 2.5*np.cos((3.141592654/6.0)*(nnt))
    print nnt, tx
    for nnx in range(nx):
      for nny in range(ny):

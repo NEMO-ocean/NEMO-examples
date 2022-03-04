@@ -1,1 +1,422 @@
-../../../cfgs/SHARED/grid_def_nemo.xml
+<?xml version="1.0"?>
+<!--
+============================================================================================================
+= grid definition = = DO NOT CHANGE =
+============================================================================================================
+-->
+
+<grid_definition>
+
+  <!--  -->
+  <grid id="grid_T_2D" >
+    <domain domain_ref="grid_T" />
+  </grid>
+  <grid id="grid_T_2D_inner" >
+    <domain domain_ref="grid_T_inner" />
+  </grid>
+  <!--  -->
+  <grid id="grid_T_ncatice" >
+    <domain domain_ref="grid_T" />
+    <axis axis_ref="ncatice" />
+  </grid>
+  <grid id="grid_T_ncatice_inner" >
+    <domain domain_ref="grid_T_inner" />
+    <axis axis_ref="ncatice" />
+  </grid>
+  <!--  -->
+  <grid id="grid_T_3D" >
+    <domain domain_ref="grid_T" />
+    <axis axis_ref="deptht" />
+  </grid>
+  <grid id="grid_T_3D_inner" >
+    <domain domain_ref="grid_T_inner" />
+    <axis axis_ref="deptht" />
+  </grid>
+  <!--  -->
+  <grid id="grid_T_3DS" >
+    <domain domain_ref="grid_T" />
+    <axis axis_ref="profsed" />
+  </grid>
+  <grid id="grid_T_3DS_inner" >
+    <domain domain_ref="grid_T_inner" />
+    <axis axis_ref="profsed" />
+  </grid>
+  <!--  -->
+  <grid id="grid_U_2D" >
+    <domain domain_ref="grid_U" />
+  </grid>
+  <grid id="grid_U_2D_inner" >
+    <domain domain_ref="grid_U_inner" />
+  </grid>
+  <!--  -->
+  <grid id="grid_U_3D" >
+    <domain domain_ref="grid_U" />
+    <axis axis_ref="depthu" />
+  </grid>
+  <grid id="grid_U_3D_inner" >
+    <domain domain_ref="grid_U_inner" />
+    <axis axis_ref="depthu" />
+  </grid>
+  <!--  -->
+  <grid id="grid_V_2D" >
+    <domain domain_ref="grid_V" />
+  </grid>
+  <grid id="grid_V_2D_inner" >
+    <domain domain_ref="grid_V_inner" />
+  </grid>
+  <!--  -->
+  <grid id="grid_V_3D" >
+    <domain domain_ref="grid_V" />
+    <axis axis_ref="depthv" />
+  </grid>
+  <grid id="grid_V_3D_inner" >
+    <domain domain_ref="grid_V_inner" />
+    <axis axis_ref="depthv" />
+  </grid>
+  <!--  -->
+  <grid id="grid_W_2D" >
+    <domain domain_ref="grid_W" />
+  </grid>
+  <grid id="grid_W_2D_inner" >
+    <domain domain_ref="grid_W_inner" />
+  </grid>
+  <!--  -->
+  <grid id="grid_W_3D" >
+    <domain domain_ref="grid_W" />
+    <axis axis_ref="depthw" />
+  </grid>
+  <grid id="grid_W_3D_inner" >
+    <domain domain_ref="grid_W_inner" />
+    <axis axis_ref="depthw" />
+  </grid>
+  <!--  -->
+  <grid id="grid_F_2D" >
+    <domain domain_ref="grid_F" />
+  </grid>
+  <grid id="grid_F_2D_inner" >
+    <domain domain_ref="grid_F_inner" />
+  </grid>
+  <!--  -->
+  <grid id="grid_F_3D" >
+    <domain domain_ref="grid_F" />
+    <axis axis_ref="depthf" />
+  </grid>
+  <grid id="grid_F_3D_inner" >
+    <domain domain_ref="grid_F_inner" />
+    <axis axis_ref="depthf" />
+  </grid>
+  <!--  -->
+  <grid id="grid_1point" >
+    <domain domain_ref="1point"/>
+  </grid>
+  <!--  -->
+  <grid id="grid_T_nfloat" >
+    <domain domain_ref="grid_T" />
+    <axis axis_ref="nfloat" />
+  </grid>
+  <!--  -->
+  <grid id="grid_EqT" >
+    <domain domain_ref="EqT" />
+  </grid>
+  <!--  -->
+
+  <grid id="grid_znl_T_2D">
+    <domain domain_ref="gznl" />
+    <axis axis_ref="basin" />
+  </grid>
+
+  <grid id="grid_znl_T_3D">
+    <domain domain_ref="gznl" />
+    <axis axis_ref="deptht"  />
+    <axis axis_ref="basin" />
+  </grid>
+
+  <grid id="grid_znl_W_3D">
+    <domain domain_ref="gznl" />
+    <axis axis_ref="depthw"  />
+    <axis axis_ref="basin" />
+  </grid>
+
+  <grid id="grid_ptr_T_2D">
+    <domain domain_ref="ptr" />
+    <axis axis_ref="basin" />
+  </grid>
+
+  <grid id="grid_ptr_T_3D">
+    <domain  domain_ref="ptr" />
+    <axis axis_ref="deptht"  />
+    <axis axis_ref="basin" />
+  </grid>
+
+  <grid id="grid_ptr_W_3D">
+    <domain  domain_ref="ptr" />
+    <axis axis_ref="depthw"  />
+    <axis axis_ref="basin" />
+  </grid>
+
+  <grid id="grid_ptr_W_GLO">
+    <domain  domain_ref="ptr" />
+    <axis axis_ref="depthw"  />
+    <scalar>
+      <extract_axis position="0" />
+    </scalar>
+  </grid>
+
+  <grid id="grid_ptr_W_ATL">
+    <domain  domain_ref="ptr" />
+    <axis axis_ref="depthw"  />
+    <scalar>
+      <extract_axis position="1" />
+    </scalar>
+  </grid>
+
+  <grid id="grid_ptr_W_IND">
+    <domain  domain_ref="ptr" />
+    <axis axis_ref="depthw"  />
+    <scalar>
+      <extract_axis position="2" />
+    </scalar>
+  </grid>
+
+  <grid id="grid_T_SFC">
+    <domain domain_ref="grid_T" />
+    <scalar>
+      <extract_axis position="0" />
+    </scalar>
+  </grid>
+
+  <grid id="grid_T_vsum">
+    <domain domain_ref="grid_T"/>
+    <scalar>
+      <reduce_axis operation="sum" />
+    </scalar>
+  </grid>
+
+  <grid id="grid_U_vsum">
+    <domain domain_ref="grid_U"/>
+    <scalar>
+      <reduce_axis operation="sum" />
+    </scalar>
+  </grid>
+
+  <grid id="grid_V_vsum">
+    <domain domain_ref="grid_V"/>
+    <scalar>
+      <reduce_axis operation="sum" />
+    </scalar>
+  </grid>
+
+  <!-- for ORCA2 grid  -->
+  <grid id="cumul_U">
+    <axis axis_ref="cumul_U" n_glo="182" >
+      <reduce_domain local="true" operation="sum" direction="jDir" />
+      <reduce_axis operation="sum" />
+    </axis>
+    <axis axis_ref="depthu" />
+  </grid>
+
+  <!-- for eORCA1 grid
+
+<grid id="cumul_U">
+<axis axis_ref="cumul_U" n_glo="362" >
+<reduce_domain local="true" operation="sum" direction="jDir" />
+<reduce_axis operation="sum" />
+</axis>
+<axis axis_ref="depthu" />
+</grid>
+
+  -->
+
+
+  <grid id="grid_T_zoom_300">
+    <domain domain_ref="grid_T" />
+    <axis axis_ref="deptht300" />
+  </grid>
+
+  <grid id="grid_U_scalar" >
+    <domain domain_ref="grid_U" />
+    <scalar/>
+  </grid>
+
+  <grid id="grid_V_scalar" >
+    <domain domain_ref="grid_V" />
+    <scalar/>
+  </grid>
+
+  <grid id="grid_U_4strait">
+    <domain domain_ref="grid_U" />
+    <axis axis_ref="section">
+      <duplicate_scalar/>
+    </axis>
+  </grid>
+
+  <grid id="grid_V_4strait">
+    <domain domain_ref="grid_V" />
+    <axis axis_ref="section">
+      <duplicate_scalar/>
+    </axis>
+  </grid>
+
+  <grid id="grid_U_4strait_hsum">
+    <scalar >
+      <reduce_domain operation="sum" local="true"/>
+      <reduce_scalar operation="sum" />
+    </scalar>
+    <axis axis_ref="section"/>
+  </grid>
+
+  <grid id="grid_V_4strait_hsum">
+    <scalar >
+      <reduce_domain operation="sum" local="true"/>
+      <reduce_scalar operation="sum" />
+    </scalar>
+    <axis axis_ref="section"/>
+  </grid>
+
+  <grid id="grid_4strait">
+    <axis axis_ref="section"/>
+  </grid>
+
+  <grid id="grid_U_4strait_ice">
+    <domain domain_ref="grid_U" />
+    <axis axis_ref="section_ice">
+      <duplicate_scalar/>
+    </axis>
+  </grid>
+
+  <grid id="grid_V_4strait_ice">
+    <domain domain_ref="grid_V" />
+    <axis axis_ref="section_ice">
+      <duplicate_scalar/>
+    </axis>
+  </grid>
+
+  <grid id="grid_U_4strait_ice_hsum">
+    <scalar >
+      <reduce_domain operation="sum" local="true"/>
+      <reduce_scalar operation="sum" />
+    </scalar>
+    <axis axis_ref="section_ice"/>
+  </grid>
+
+  <grid id="grid_V_4strait_ice_hsum">
+    <scalar >
+      <reduce_domain operation="sum" local="true"/>
+      <reduce_scalar operation="sum" />
+    </scalar>
+    <axis axis_ref="section_ice"/>
+  </grid>
+
+  <grid id="grid_4strait_ice">
+    <axis axis_ref="section_ice"/>
+  </grid>
+
+  <!-- scalars -->
+  <grid id="grid_scalar" >
+    <scalar/>
+  </grid>
+
+  <!-- ABL grid definition -->
+  <grid id="grid_TA_2D">
+    <domain domain_ref="grid_T" />
+  </grid>
+  <grid id="grid_TA_3D">
+    <domain domain_ref="grid_T" />
+    <axis  id="ght_abl" />
+  </grid>
+  <grid id="grid_WA_3D">
+    <domain domain_ref="grid_T" />
+    <axis  id="ghw_abl" />
+  </grid>
+  <!--  -->
+
+  <!-- grid definitions for multiple-linear-regression analysis (diamlr) -->
+  <grid id="diamlr_grid_scalar" >
+    <scalar />
+    <scalar />
+  </grid>
+  <grid id="diamlr_grid_T_2D" >
+    <domain domain_ref="grid_T" />
+    <scalar />
+  </grid>
+  <grid id="diamlr_grid_U_2D" >
+    <domain domain_ref="grid_U" />
+    <scalar />
+  </grid>
+  <grid id="diamlr_grid_V_2D" >
+    <domain domain_ref="grid_V" />
+    <scalar />
+  </grid>
+  <grid id="diamlr_grid_W_2D" >
+    <domain domain_ref="grid_W" />
+    <scalar />
+  </grid>
+  <grid id="diamlr_grid_2D_to_grid_T_3D" >
+    <domain domain_ref="grid_T" />
+    <axis axis_ref="deptht">
+      <duplicate_scalar />
+    </axis>
+  </grid>
+  <grid id="diamlr_grid_2D_to_grid_U_3D" >
+    <domain domain_ref="grid_U" />
+    <axis axis_ref="depthu">
+      <duplicate_scalar />
+    </axis>
+  </grid>
+  <grid id="diamlr_grid_2D_to_grid_V_3D" >
+    <domain domain_ref="grid_V" />
+    <axis axis_ref="depthv">
+      <duplicate_scalar />
+    </axis>
+  </grid>
+  <grid id="diamlr_grid_2D_to_grid_W_3D" >
+    <domain domain_ref="grid_W" />
+    <axis axis_ref="depthw">
+      <duplicate_scalar />
+    </axis>
+  </grid>
+  <grid id="diamlr_grid_2D_to_scalar" >
+    <scalar>
+      <reduce_domain operation="average" />
+    </scalar>
+    <scalar />
+  </grid>
+  <!-- grid definitions for the computation of daily detided model diagnostics (diadetide) -->
+  <grid id="diadetide_grid_T_2D" >
+    <domain domain_ref="grid_T" />
+    <scalar />
+  </grid>
+  <grid id="diadetide_grid_U_2D" >
+    <domain domain_ref="grid_U" />
+    <scalar />
+  </grid>
+  <grid id="diadetide_grid_V_2D" >
+    <domain domain_ref="grid_V" />
+    <scalar />
+  </grid>
+  <grid id="diadetide_grid_2D_to_grid_T_3D" >
+    <domain domain_ref="grid_T" />
+    <axis axis_ref="deptht">
+      <duplicate_scalar />
+    </axis>
+  </grid>
+  <grid id="diadetide_grid_2D_to_grid_U_3D" >
+    <domain domain_ref="grid_U" />
+    <axis axis_ref="depthu">
+      <duplicate_scalar />
+    </axis>
+  </grid>
+  <grid id="diadetide_grid_2D_to_grid_V_3D" >
+    <domain domain_ref="grid_V" />
+    <axis axis_ref="depthv">
+      <duplicate_scalar />
+    </axis>
+  </grid>
+  <grid id="diadetide_grid_2D_to_grid_W_3D" >
+    <domain domain_ref="grid_W" />
+    <axis axis_ref="depthw">
+      <duplicate_scalar />
+    </axis>
+  </grid>
+
+</grid_definition>

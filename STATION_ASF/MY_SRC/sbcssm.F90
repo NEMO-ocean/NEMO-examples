@@ -11,7 +11,7 @@ MODULE sbcssm
    !!   sbc_ssm       : Interpolation of the fields
    !!----------------------------------------------------------------------
    USE oce            ! ocean dynamics and tracers variables
-   USE c1d            ! 1D configuration: lk_c1d
+   USE c1d            ! 1D configuration: ln_c1d
    USE dom_oce        ! ocean domain: variables
    USE sbc_oce        ! surface module: variables
    USE phycst         ! physical constants
@@ -178,11 +178,11 @@ CONTAINS
       TYPE(FLD_N) ::   sn_usp, sn_vsp
       TYPE(FLD_N) ::   sn_ssh, sn_e3t, sn_frq
       !!
-      TYPE(FLD_N) ::   sn_ifr, sn_tic, sn_ial ! #LB
+      TYPE(FLD_N) ::   sn_ifr, sn_tic, sn_ial
       !!
       NAMELIST/namsbc_sas/ l_sasread, cn_dir, ln_3d_uve, ln_read_frq,   &
          &                 sn_tem, sn_sal, sn_usp, sn_vsp, sn_ssh, sn_e3t, sn_frq, &
-         &                 sn_ifr, sn_tic, sn_ial  ! #LB
+         &                 sn_ifr, sn_tic, sn_ial
       !!----------------------------------------------------------------------
       !
       IF( ln_rstart .AND. nn_components == jp_iam_sas )   RETURN

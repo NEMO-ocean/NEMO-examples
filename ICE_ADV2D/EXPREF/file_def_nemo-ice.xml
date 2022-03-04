@@ -54,9 +54,8 @@
         <field field_ref="icestr"           name="sistre"  />
         <field field_ref="normstr"          name="normstr" />
         <field field_ref="sheastr"          name="sheastr" />
-        <field field_ref="isig1"            name="isig1"   />
-        <field field_ref="isig2"            name="isig2"   />
-        <field field_ref="isig3"            name="isig3"   />
+       <field field_ref="sig1_pnorm"       name="sig1_pnorm"/>
+       <field field_ref="sig2_pnorm"       name="sig2_pnorm"/>
 
         <!-- heat fluxes -->
         <field field_ref="qt_oce_ai"        name="qt_oce_ai"  />

@@ -12,7 +12,7 @@ MODULE usrdef_hgr
    !!----------------------------------------------------------------------
    !!   usr_def_hgr    : initialize the horizontal mesh for OVERFLOW configuration
    !!----------------------------------------------------------------------
-   USE dom_oce  ,  ONLY: nimpp, njmpp       ! ocean space and time domain
+   USE dom_oce
    USE par_oce         ! ocean space and time domain
    USE phycst          ! physical constants
    USE usrdef_nam, ONLY: rn_dx   ! horizontal resolution in meters
@@ -25,9 +25,11 @@ MODULE usrdef_hgr
 
    PUBLIC   usr_def_hgr   ! called by domhgr.F90
 
+   !! * Substitutions
+#  include "do_loop_substitute.h90"
    !!----------------------------------------------------------------------
    !! NEMO/OCE 4.0 , NEMO Consortium (2018)
-   !! $Id: usrdef_hgr.F90 10074 2018-08-28 16:15:49Z nicolasmartin $ 
+   !! $Id: usrdef_hgr.F90 14223 2020-12-19 10:22:45Z smasson $ 
    !! Software governed by the CeCILL license (see ./LICENSE)
    !!----------------------------------------------------------------------
 CONTAINS
@@ -71,19 +73,18 @@ CONTAINS
       !
       !                       !==  grid point position  ==!   (in kilometers)
       zfact = rn_dx * 1.e-3         ! conversion in km
-      DO jj = 1, jpj
-         DO ji = 1, jpi             ! longitude
-            plamt(ji,jj) = zfact * (  - 0.5 + REAL( ji-1 + nimpp-1 , wp )  )  
-            plamu(ji,jj) = zfact * (          REAL( ji-1 + nimpp-1 , wp )  )
-            plamv(ji,jj) = plamt(ji,jj)
-            plamf(ji,jj) = plamu(ji,jj)
-            !                       ! latitude
-            pphit(ji,jj) = zfact * (  - 0.5 + REAL( jj-1 + njmpp-1 , wp )  )
-            pphiu(ji,jj) = pphit(ji,jj)
-            pphiv(ji,jj) = zfact * (          REAL( jj-1 + njmpp-1 , wp )  )
-            pphif(ji,jj) = pphiv(ji,jj)
-         END DO
-      END DO
+      DO_2D( nn_hls, nn_hls, nn_hls, nn_hls )
+         !                       ! longitude   (west coast at lon=0°)
+         plamt(ji,jj) = zfact * (  - 0.5 + REAL( mig0(ji)-1 , wp )  )  
+         plamu(ji,jj) = zfact * (          REAL( mig0(ji)-1 , wp )  )
+         plamv(ji,jj) = plamt(ji,jj)
+         plamf(ji,jj) = plamu(ji,jj)
+         !                       ! latitude   (south coast at lat= 0°)
+         pphit(ji,jj) = zfact * (  - 0.5 + REAL( mjg0(jj)-1 , wp )  )
+         pphiu(ji,jj) = pphit(ji,jj)
+         pphiv(ji,jj) = zfact * (          REAL( mjg0(jj)-1 , wp )  )
+         pphif(ji,jj) = pphiv(ji,jj)
+      END_2D
       !
       !                       !==  Horizontal scale factors  ==!   (in meters) 
       pe1t(:,:) = rn_dx   ;   pe2t(:,:) = rn_dx

@@ -38,7 +38,7 @@ l_style = [  '-'  ,    '-'   , '--'   ,   '-'      ] ; # line-style
 # Variables to compare between algorithms
 ############################################
 crealm = 'sea-ice'
-L_VNEM = [   'Cd_ice',   'Ch_ice',   'qla_ice' ,   'qsb_ice'   ,  'qt_ice'    ,  'qlw_ice'  ,  'qsr_ice'  , 'taum_ai'   ]
+L_VNEM = [   'Cd_ice',   'Ch_ice',   'qla_ice' ,   'qsb_ice'   ,  'qt_ice'    ,  'qlw_ice'  ,  'qsr_ice'  , 'taum_ice'  ]
 L_VARO = [     'Cd'  ,     'Ch'  ,   'Qlat'    ,    'Qsen'     ,   'Qnet'     ,   'Qlw'     ,    'Qsw'    ,  'Tau'      ]
 L_VARL = [ r'$C_{D}$', r'$C_{H}$', r'$Q_{lat}$', r'$Q_{sens}$' , r'$Q_{net}$' , r'$Q_{lw}$' , r'$Q_{sw}$' , r'$|\tau|$' ]
 L_VUNT = [     ''    ,     ''    , r'$W/m^2$'  , r'$W/m^2$'    , r'$W/m^2$'   , r'$W/m^2$'  , r'$W/m^2$'  , r'$N/m^2$'  ]
@@ -143,8 +143,8 @@ if nb_exp > len(l_color):
     print('PROBLEM: the max number of experiments for comparison is '+str(len(l_color))+' for now...')
     sys.exit(0)
 
-# >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-# >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+#-----------------------------------------------------------------
 
 
 def round_bounds( x1, x2,  base=5, prec=3 ):
@@ -200,7 +200,7 @@ for jv in range(nb_var):
         #
         id_toolarge, = nmp.where( xF[:,ja] > L_MAXT[jv] ) # 
         xF[id_toolarge,ja] = L_MAXT[jv]
-        id_toosmall, = nmp.where( xF[:,ja] < L_MINT[jv] ) ; print("id_toosmall =", id_toosmall)
+        id_toosmall, = nmp.where( xF[:,ja] < L_MINT[jv] ) ; #print("id_toosmall =", id_toosmall)
         xF[id_toosmall,ja] = L_MINT[jv]
 
     idx_okay = nmp.where( nmp.abs(xF) < 1.e+10 )
@@ -209,8 +209,7 @@ for jv in range(nb_var):
     fig = plt.figure(num = jv, figsize=size_fig, facecolor='w', edgecolor='k')
     ax1 = plt.axes([0.083, 0.23, 0.9, 0.7])
     ax1.set_xticks(vtime[::xticks_d])
-    #ax1.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d %H:%M:%S'))
-    ax1.format_xdata = mdates.DateFormatter('%Y-%m-%d %H:%M:%S')
+    ax1.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d %H:%M:%S'))
     plt.xticks(rotation='60', **font_x)
 
     for ja in range(nb_exp):
@@ -264,7 +263,7 @@ for jv in range(nb_var):
             plt.xticks(rotation='60', **font_x)
 
             for ja in range(nb_exp):
-                fplot = nmp.ma.masked_where( xF[:,ja]==0., xF[:,ja] )
+                fplot = nmp.ma.masked_where( xFa[:,ja]==0., xFa[:,ja] )
                 plt.plot(vtime, fplot, '-', color=l_color[ja], \
                          linewidth=l_width[ja], label=list_exp[ja], alpha=0.6) #, zorder=10+ja)
 

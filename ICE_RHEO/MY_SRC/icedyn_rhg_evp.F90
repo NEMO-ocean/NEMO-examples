@@ -47,14 +47,13 @@ MODULE icedyn_rhg_evp
    PUBLIC   ice_dyn_rhg_evp   ! called by icedyn_rhg.F90
    PUBLIC   rhg_evp_rst       ! called by icedyn_rhg.F90
 
-   !! * Substitutions
-#  include "do_loop_substitute.h90"
-#  include "domzgr_substitute.h90"
-
    !! for convergence tests
    INTEGER ::   ncvgid   ! netcdf file id
    INTEGER ::   nvarid   ! netcdf variable id
-   REAL(wp), ALLOCATABLE, DIMENSION(:,:) ::   zmsk00, zmsk15
+   REAL(wp), DIMENSION(:,:), ALLOCATABLE ::   fimask   ! mask at F points for the ice
+
+   !! * Substitutions
+#  include "do_loop_substitute.h90"
    !!----------------------------------------------------------------------
    !! NEMO/ICE 4.0 , NEMO Consortium (2018)
    !! $Id: icedyn_rhg_evp.F90 13612 2020-10-14 17:18:19Z clem $
@@ -162,9 +161,9 @@ CONTAINS
       REAL(wp), DIMENSION(jpi,jpj) ::   ztaux_bi, ztauy_bi              ! ice-OceanBottom stress at U-V points (landfast)
       REAL(wp), DIMENSION(jpi,jpj) ::   ztaux_base, ztauy_base          ! ice-bottom stress at U-V points (landfast)
       !
+      REAL(wp), DIMENSION(jpi,jpj) ::   zmsk00, zmsk15
       REAL(wp), DIMENSION(jpi,jpj) ::   zmsk01x, zmsk01y                ! dummy arrays
       REAL(wp), DIMENSION(jpi,jpj) ::   zmsk00x, zmsk00y                ! mask for ice presence
-      REAL(wp), DIMENSION(jpi,jpj) ::   zfmask                          ! mask at F points for the ice
 
       REAL(wp), PARAMETER          ::   zepsi  = 1.0e-20_wp             ! tolerance parameter
       REAL(wp), PARAMETER          ::   zmmin  = 1._wp                  ! ice mass (kg/m2)  below which ice velocity becomes very small
@@ -186,47 +185,37 @@ CONTAINS
       IF( kt == nit000 .AND. lwp )   WRITE(numout,*) '-- ice_dyn_rhg_evp: EVP sea-ice rheology'
       !
       ! for diagnostics and convergence tests
-      ALLOCATE( zmsk00(jpi,jpj), zmsk15(jpi,jpj) )
       DO_2D( 1, 1, 1, 1 )
          zmsk00(ji,jj) = MAX( 0._wp , SIGN( 1._wp , at_i(ji,jj) - epsi06  ) ) ! 1 if ice    , 0 if no ice
-         zmsk15(ji,jj) = MAX( 0._wp , SIGN( 1._wp , at_i(ji,jj) - 0.15_wp ) ) ! 1 if 15% ice, 0 if less
       END_2D
+      IF( nn_rhg_chkcvg > 0 ) THEN
+         DO_2D( 1, 1, 1, 1 )
+            zmsk15(ji,jj) = MAX( 0._wp , SIGN( 1._wp , at_i(ji,jj) - 0.15_wp ) ) ! 1 if 15% ice, 0 if less
+         END_2D
+      ENDIF
       !
-      !!gm for Clem:  OPTIMIZATION:  I think zfmask can be computed one for all at the initialization....
       !------------------------------------------------------------------------------!
       ! 0) mask at F points for the ice
       !------------------------------------------------------------------------------!
-      ! ocean/land mask
-      DO_2D( 1, 0, 1, 0 )
-         zfmask(ji,jj) = tmask(ji,jj,1) * tmask(ji+1,jj,1) * tmask(ji,jj+1,1) * tmask(ji+1,jj+1,1)
-      END_2D
-      CALL lbc_lnk( 'icedyn_rhg_evp', zfmask, 'F', 1._wp )
-
-      ! Lateral boundary conditions on velocity (modify zfmask)
-      DO_2D( 0, 0, 0, 0 )
-         IF( zfmask(ji,jj) == 0._wp ) THEN
-            zfmask(ji,jj) = rn_ishlat * MIN( 1._wp , MAX( umask(ji,jj,1), umask(ji,jj+1,1), &
-               &                                          vmask(ji,jj,1), vmask(ji+1,jj,1) ) )
+      IF( kt == nit000 ) THEN
+         ! ocean/land mask
+         ALLOCATE( fimask(jpi,jpj) )
+         IF( rn_ishlat == 0._wp ) THEN
+            DO_2D( 0, 0, 0, 0 )
+               fimask(ji,jj) = tmask(ji,jj,1) * tmask(ji+1,jj,1) * tmask(ji,jj+1,1) * tmask(ji+1,jj+1,1)
+            END_2D
+         ELSE
+            DO_2D( 0, 0, 0, 0 )
+               fimask(ji,jj) = tmask(ji,jj,1) * tmask(ji+1,jj,1) * tmask(ji,jj+1,1) * tmask(ji+1,jj+1,1)
+               ! Lateral boundary conditions on velocity (modify fimask)
+               IF( fimask(ji,jj) == 0._wp ) THEN
+                  fimask(ji,jj) = rn_ishlat * MIN( 1._wp , MAX( umask(ji,jj,1), umask(ji,jj+1,1), &
+                     &                                          vmask(ji,jj,1), vmask(ji+1,jj,1) ) )
+               ENDIF
+            END_2D
          ENDIF
-      END_2D
-      DO jj = 2, jpjm1
-         IF( zfmask(1,jj) == 0._wp ) THEN
-            zfmask(1  ,jj) = rn_ishlat * MIN( 1._wp , MAX( vmask(2,jj,1), umask(1,jj+1,1), umask(1,jj,1) ) )
-         ENDIF
-         IF( zfmask(jpi,jj) == 0._wp ) THEN
-            zfmask(jpi,jj) = rn_ishlat * MIN( 1._wp , MAX( umask(jpi,jj+1,1), vmask(jpim1,jj,1), umask(jpi,jj-1,1) ) )
-        ENDIF
-      END DO
-      DO ji = 2, jpim1
-         IF( zfmask(ji,1) == 0._wp ) THEN
-            zfmask(ji, 1 ) = rn_ishlat * MIN( 1._wp , MAX( vmask(ji+1,1,1), umask(ji,2,1), vmask(ji,1,1) ) )
-         ENDIF
-         IF( zfmask(ji,jpj) == 0._wp ) THEN
-            zfmask(ji,jpj) = rn_ishlat * MIN( 1._wp , MAX( vmask(ji+1,jpj,1), vmask(ji-1,jpj,1), umask(ji,jpjm1,1) ) )
-         ENDIF
-      END DO
-      CALL lbc_lnk( 'icedyn_rhg_evp', zfmask, 'F', 1._wp )
-
+         CALL lbc_lnk( 'icedyn_rhg_evp', fimask, 'F', 1._wp )
+      ENDIF
       !------------------------------------------------------------------------------!
       ! 1) define some variables and initialize arrays
       !------------------------------------------------------------------------------!
@@ -370,7 +359,7 @@ CONTAINS
             ! shear at F points
             zds(ji,jj) = ( ( u_ice(ji,jj+1) * r1_e1u(ji,jj+1) - u_ice(ji,jj) * r1_e1u(ji,jj) ) * e1f(ji,jj) * e1f(ji,jj)   &
                &         + ( v_ice(ji+1,jj) * r1_e2v(ji+1,jj) - v_ice(ji,jj) * r1_e2v(ji,jj) ) * e2f(ji,jj) * e2f(ji,jj)   &
-               &         ) * r1_e1e2f(ji,jj) * zfmask(ji,jj)
+               &         ) * r1_e1e2f(ji,jj) * fimask(ji,jj)
 
          END_2D
 
@@ -721,7 +710,7 @@ CONTAINS
          ENDIF
 
          ! convergence test
-         IF( nn_rhg_chkcvg == 2 )   CALL rhg_cvg( kt, jter, nn_nevp, u_ice, v_ice, zu_ice, zv_ice )
+         IF( nn_rhg_chkcvg == 2 )   CALL rhg_cvg( kt, jter, nn_nevp, u_ice, v_ice, zu_ice, zv_ice, zmsk15 )
          !
          !                                                ! ==================== !
       END DO                                              !  end loop over jter  !
@@ -736,7 +725,7 @@ CONTAINS
          ! shear at F points
          zds(ji,jj) = ( ( u_ice(ji,jj+1) * r1_e1u(ji,jj+1) - u_ice(ji,jj) * r1_e1u(ji,jj) ) * e1f(ji,jj) * e1f(ji,jj)   &
             &         + ( v_ice(ji+1,jj) * r1_e2v(ji+1,jj) - v_ice(ji,jj) * r1_e2v(ji,jj) ) * e2f(ji,jj) * e2f(ji,jj)   &
-            &         ) * r1_e1e2f(ji,jj) * zfmask(ji,jj)
+            &         ) * r1_e1e2f(ji,jj) * fimask(ji,jj)
 
       END_2D
       
@@ -931,14 +920,12 @@ CONTAINS
                   &                                             ABS( v_ice(:,:) - zv_ice(:,:) ) * vmask(:,:,1) ) * zmsk15(:,:) )
             ENDIF
          ENDIF
-      ENDIF      
-      !
-      DEALLOCATE( zmsk00, zmsk15 )
+      ENDIF
       !
    END SUBROUTINE ice_dyn_rhg_evp
 
 
-   SUBROUTINE rhg_cvg( kt, kiter, kitermax, pu, pv, pub, pvb )
+   SUBROUTINE rhg_cvg( kt, kiter, kitermax, pu, pv, pub, pvb, pmsk15 )
       !!----------------------------------------------------------------------
       !!                    ***  ROUTINE rhg_cvg  ***
       !!                     
@@ -953,12 +940,12 @@ CONTAINS
       !!----------------------------------------------------------------------
       INTEGER ,                 INTENT(in) ::   kt, kiter, kitermax       ! ocean time-step index
       REAL(wp), DIMENSION(:,:), INTENT(in) ::   pu, pv, pub, pvb          ! now and before velocities
+      REAL(wp), DIMENSION(:,:), INTENT(in) ::   pmsk15
       !!
       INTEGER           ::   it, idtime, istatus
       INTEGER           ::   ji, jj          ! dummy loop indices
       REAL(wp)          ::   zresm           ! local real 
       CHARACTER(len=20) ::   clname
-      REAL(wp), DIMENSION(jpi,jpj) ::   zres           ! check convergence
       !!----------------------------------------------------------------------
 
       ! create file
@@ -988,17 +975,14 @@ CONTAINS
       IF( kiter == 1 ) THEN ! remove the first iteration for calculations of convergence (always very large)
          zresm = 0._wp
       ELSE
-         DO_2D( 1, 1, 1, 1 )
-            zres(ji,jj) = MAX( ABS( pu(ji,jj) - pub(ji,jj) ) * umask(ji,jj,1), &
-               &               ABS( pv(ji,jj) - pvb(ji,jj) ) * vmask(ji,jj,1) ) * zmsk15(ji,jj)
+         zresm = 0._wp
+         DO_2D( 0, 0, 0, 0 )
+            ! cut of the boundary of the box (forced velocities)
+            IF (mjg0(jj)>30 .AND. mjg0(jj)<=970 .AND. mig0(ji)>30 .AND. mig0(ji)<=970) THEN
+               zresm = MAX( zresm, MAX( ABS( pu(ji,jj) - pub(ji,jj) ) * umask(ji,jj,1), &
+                  &                     ABS( pv(ji,jj) - pvb(ji,jj) ) * vmask(ji,jj,1) ) * pmsk15(ji,jj) )
+            ENDIF
          END_2D
-
-         ! cut of the boundary of the box (forced velocities)
-         IF (mjg(jj)<=30 .or. mjg(jj)>970 .or. mig(ji)<=30 .or. mig(ji)>970) THEN
-            zres(ji,jj) = 0._wp
-         END IF
-
-         zresm = MAXVAL( zres )
          CALL mpp_max( 'icedyn_rhg_evp', zresm )   ! max over the global domain
       ENDIF
 

@@ -5,7 +5,7 @@
 #  To be modified for other machines
 #
 set -u
-set -vx
+#set -vx
 #
 cores=$1
 ncore_node=$2
@@ -14,12 +14,75 @@ dateref=$4
 machine=$( hostname | sed -e "s/[0-9]*//g" )
 #
 # number of processes for each executable
-    nproc_exe1=$( echo $cores | bc )
-  (( nproc = $nproc_exe1 ))
-(( nnode = $nproc / $ncore_node ))
-[ $nnode -lt 1 ] && nnode=1
+nproc_exe1=$( echo $cores | bc )
+nproc=$nproc_exe1
+nnode=$(( ( $nproc + $ncore_node - 1 )  / $ncore_node ))
 
 nproc5=$( printf "%05d\n" ${nproc_exe1} )
+
+case ${resolution} in
+    "1")
+	if [ $nproc_exe1 -lt 50 ]
+	then
+	    timejob=3600
+	elif [ $nproc_exe1 -lt 100 ]
+	then
+	    timejob=1800
+	elif [ $nproc_exe1 -lt 200 ]
+	then
+	    timejob=900
+	else
+	    timejob=600
+	fi
+	;;
+    "025")
+	if [ $nproc_exe1 -lt 50 ]
+	then
+	    timejob=15000
+	elif [ $nproc_exe1 -lt 100 ]
+	then
+	    timejob=7000
+	elif [ $nproc_exe1 -lt 200 ]
+	then
+	    timejob=3600
+	elif [ $nproc_exe1 -lt 400 ]
+	then
+	    timejob=2000
+	elif [ $nproc_exe1 -lt 800 ]
+	then
+	    timejob=1000
+	else
+	    timejob=600
+	fi
+	;;
+    "12")
+	if [ $nproc_exe1 -lt 200 ]
+	then
+	    timejob=30000
+	elif [ $nproc_exe1 -lt 400 ]
+	then
+	    timejob=15000
+	elif [ $nproc_exe1 -lt 800 ]
+	then
+	    timejob=20000
+	elif [ $nproc_exe1 -lt 1600 ]
+	then
+	    timejob=15000
+	elif [ $nproc_exe1 -lt 3200 ]
+	then
+	    timejob=7500
+	elif [ $nproc_exe1 -lt 10000 ]
+	then
+	    timejob=5000
+	elif [ $nproc_exe1 -lt 20000 ]
+	then
+	    timejob=2500
+	else
+	    timejob=1200
+	fi
+	;;
+esac
+
 
 ######################################################################
 ### beaufixlogin
@@ -99,67 +162,13 @@ fi
 
 if [[ ( "$machine" == "curie" ) || ( "$machine" == "irene" ) ]]
 then
-    
-    case ${resolution} in
-	"1")
-	    if [ $nproc_exe1 -lt 50 ]
-	    then
-		timejob=3600
-	    elif [ $nproc_exe1 -lt 100 ]
-	    then
-		timejob=1800
-	    elif [ $nproc_exe1 -lt 200 ]
-	    then
-		timejob=900
-	    else
-		timejob=600
-	    fi
-	    ;;
-	"025")
-	    if [ $nproc_exe1 -lt 50 ]
-	    then
-		timejob=15000
-	    elif [ $nproc_exe1 -lt 100 ]
-	    then
-		timejob=7000
-	    elif [ $nproc_exe1 -lt 200 ]
-	    then
-		timejob=3600
-	    elif [ $nproc_exe1 -lt 400 ]
-	    then
-		timejob=2000
-	    elif [ $nproc_exe1 -lt 800 ]
-	    then
-		timejob=1000
-	    else
-		timejob=600
-	    fi
-	    ;;
-	"12")
-	    if [ $nproc_exe1 -lt 200 ]
-	    then
-		timejob=30000
-	    elif [ $nproc_exe1 -lt 400 ]
-	    then
-		timejob=15000
-	    elif [ $nproc_exe1 -lt 800 ]
-	    then
-		timejob=8000
-	    elif [ $nproc_exe1 -lt 1600 ]
-	    then
-		timejob=5000
-	    elif [ $nproc_exe1 -lt 3200 ]
-	    then
-		timejob=2500
-	    else
-		timejob=1200
-	    fi
-	;;
-    esac
 
     [ "$machine" == "curie" ] && queuename=standard || queuename=skylake
     
-    jobname=$HOME/binrun/jobbench
+    EXPjob=../EXP_${resolution}_${nproc5}_${dateref}
+    mkdir -p ${EXPjob}
+    cd ${EXPjob}
+    jobname=jobbench
     cat > $jobname << EOF
 #!/bin/bash
 #MSUB -r bench${nproc5}
@@ -175,23 +184,93 @@ then
 set -u
 #
 
-cd \${BRIDGE_MSUB_PWD}/..
+cd \${BRIDGE_MSUB_PWD}
 
-
-EXPjob=EXP_${resolution}_${nproc5}_${dateref}
-rsync -av --exclude="*eo" EXPREF/ \${EXPjob}/
-rsync -av EXP00/nemo \${EXPjob}/nemo
-cd \${EXPjob}
+for ff in \${BRIDGE_MSUB_PWD}/../EXPREF/namelist_*cfg \${BRIDGE_MSUB_PWD}/../EXPREF/namelist_*ref \${BRIDGE_MSUB_PWD}/../BLD/bin/nemo.exe
+do
+    cp \$ff .
+done
 
 jpni=${cores/\**/}
 jpnj=${cores/?*\*/}
 
-sed -e "s/jpni *=.*/jpni = \${jpni}/" -e "s/jpnj *=.*/jpnj = \${jpnj}/" namelist_cfg_orca${resolution}_like > namelist_cfg
+sed -e "s/jpni *=.*/jpni = \${jpni}/" \
+    -e "s/jpnj *=.*/jpnj = \${jpnj}/"\
+    -e "s/ln_timing *= *.false./ln_timing   =  .true./" \
+     \${BRIDGE_MSUB_PWD}/../EXPREF/namelist_cfg_orca${resolution}_like > namelist_cfg
 
-time ccc_mprun -n \${BRIDGE_MSUB_NPROC} ./nemo > jobout_${resolution}_${nproc5}_${dateref}
+time ccc_mprun -n \${BRIDGE_MSUB_NPROC} ./nemo.exe > jobout_${resolution}_${nproc5}_${dateref} 2>&1
 
 EOF
 
     ccc_msub $jobname
+
+fi
+
+######################################################################
+### Jean-Zay
+######################################################################
+
+if [ "$machine" == "jean-zay" ]
+then
+    hh=$( printf "%02d\n" $(( ${timejob} / 3600 )) )
+    mm=$( printf "%02d\n" $(( ( ${timejob} % 3600 ) / 60 )) )
+    ss=$( printf "%02d\n" $(( ( ${timejob} % 3600 ) % 60 )) )
+
+    EXPjob=../EXP_${resolution}_${nproc5}_${dateref}
+    mkdir -p ${EXPjob}
+    cd ${EXPjob}
+    jobname=jobbench
+    cat > $jobname << EOF
+#!/bin/bash
+#SBATCH --job-name=Seq        # nom du job
+#SBATCH --partition=cpu_gct3   # demande d'allocation sur la partition CPU
+#SBATCH --nodes=${nnode}             # nombre de noeuds
+#SBATCH --ntasks-per-node=${ncore_node}  # nombre de taches MPI par noeud
+#SBATCH --ntasks-per-core=1        # 1 processus MPI par coeur physique (pas d'hyperthreading)
+#SBATCH --time=${hh}:${mm}:${ss}       # temps d execution maximum demande (HH:MM:SS)
+#SBATCH --output=bench_${resolution}_${nproc5}_%j.eo        # nom du fichier de sortie
+#SBATCH --error=bench_${resolution}_${nproc5}_%j.eo         # nom du fichier d'erreur (ici en commun avec la sortie)
+#==========================================
+set -u
+#set -xv
+#
+#cd \${SLURM_SUBMIT_DIR}
+cd \${JOBSCRATCH}
+pwd
+
+for ff in \${SLURM_SUBMIT_DIR}/../EXPREF/namelist_*cfg \${SLURM_SUBMIT_DIR}/../EXPREF/namelist_*ref \${SLURM_SUBMIT_DIR}/../BLD/bin/nemo.exe
+do
+    cp \$ff .
+done
+
+jpni=${cores/\**/}
+jpnj=${cores/?*\*/}
+
+sed -e "s/jpni *=.*/jpni = \${jpni}/" \
+    -e "s/jpnj *=.*/jpnj = \${jpnj}/" \
+    -e "s/ln_timing *= *.false./ln_timing   =  .true./" \
+    \${SLURM_SUBMIT_DIR}/../EXPREF/namelist_cfg_orca${resolution}_like > namelist_cfg
+
+ls -l
+
+echo 
+echo 
+echo " =========== start the model ==========="
+echo 
+echo 
+
+time srun --mpi=pmi2 --cpu-bind=cores -K1 -n ${nproc} ./nemo.exe > jobout_${resolution}_${nproc5}_${dateref} 2>&1
+
+ls -l
+
+if [ "\$( pwd )" != "\${SLURM_SUBMIT_DIR}" ]
+then 
+    rsync -av namelist_cfg time.step ocean.output jobout_${resolution}_${nproc5}_${dateref} communication_report.txt layout.dat timing.output output.namelist* \${SLURM_SUBMIT_DIR}
+fi
+
+EOF
+
+    sbatch $jobname
 
 fi

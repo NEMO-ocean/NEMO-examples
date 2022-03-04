@@ -30,16 +30,14 @@ MODULE usrdef_sbc
    PUBLIC   usrdef_sbc_ice_tau  ! routine called by icestp.F90 for ice dynamics
    PUBLIC   usrdef_sbc_ice_flx  ! routine called by icestp.F90 for ice thermo
 
-   !! * Substitutions
-#  include "vectopt_loop_substitute.h90"
    !!----------------------------------------------------------------------
    !! NEMO/OCE 4.0 , NEMO Consortium (2018)
-   !! $Id: usrdef_sbc.F90 10074 2018-08-28 16:15:49Z nicolasmartin $
+   !! $Id: usrdef_sbc.F90 12377 2020-02-12 14:39:06Z acc $
    !! Software governed by the CeCILL license (see ./LICENSE)
    !!----------------------------------------------------------------------
 CONTAINS
 
-   SUBROUTINE usrdef_sbc_oce( kt )
+   SUBROUTINE usrdef_sbc_oce( kt, Kbb )
       !!---------------------------------------------------------------------
       !!                    ***  ROUTINE usr_def_sbc  ***
       !!              
@@ -54,6 +52,7 @@ CONTAINS
       !!
       !!----------------------------------------------------------------------
       INTEGER, INTENT(in) ::   kt   ! ocean time step
+      INTEGER, INTENT(in) ::   Kbb  ! ocean time index
       !!---------------------------------------------------------------------
       !
       IF( kt == nit000 ) THEN
@@ -79,8 +78,11 @@ CONTAINS
       INTEGER, INTENT(in) ::   kt   ! ocean time step
    END SUBROUTINE usrdef_sbc_ice_tau
 
-   SUBROUTINE usrdef_sbc_ice_flx( kt )
+
+   SUBROUTINE usrdef_sbc_ice_flx( kt, phs, phi )
       INTEGER, INTENT(in) ::   kt   ! ocean time step
+      REAL(wp), DIMENSION(:,:,:), INTENT(in)  ::   phs    ! snow thickness
+      REAL(wp), DIMENSION(:,:,:), INTENT(in)  ::   phi    ! ice thickness
    END SUBROUTINE usrdef_sbc_ice_flx
 
    !!======================================================================

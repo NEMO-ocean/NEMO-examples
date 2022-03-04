@@ -1,0 +1,38 @@
+ICB 
+---
+
+ICB is a very idealized configuration used to test and debug the icb module.
+The configuration is box with a shallow shelf (40m) on the east and west part of the domain with a deep central trough (> 100m).
+ICB are generating using the test capability of the icb model along a E-W line (this can easily be tuned).
+
+In this configuration, ONLY the ICB module is activated. It means that:
+- SI3 is OFF
+- NO atmospheric fluxes. See usr routine in MY_SRC.
+- NO time variation of ocean properties. T, S, U, V, ssh (...) are intialized and never changed in time. This is achieved by simplifying the step.F90 routine in MY_SRC.
+
+Resolution and Initial condition are:
+- Homogeneous S (34)
+- Spatially constant T     set to 2     over the first 2 levels and 1     below
+- Spatially constant (U,V) set to (1,0) over the first 2 levels and (0,1) below
+- e3 is set to 10m
+- iceberg thicness is set to 100 in the class tested (10 level affected).
+- iceberg density is set to 1026 as the ocean reference density => icb tikness = icb draft (easier to evaluate the output)
+
+Results expected are:
+- ln_M2016 = F => icb moving along the W direction only and pilling up on the W side of the domain.
+- ln_M2016 = T => icb on shallow bank move at 45 degrees (NW) and 76 degrees (NNNNW) in the deeper through. 
+- ln_M2016 = T and ln_icb_grd = T => as before but now icb cannot move onto the shallow bank on the W and migrate northward along the shelf break. Some get stuck at specific point because of the grounding law (they always get back to there intial position at every time step).
+
+This set up allow us to easily test various option of the ICB code as:
+- ln_M2016   (use properties in depth to compute dyn and thd)
+- ln_icb_grd (use icb bottom level of the icb (tail) to ground the icb or not)
+
+It can also help us to:
+- reproduce bugs (interpolation issue for example)
+- develop and test new functionalities (new grounding scheme for exemple)
+- evaluate ICB performance alone
+
+The side effect of the implementation is that:
+- the run.stat (if produced) is meaningless as NEMO tracer and dynamics are not computed
+
+

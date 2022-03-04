@@ -25,9 +25,11 @@ MODULE usrdef_hgr
 
    PUBLIC   usr_def_hgr   ! called by domhgr.F90
 
+   !! * Substitutions
+#  include "do_loop_substitute.h90"
    !!----------------------------------------------------------------------
    !! NEMO/OCE 4.0 , NEMO Consortium (2018)
-   !! $Id: usrdef_hgr.F90 10074 2018-08-28 16:15:49Z nicolasmartin $ 
+   !! $Id: usrdef_hgr.F90 14433 2021-02-11 08:06:49Z smasson $ 
    !! Software governed by the CeCILL license (see ./LICENSE)
    !!----------------------------------------------------------------------
 CONTAINS
@@ -60,9 +62,10 @@ CONTAINS
       INTEGER                 , INTENT(out) ::   ke1e2u_v                     ! =1 u- & v-surfaces computed here, =0 otherwise 
       REAL(wp), DIMENSION(:,:), INTENT(out) ::   pe1e2u, pe1e2v               ! u- & v-surfaces (if reduction in strait)   [m2]
       !
-      INTEGER  ::   ji, jj   ! dummy loop indices
-      REAL(wp) ::   zphi0, zlam0, zbeta, zf0
-      REAL(wp) ::   zti, zui, ztj, zvj   ! local scalars
+      INTEGER  ::   ji, jj     ! dummy loop indices
+      INTEGER  ::   ii0, ij0   ! dummy loop indices
+      REAL(wp) ::   zbeta, zf0
+      REAL(wp) ::   zti, ztj   ! local scalars
       !!-------------------------------------------------------------------------------
       !
       IF(lwp) WRITE(numout,*)
@@ -74,35 +77,30 @@ CONTAINS
       !                          
       ! Position coordinates (in kilometers)
       !                          ==========
-      zlam0 = -REAL(NINT(jpiglo*rn_0xratio)-1, wp) * rn_dx
-      zphi0 = -REAL(NINT(jpjglo*rn_0yratio)-1, wp) * rn_dy 
+      ii0 = NINT( REAL(Ni0glo, wp) * rn_0xratio )
+      ij0 = NINT( REAL(Nj0glo, wp) * rn_0yratio )
 
 #if defined key_agrif
       ! ! let lower left longitude and latitude from parent
       IF (.NOT.Agrif_root()) THEN
-          zlam0 = (0.5_wp-(Agrif_parent(jpiglo)-1)/2)*Agrif_irhox()*rn_dx &
-             &+(Agrif_Ix()+nbghostcells-1)*Agrif_irhox()*rn_dx-(0.5_wp+nbghostcells)*rn_dx
-          zphi0 = (0.5_wp-(Agrif_parent(jpjglo)-1)/2)*Agrif_irhoy()*rn_dy &
-             &+(Agrif_Iy()+nbghostcells-1)*Agrif_irhoy()*rn_dy-(0.5_wp+nbghostcells)*rn_dy
+          to be coded...
       ENDIF 
 #endif
          
-      DO jj = 1, jpj
-         DO ji = 1, jpi
-            zti = FLOAT( ji - 1 + nimpp - 1 )          ;  ztj = FLOAT( jj - 1 + njmpp - 1 )
-            zui = FLOAT( ji - 1 + nimpp - 1 ) + 0.5_wp ;  zvj = FLOAT( jj - 1 + njmpp - 1 ) + 0.5_wp
-
-            plamt(ji,jj) = zlam0 + rn_dx * zti
-            plamu(ji,jj) = zlam0 + rn_dx * zui
-            plamv(ji,jj) = plamt(ji,jj) 
-            plamf(ji,jj) = plamu(ji,jj) 
-   
-            pphit(ji,jj) = zphi0 + rn_dy * ztj
-            pphiv(ji,jj) = zphi0 + rn_dy * zvj
-            pphiu(ji,jj) = pphit(ji,jj) 
-            pphif(ji,jj) = pphiv(ji,jj) 
-         END DO
-      END DO
+      DO_2D( nn_hls, nn_hls, nn_hls, nn_hls )         
+         zti = REAL( mig0(ji)-ii0, wp )   ! =0 at i=ii0 in the global grid without halos
+         ztj = REAL( mjg0(jj)-ij0, wp )   ! =0 at i=ij0 in the global grid without halos
+         
+         plamt(ji,jj) = rn_dx *   zti
+         plamu(ji,jj) = rn_dx * ( zti + 0.5_wp ) 
+         plamv(ji,jj) = plamt(ji,jj) 
+         plamf(ji,jj) = plamu(ji,jj) 
+         
+         pphit(ji,jj) = rn_dy *   ztj
+         pphiv(ji,jj) = rn_dy * ( ztj + 0.5_wp ) 
+         pphiu(ji,jj) = pphit(ji,jj) 
+         pphif(ji,jj) = pphiv(ji,jj) 
+      END_2D
       !     
       ! Horizontal scale factors (in meters)
       !                              ======

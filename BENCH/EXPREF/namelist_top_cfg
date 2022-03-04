@@ -56,14 +56,14 @@
 !-----------------------------------------------------------------------
 !          !  file name  ! frequency (hours) ! variable  ! time interp. !  clim  ! 'yearly'/ ! weights  ! rotation ! land/sea mask !
 !          !             !  (if <0  months)  !   name    !   (logical)  !  (T/F) ! 'monthly' ! filename ! pairing  ! filename      !
-   sn_trcdta(1)  = 'data_DIC_nomask'        ,        -12        ,  'DIC'     ,    .false.   , .true. , 'yearly'  , ''       , ''   , ''
-   sn_trcdta(2)  = 'data_Alkalini_nomask'   ,        -12        ,  'Alkalini',    .false.   , .true. , 'yearly'  , ''       , ''   , ''
-   sn_trcdta(3)  = 'data_O2_nomask'         ,        -1         ,  'O2'      ,    .true.    , .true. , 'yearly'  , ''       , ''   , ''
-   sn_trcdta(5)  = 'data_PO4_nomask'        ,        -1         ,  'PO4'     ,    .true.    , .true. , 'yearly'  , ''       , ''   , ''
-   sn_trcdta(7)  = 'data_Si_nomask'         ,        -1         ,  'Si'      ,    .true.    , .true. , 'yearly'  , ''       , ''   , ''
-   sn_trcdta(10) = 'data_DOC_nomask'        ,        -12        ,  'DOC'     ,    .false.   , .true. , 'yearly'  , ''       , ''   , ''
-   sn_trcdta(14) = 'data_Fer_nomask'        ,        -12        ,  'Fer'     ,    .false.   , .true. , 'yearly'  , ''       , ''   , ''
-   sn_trcdta(23) = 'data_NO3_nomask'        ,        -1         ,  'NO3'     ,    .true.    , .true. , 'yearly'  , ''       , ''   , ''
+   sn_trcdta(1)  = 'data_DIC_nomask'        ,        -12.       ,  'DIC'     ,    .false.   , .true. , 'yearly'  , ''       , ''   , ''
+   sn_trcdta(2)  = 'data_Alkalini_nomask'   ,        -12.       ,  'Alkalini',    .false.   , .true. , 'yearly'  , ''       , ''   , ''
+   sn_trcdta(3)  = 'data_O2_nomask'         ,        -1.        ,  'O2'      ,    .true.    , .true. , 'yearly'  , ''       , ''   , ''
+   sn_trcdta(5)  = 'data_PO4_nomask'        ,        -1.        ,  'PO4'     ,    .true.    , .true. , 'yearly'  , ''       , ''   , ''
+   sn_trcdta(7)  = 'data_Si_nomask'         ,        -1.        ,  'Si'      ,    .true.    , .true. , 'yearly'  , ''       , ''   , ''
+   sn_trcdta(10) = 'data_DOC_nomask'        ,        -12.       ,  'DOC'     ,    .false.   , .true. , 'yearly'  , ''       , ''   , ''
+   sn_trcdta(14) = 'data_Fer_nomask'        ,        -12.       ,  'Fer'     ,    .false.   , .true. , 'yearly'  , ''       , ''   , ''
+   sn_trcdta(23) = 'data_NO3_nomask'        ,        -1.        ,  'NO3'     ,    .true.    , .true. , 'yearly'  , ''       , ''   , ''
    rn_trfac(1)   =   1.0e-06  !  multiplicative factor
    rn_trfac(2)   =   1.0e-06  !  -      -      -     -
    rn_trfac(3)   =  44.6e-06  !  -      -      -     -

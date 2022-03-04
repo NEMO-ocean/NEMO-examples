@@ -24,8 +24,6 @@ MODULE usrdef_zgr
 
    PUBLIC   usr_def_zgr   ! called by domzgr.F90
 
-  !! * Substitutions
-#  include "vectopt_loop_substitute.h90"
    !!----------------------------------------------------------------------
    !! NEMO/OCE 4.0 , NEMO Consortium (2018)
    !! $Id: usrdef_zgr.F90 10074 2018-08-28 16:15:49Z nicolasmartin $

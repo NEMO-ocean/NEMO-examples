@@ -19,7 +19,6 @@
    nn_no       =       0   !  job number (no more used...)
    cn_exp      =   "OVF_zps_FCT4_vect_een"  !  experience name
    nn_it000    =       1   !  first time step
-   !nn_itend    =    6120  ! here 17h of simulation  (=6120 time-step) 
    nn_itend    =    5760   ! here 16h of simulation  (=5760 time-step) abort after 5802 for zps: pb of physics conditions
    nn_istate   =       0   !  output the initial state (1) or not (0)
    nn_stock    =    1080   !  frequency of creation of a restart file (modulo referenced to 1)
@@ -32,7 +31,7 @@
 !-----------------------------------------------------------------------
 &namdom        !   space and time domain (bathymetry, mesh, timestep)
 !-----------------------------------------------------------------------
-   rn_rdt      =   10.     !  time step for the dynamics (and tracer if nn_acc=0)
+   rn_Dt      =   10.     !  time step for the dynamics (and tracer if nn_acc=0)
    rn_atfp     =    0.1    !  asselin time filter parameter
 /
 !-----------------------------------------------------------------------
@@ -70,7 +69,7 @@
 !-----------------------------------------------------------------------
 &namdrg            !   top/bottom drag coefficient                      (default: NO selection)
 !-----------------------------------------------------------------------
-   ln_OFF     = .true.     !  free-slip       : Cd = 0                  (F => fill namdrg_bot
+   ln_drg_OFF = .true.    !  free-slip       : Cd = 0                  (F => fill namdrg_bot
    ln_lin     = .false.    !      linear  drag: Cd = Cd0 Uc0                   &   namdrg_top)
    ln_non_lin = .false.    !  non-linear  drag: Cd = Cd0 |U|
    ln_loglayer = .false.    !  logarithmic drag: Cd = vkarmn/log(z/z0) |U|
@@ -81,7 +80,7 @@
 &nameos        !   ocean physical parameters
 !-----------------------------------------------------------------------
    ln_seos     = .true.         !  = Use simplified equation of state (S-EOS)
-   !                             !  rd(T,S,Z)*rau0 = -a0*(1+.5*lambda*dT+mu*Z+nu*dS)*dT+b0*dS
+   !                             !  rd(T,S,Z)*rho0 = -a0*(1+.5*lambda*dT+mu*Z+nu*dS)*dT+b0*dS
    rn_a0       =  0.2         !  thermal expension coefficient (for simplified equation of state)
    rn_b0       =  0.          !  saline  expension coefficient (for simplified equation of state)
    rn_lambda1  =  0.          !  cabbeling coeff in T^2  (=0 for linear eos)
@@ -139,7 +138,6 @@
    ln_dynvor_ens = .false. !  energy conserving scheme
    ln_dynvor_mix = .false. !  mixed scheme
    ln_dynvor_een = .true. !  energy & enstrophy scheme
-      nn_een_e3f = 0             !  e3f = masked averaging of e3t divided by 4 (=0) or by the sum of mask (=1)
 /
 !-----------------------------------------------------------------------
 &namdyn_hpg    !   Hydrostatic pressure gradient option
@@ -154,10 +152,10 @@
       ln_bt_fw      = .true.     ! Forward integration of barotropic Eqs.
       ln_bt_av      = .true.     ! Time filtering of barotropic variables
          nn_bt_flt     = 1          ! Time filter choice  = 0 None
-         !                          !                     = 1 Boxcar over   nn_baro sub-steps
-         !                          !                     = 2 Boxcar over 2*nn_baro  "    "
+         !                          !                     = 1 Boxcar over   nn_e sub-steps
+         !                          !                     = 2 Boxcar over 2*nn_e  "    "
       ln_bt_auto    = .true.     ! Number of sub-step defined from:
-         nn_baro      =  1         ! =F : the number of sub-step in rn_rdt seconds
+         nn_e      =  1         ! =F : the number of sub-step in rn_Dt seconds
 /
 !-----------------------------------------------------------------------
 &namdyn_ldf    !   lateral diffusion on momentum                        (default: NO selection)
@@ -209,12 +207,12 @@
    !   
    !                       ! coefficients
    rn_avm0     =   1.e-4     !  vertical eddy viscosity   [m2/s]       (background Kz if ln_zdfcst=F)
-   rn_avt0     =   0.0e      !  vertical eddy diffusivity [m2/s]       (background Kz if ln_zdfcst=F)
+   rn_avt0     =   0.0       !  vertical eddy diffusivity [m2/s]       (background Kz if ln_zdfcst=F)
    nn_avb      =    0        !  profile for background avt & avm (=1) or not (=0)
    nn_havtb    =    0        !  horizontal shape for avtb (=1) or not (=0)
 /
 !-----------------------------------------------------------------------
-&nammpp        !   Massively Parallel Processing                        ("key_mpp_mpi)
+&nammpp        !   Massively Parallel Processing
 !-----------------------------------------------------------------------
 /
 !-----------------------------------------------------------------------

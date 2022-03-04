@@ -1,0 +1,45 @@
+!!>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+!! Inert tracers reference namelist 
+!!       1  - CFC                (namcfc)
+!!       2  - C14               (namc14_typ, namc14_sbc, namc14_fcg)
+!>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+!-----------------------------------------------------------------------
+&namcfc     !   CFC 
+!-----------------------------------------------------------------------
+   ndate_beg  = 300101    !  datedeb1
+   nyear_res  = 1932      !  iannee1
+   !
+   ! Formatted file of annual hemisperic CFCs concentration in the atmosphere (ppt)
+   clname     = 'CFCs_CDIAC.dat'
+/
+!
+!-----------------------------------------------------------------------
+&namc14_typ     !  C14 - type of C14 tracer, default values of C14/C and pco2
+!-----------------------------------------------------------------------
+   kc14typ  = 0          ! Type of C14 tracer (0=equilibrium; 1=bomb transient; 2=past transient)
+   rc14at   = 1.0        ! Default value for atmospheric C14/C (used for equil run)
+   pco2at   = 280.0      ! Default value for atmospheric pcO2 [atm] (used for equil run)
+   rc14init = 0.85       ! Default value for initialization of ocean C14/C (when no restart)
+/
+!
+!-----------------------------------------------------------------------
+&namc14_sbc     !  C14 - surface BC
+!-----------------------------------------------------------------------
+   ln_chemh = .true.     ! Chemical enhancement in piston vel.: yes/no
+   xkwind   = 0.360      ! Coefficient for gas exchange velocity
+   xdicsur  = 2.0        ! Reference DIC surface concentration (mol/m3)
+/
+!
+!-----------------------------------------------------------------------
+&namc14_fcg     !  files & dates
+!               !  For Paleo-historical: specify tyrc14_beg in yr BP
+!               !  For Bomb: tyrc14_beg=0
+!-----------------------------------------------------------------------
+   cfileco2    = 'splco2.dat'  !  atmospheric co2 - Bomb
+   cfilec14    = 'atmc14.dat'  !  atmospheric c14 - Bomb
+   tyrc14_beg  = 0.00          !  starting year of experiment - Bomb
+!   cfileco2    = 'ByrdEdcCO2.txt' !  atmospheric co2 - Paleo
+!   cfilec14    = 'intcal13.14c'   !  atmospheric c14 - Paleo
+!   tyrc14_beg  =  35000.00        !  starting year of experiment - Paleo (yr BP)
+/
+!

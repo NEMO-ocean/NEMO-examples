@@ -19,8 +19,8 @@ print '   creating init ice file  ' +fflx
 
 # Reading coordinates file
 nccoord=netcdf(fcoord,'r')
-nav_lon=nccoord.variables['nav_lon']
-nav_lat=nccoord.variables['nav_lat']
+nav_lon=nccoord.variables['x']
+nav_lat=nccoord.variables['y']
 time_counter=1
 LON1= nav_lon.shape[1]
 LAT1= nav_lon.shape[0]

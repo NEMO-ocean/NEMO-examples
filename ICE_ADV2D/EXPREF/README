@@ -1,3 +1,8 @@
+
+!! comment from MV 
+!! not clear why one has both EXP00 and EXPREF directories
+!! end MV
+
 WARNING: For now, the test case ICE_ADV2D only works if the logical "ll_neg" is set to FALSE in the routine icedyn_adv_umx.F90
                   (it is still unclear why)
 -------
@@ -28,8 +33,8 @@ How to run
 ----------
 
 a) Compile and run the model once to get a mesh_mask.nc file with the following command:
-../../../makenemo -r ICE_ADV2D -n ICE_ADV2D -m X64_ADA -j 4
-mpirun ./nemo -np 1
+./makenemo -n ICE_ADV2D -a ICE_ADV2D -m  X64_JEANZAY -j8
+./nemo.exe (on jeanzaypp)
 
 b) Create the initial condition file for sea-ice (initice.nc) by running this python script: 
 python ./make_INITICE.py

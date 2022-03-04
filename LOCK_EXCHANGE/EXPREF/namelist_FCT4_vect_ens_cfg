@@ -32,9 +32,7 @@
 !-----------------------------------------------------------------------
    ln_linssh   = .false.   !  =T  linear free surface  ==>>  model level are fixed in time
    !
-   rn_isfhmin  =    0.00   !  treshold (m) to discriminate grounding ice to floating ice
-   !
-   rn_rdt      =    1.     !  time step for the dynamics (and tracer if nn_acc=0)
+   rn_Dt      =    1.     !  time step for the dynamics (and tracer if nn_acc=0)
    rn_atfp     =    0.1    !  asselin time filter parameter
    !
    ln_crs      = .false.   !  Logical switch for coarsening module
@@ -66,14 +64,14 @@
 !-----------------------------------------------------------------------
 &namdrg            !   top/bottom drag coefficient                      (default: NO selection)
 !-----------------------------------------------------------------------
-   ln_OFF     = .true.    !  free-slip       : Cd = 0                  
+   ln_drg_OFF = .true.    !  free-slip       : Cd = 0                  (F => fill namdrg_bot
 /
 !-----------------------------------------------------------------------
 &nameos        !   ocean physical parameters
 !-----------------------------------------------------------------------
    ln_seos     = .true.         !  = Use simplified equation of state (S-EOS)
    !                     ! S-EOS coefficients (nn_eos=1):
-   !                          !  rd(T,S,Z)*rau0 = -a0*(1+.5*lambda*dT+mu*Z+nu*dS)*dT+b0*dS
+   !                          !  rd(T,S,Z)*rho0 = -a0*(1+.5*lambda*dT+mu*Z+nu*dS)*dT+b0*dS
    rn_a0       =  0.2         !  thermal expension coefficient (nn_eos= 1)
    rn_b0       =  0.          !  saline  expension coefficient (nn_eos= 1)
    rn_lambda1  =  0.          !  cabbeling coeff in T^2  (=0 for linear eos)
@@ -145,10 +143,10 @@
       ln_bt_fw      = .true.     ! Forward integration of barotropic Eqs.
       ln_bt_av      = .true.     ! Time filtering of barotropic variables
          nn_bt_flt     = 1          ! Time filter choice  = 0 None
-         !                          !                     = 1 Boxcar over   nn_baro sub-steps
-         !                          !                     = 2 Boxcar over 2*nn_baro  "    "
+         !                          !                     = 1 Boxcar over   nn_e sub-steps
+         !                          !                     = 2 Boxcar over 2*nn_e  "    "
       ln_bt_auto    = .true.     ! Number of sub-step defined from:
-         nn_baro      =  1         ! =F : the number of sub-step in rn_rdt seconds
+         nn_e      =  1         ! =F : the number of sub-step in rn_Dt seconds
 /
 !-----------------------------------------------------------------------
 &namdyn_ldf    !   lateral diffusion on momentum
@@ -190,7 +188,7 @@
    nn_havtb    =    0         !  horizontal shape for avtb (=1) or not (=0)
 /
 !-----------------------------------------------------------------------
-&nammpp        !   Massively Parallel Processing                        ("key_mpp_mpi)
+&nammpp        !   Massively Parallel Processing
 !-----------------------------------------------------------------------
 /
 !-----------------------------------------------------------------------

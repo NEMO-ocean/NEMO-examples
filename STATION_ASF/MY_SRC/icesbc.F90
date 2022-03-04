@@ -90,7 +90,7 @@ CONTAINS
          utau_ice(ji,jj) = utau_ice(ji,jj) * xcplmask(ji,jj,0) + zutau_ice(ji,jj) * ( 1. - xcplmask(ji,jj,0) )
          vtau_ice(ji,jj) = vtau_ice(ji,jj) * xcplmask(ji,jj,0) + zvtau_ice(ji,jj) * ( 1. - xcplmask(ji,jj,0) )
          END_2D
-         CALL lbc_lnk_multi( 'icesbc', utau_ice, 'U', -1.0_wp, vtau_ice, 'V', -1.0_wp )
+         CALL lbc_lnk( 'icesbc', utau_ice, 'U', -1.0_wp, vtau_ice, 'V', -1.0_wp )
       ENDIF
       !
       IF( ln_timing )   CALL timing_stop('ice_sbc')

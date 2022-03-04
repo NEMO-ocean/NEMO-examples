@@ -30,8 +30,9 @@ MODULE stpctl
 
    PUBLIC stp_ctl           ! routine called by step.F90
 
-   INTEGER                ::   nrunid   ! netcdf file id
-   INTEGER, DIMENSION(3)  ::   nvarid   ! netcdf variable id
+   INTEGER, PARAMETER         ::   jpvar = 3
+   INTEGER                    ::   nrunid   ! netcdf file id
+   INTEGER, DIMENSION(jpvar)  ::   nvarid   ! netcdf variable id
    !!----------------------------------------------------------------------
    !! NEMO/SAS 4.0 , NEMO Consortium (2018)
    !! $Id: stpctl.F90 10603 2019-01-29 11:18:09Z acc $
@@ -58,12 +59,14 @@ CONTAINS
       INTEGER, INTENT(in   ) ::   kt       ! ocean time-step index
       INTEGER, INTENT(in   ) ::   Kmm      ! ocean time level index
       !!
+      INTEGER, PARAMETER              ::   jptst = 3
       INTEGER                         ::   ji                                    ! dummy loop indices
       INTEGER                         ::   idtime, istatus
-      INTEGER , DIMENSION(4)          ::   iareasum, iareamin, iareamax
-      INTEGER , DIMENSION(3,3)        ::   iloc                                  ! min/max loc indices
-      REAL(wp)                        ::   zzz                                   ! local real
-      REAL(wp), DIMENSION(4)          ::   zmax, zmaxlocal
+      INTEGER , DIMENSION(jptst)      ::   iareasum, iareamin, iareamax
+      INTEGER , DIMENSION(3,jptst)    ::   iloc                                  ! min/max loc indices
+      REAL(wp)                        ::   zzz                                   ! local real 
+      REAL(wp), DIMENSION(jpvar+1)    ::   zmax
+      REAL(wp), DIMENSION(jptst)      ::   zmaxlocal
       LOGICAL                         ::   ll_wrtstp, ll_colruns, ll_wrtruns, ll_0oce
       LOGICAL, DIMENSION(jpi,jpj)     ::   llmsk
       CHARACTER(len=20)               ::   clname
@@ -109,10 +112,10 @@ CONTAINS
       !                                   !==            test of local extrema           ==!
       !                                   !==  done by all processes at every time step  ==!
       !
-      llmsk(   1:Nis1,:) = .FALSE.                                              ! exclude halos from the checked region
-      llmsk(Nie1: jpi,:) = .FALSE.
-      llmsk(:,   1:Njs1) = .FALSE.
-      llmsk(:,Nje1: jpj) = .FALSE.
+      llmsk(     1:nn_hls,:) = .FALSE.                                          ! exclude halos from the checked region
+      llmsk(Nie0+1:   jpi,:) = .FALSE.
+      llmsk(:,     1:nn_hls) = .FALSE.
+      llmsk(:,Nje0+1:   jpj) = .FALSE.
       !
       llmsk(Nis0:Nie0,Njs0:Nje0) = tmask(Nis0:Nie0,Njs0:Nje0,1) == 1._wp        ! test only the inner domain
       !
@@ -121,36 +124,35 @@ CONTAINS
       zmax(1) = MAXVAL(     taum(:,:)  , mask = llmsk )                         ! max wind stress module
       zmax(2) = MAXVAL( ABS( qns(:,:) ), mask = llmsk )                         ! max non-solar heat flux
       zmax(3) = MAXVAL( ABS( emp(:,:) ), mask = llmsk )                         ! max E-P
-      zmax(4) = REAL( nstop, wp )                                               ! stop indicator
+      zmax(jpvar+1) = REAL( nstop, wp )                                         ! stop indicator
       !
       !                                   !==               get global extrema             ==!
       !                                   !==  done by all processes if writting run.stat  ==!
       IF( ll_colruns ) THEN
-         zmaxlocal(:) = zmax(:)
-         CALL mpp_max( "stpctl", zmax )          ! max over the global domain
-         nstop = NINT( zmax(4) )                 ! update nstop indicator (now sheared among all local domains)
+         zmaxlocal(:) = zmax(1:jptst)
+         CALL mpp_max( "stpctl", zmax )          ! max over the global domain: ok even of ll_0oce = .true.
+         nstop = NINT( zmax(jpvar+1) )           ! update nstop indicator (now sheared among all local domains)
       ELSE
          ! if no ocean point: MAXVAL returns -HUGE => we must overwrite this value to avoid error handling bellow.
-         IF( ll_0oce )   zmax(1:3) = 0._wp       ! default "valid" values...
+         IF( ll_0oce )   zmax(1:jptst) = 0._wp        ! default "valid" values...
       ENDIF
-      !                                   !==               error handling               ==!
       !                                   !==              write "run.stat" files              ==!
       !                                   !==  done only by 1st subdomain at writting timestep  ==!
       IF( ll_wrtruns ) THEN
-         WRITE(numrun,9500) kt, zmax(1), zmax(2), zmax(3)
-         DO ji = 1, 3
+         WRITE(numrun,9500) kt, zmax(1:jptst)
+         DO ji = 1, jpvar
             istatus = NF90_PUT_VAR( nrunid, nvarid(ji), (/zmax(ji)/), (/kt/), (/1/) )
          END DO
-         IF( kt == nitend ) istatus = NF90_CLOSE(nrunid)
+         IF( kt == nitend )   istatus = NF90_CLOSE(nrunid)
       END IF
       !                                   !==               error handling               ==!
       !                                   !==  done by all processes at every time step  ==!
       !
-      IF(   zmax(1) >    5._wp .OR.   &                   ! too large wind stress         ( > 5 N/m^2 )
-         &  zmax(2) > 2000._wp .OR.   &                   ! too large non-solar heat flux ( > 2000 W/m^2 )
-         &  zmax(3) > 1.E-3_wp .OR.   &                   ! too large net freshwater flux ( > 1.E-3 kg/m^2/s )
-         &  ISNAN( zmax(1) + zmax(2) + zmax(3) ) .OR.   &               ! NaN encounter in the tests
-         &  ABS(   zmax(1) + zmax(2) + zmax(3) ) > HUGE(1._wp) ) THEN   ! Infinity encounter in the tests
+      IF(   zmax(1) >    5._wp .OR.   &                       ! too large wind stress         ( > 5 N/m^2 )
+         &  zmax(2) > 2000._wp .OR.   &                       ! too large non-solar heat flux ( > 2000 W/m^2 )
+         &  zmax(3) > 1.E-3_wp .OR.   &                       ! too large net freshwater flux ( > 1.E-3 kg/m^2/s )
+         & ISNAN( SUM(zmax(1:jptst)) ) .OR.   &               ! NaN encounter in the tests
+         & ABS(   SUM(zmax(1:jptst)) ) > HUGE(1._wp) ) THEN   ! Infinity encounter in the tests
          !
          iloc(:,:) = 0
          IF( ll_colruns ) THEN   ! zmax is global, so it is the same on all subdomains -> no dead lock with mpp_maxloc
@@ -162,7 +164,7 @@ CONTAINS
             CALL mpp_minloc( 'stpctl',ABS( emp(:,:) ), llmsk, zzz, iloc(1:2,3) )
             ! find which subdomain has the max.
             iareamin(:) = jpnij+1   ;   iareamax(:) = 0   ;   iareasum(:) = 0
-            DO ji = 1, 4
+            DO ji = 1, jptst
                IF( zmaxlocal(ji) == zmax(ji) ) THEN
                   iareamin(ji) = narea   ;   iareamax(ji) = narea   ;   iareasum(ji) = 1
                ENDIF
@@ -175,7 +177,7 @@ CONTAINS
             iloc(1:2,1) = MAXLOC(     taum(:,:)  , mask = llmsk )
             iloc(1:2,2) = MAXLOC( ABS( qns(:,:) ), mask = llmsk )
             iloc(1:2,3) = MINLOC( ABS( emp(:,:) ), mask = llmsk )
-            DO ji = 1, 3   ! local domain indices ==> global domain indices, excluding halos
+            DO ji = 1, jptst   ! local domain indices ==> global domain indices, excluding halos
                iloc(1:2,ji) = (/ mig0(iloc(1,ji)), mjg0(iloc(2,ji)) /)
             END DO
             iareamin(:) = narea   ;   iareamax(:) = narea   ;   iareasum(:) = 1         ! this is local information
@@ -194,10 +196,8 @@ CONTAINS
          CALL dia_wri_state( Kmm, 'output.abort' )     ! create an output.abort file
          !
          IF( ll_colruns .OR. jpnij == 1 ) THEN   ! all processes synchronized -> use lwp to print in opened ocean.output files
-            IF(lwp) THEN
-               CALL ctl_stop( ctmp1, ' ', ctmp2, ctmp3, ctmp4, ctmp5, ' ', ctmp6 )
-            ELSE
-               nstop = MAX(1, nstop)   ! make sure nstop > 0 (automatically done when calling ctl_stop)
+            IF(lwp) THEN   ;   CALL ctl_stop( ctmp1, ' ', ctmp2, ctmp3, ctmp4, ctmp5, ' ', ctmp6 )
+            ELSE           ;   nstop = MAX(1, nstop)   ! make sure nstop > 0 (automatically done when calling ctl_stop)
             ENDIF
          ELSE                                    ! only mpi subdomains with errors are here -> STOP now
             CALL ctl_stop( 'STOP', ctmp1, ' ', ctmp2, ctmp3, ctmp4, ctmp5, ' ', ctmp6 )
@@ -238,11 +238,11 @@ CONTAINS
       WRITE(clkt , '(i9)') kt
 
       WRITE(clfmt, '(i1)') INT(LOG10(REAL(jpnij  ,wp))) + 1     ! how many digits to we need to write ? (we decide max = 9)
-!!! WRITE(clsum, '(i'//clfmt//')') ksum                   ! this is creating a compilation error with AGRIF
+      !!! WRITE(clsum, '(i'//clfmt//')') ksum                   ! this is creating a compilation error with AGRIF
       cl4 = '(i'//clfmt//')'   ;   WRITE(clsum, cl4) ksum
       WRITE(clfmt, '(i1)') INT(LOG10(REAL(MAX(1,jpnij-1),wp))) + 1    ! how many digits to we need to write ? (we decide max = 9)
       cl4 = '(i'//clfmt//')'   ;   WRITE(clmin, cl4) kmin-1
-      WRITE(clmax, cl4) kmax-1
+                                   WRITE(clmax, cl4) kmax-1
       !
       WRITE(clfmt, '(i1)') INT(LOG10(REAL(jpiglo,wp))) + 1      ! how many digits to we need to write jpiglo? (we decide max = 9)
       cl4 = '(i'//clfmt//')'   ;   WRITE(cli, cl4) kloc(1)      ! this is ok with AGRIF
@@ -258,7 +258,7 @@ CONTAINS
          WRITE(cdline,9300) TRIM(ADJUSTL(clkt)), TRIM(ADJUSTL(cdprefix)), pval, TRIM(cli), TRIM(clj), clk(1:ifmtk), TRIM(clsuff)
       ELSE
          WRITE(clfmt, '(i1)') INT(LOG10(REAL(jpk,wp))) + 1      ! how many digits to we need to write jpk? (we decide max = 9)
-!!! WRITE(clk, '(i'//clfmt//')') kloc(3)               ! this is creating a compilation error with AGRIF
+         !!! WRITE(clk, '(i'//clfmt//')') kloc(3)               ! this is creating a compilation error with AGRIF
          cl4 = '(i'//clfmt//')'   ;   WRITE(clk, cl4) kloc(3)   ! this is ok with AGRIF
          WRITE(cdline,9400) TRIM(ADJUSTL(clkt)), TRIM(ADJUSTL(cdprefix)), pval, TRIM(cli), TRIM(clj),    TRIM(clk), TRIM(clsuff)
       ENDIF

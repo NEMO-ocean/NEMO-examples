@@ -15,8 +15,8 @@ MODULE usrdef_zgr
    !!       zgr_z1d   : reference 1D z-coordinate 
    !!---------------------------------------------------------------------
    USE oce            ! ocean variables
-   USE dom_oce ,  ONLY: mj0   , mj1   , nimpp , njmpp   ! ocean space and time domain
-   USE dom_oce ,  ONLY: glamt , gphit                   ! ocean space and time domain
+   USE dom_oce ,  ONLY: mj0   , mj1    ! ocean space and time domain
+   USE dom_oce ,  ONLY: glamt , gphit  ! ocean space and time domain
    USE usrdef_nam     ! User defined : namelist variables
    !
    USE in_out_manager ! I/O manager
@@ -29,11 +29,11 @@ MODULE usrdef_zgr
 
    PUBLIC   usr_def_zgr   ! called by domzgr.F90
 
-  !! * Substitutions
-#  include "vectopt_loop_substitute.h90"
+   !! * Substitutions
+#  include "do_loop_substitute.h90"
    !!----------------------------------------------------------------------
    !! NEMO/OCE 4.0 , NEMO Consortium (2018)
-   !! $Id: usrdef_zgr.F90 10491 2019-01-09 19:53:37Z mathiot $
+   !! $Id: usrdef_zgr.F90 13295 2020-07-10 18:24:21Z acc $
    !! Software governed by the CeCILL license (see ./LICENSE)
    !!----------------------------------------------------------------------
 CONTAINS             
@@ -66,8 +66,6 @@ CONTAINS
       REAL(wp) ::   ze3min, zdepth    ! local scalar
       REAL(wp), DIMENSION(jpi,jpj) ::   zht  , zhu         ! bottom depth
       REAL(wp), DIMENSION(jpi,jpj) ::   zhisf, zhisfu      ! top depth
-      REAL(wp), DIMENSION(jpi,jpj) ::   zmsk 
-      REAL(wp), DIMENSION(jpi,jpj) ::   z2d                ! 2d workspace
       !!----------------------------------------------------------------------
       !
       IF(lwp) WRITE(numout,*)
@@ -86,19 +84,12 @@ CONTAINS
       !
       !                       !==  isfdraft  ==!
       !
-      ! the ocean basin surrounded by land (1 grid-point) set through lbc_lnk call as jperio=0 
-      z2d(:,:) = 1._wp                    ! surface ocean is the 1st level
-      CALL lbc_lnk( 'usrdef_zgr', z2d, 'T', 1. )        ! closed basin since jperio = 0 (see userdef_nam.F90)
-      zmsk(:,:) = NINT( z2d(:,:) )
-      !
-      !
       zht  (:,:) = rbathy 
       zhisf(:,:) = 200._wp
-      ij0 = 1 ; ij1 = 40
+      ij0 = 1   ;   ij1 = 40+nn_hls
       DO jj = mj0(ij0), mj1(ij1)
          zhisf(:,jj)=700.0_wp-(gphit(:,jj)+80.0_wp)*125.0_wp
       END DO
-      zhisf(:,:) = zhisf(:,:) * zmsk(:,:)
       !
       CALL zgr_z1d( pdept_1d, pdepw_1d, pe3t_1d , pe3w_1d )   ! Reference z-coordinate system
       !
@@ -133,50 +124,45 @@ CONTAINS
             pe3uw(:,:,jk) = pe3w_1d (jk)
             pe3vw(:,:,jk) = pe3w_1d (jk)
          END DO
-         DO jj = 1, jpj                      ! top scale factors and depth at T- and W-points
-            DO ji = 1, jpi
-               ik = k_top(ji,jj)
-               IF ( ik > 2 ) THEN
-                  ! pdeptw at the interface
-                  pdepw(ji,jj,ik  ) = MAX( zhisf(ji,jj) , pdepw(ji,jj,ik) )
-                  ! e3t in both side of the interface
-                  pe3t (ji,jj,ik  ) = pdepw(ji,jj,ik+1) - pdepw(ji,jj,ik)
-                  ! pdept in both side of the interface (from previous e3t)
-                  pdept(ji,jj,ik  ) = pdepw(ji,jj,ik  ) + pe3t (ji,jj,ik  ) * 0.5_wp
-                  pdept(ji,jj,ik-1) = pdepw(ji,jj,ik  ) - pe3t (ji,jj,ik  ) * 0.5_wp
-                  ! pe3w on both side of the interface
-                  pe3w (ji,jj,ik+1) = pdept(ji,jj,ik+1) - pdept(ji,jj,ik  )
-                  pe3w (ji,jj,ik  ) = pdept(ji,jj,ik  ) - pdept(ji,jj,ik-1)
-                  ! e3t into the ice shelf
-                  pe3t (ji,jj,ik-1) = pdepw(ji,jj,ik  ) - pdepw(ji,jj,ik-1)
-                  pe3w (ji,jj,ik-1) = pdept(ji,jj,ik-1) - pdept(ji,jj,ik-2)
-               END IF
-            END DO
-         END DO         
-         DO jj = 1, jpj                      ! bottom scale factors and depth at T- and W-points
-            DO ji = 1, jpi
-               ik = k_bot(ji,jj)
-               pdepw(ji,jj,ik+1) = MIN( zht(ji,jj) , pdepw_1d(ik+1) )
+         ! top scale factors and depth at T- and W-points
+         DO_2D( 1, 1, 1, 1 )
+            ik = k_top(ji,jj)
+            IF ( ik > 2 ) THEN
+               ! pdeptw at the interface
+               pdepw(ji,jj,ik  ) = MAX( zhisf(ji,jj) , pdepw(ji,jj,ik) )
+               ! e3t in both side of the interface
                pe3t (ji,jj,ik  ) = pdepw(ji,jj,ik+1) - pdepw(ji,jj,ik)
-               pe3t (ji,jj,ik+1) = pe3t (ji,jj,ik  ) 
-               !
+               ! pdept in both side of the interface (from previous e3t)
                pdept(ji,jj,ik  ) = pdepw(ji,jj,ik  ) + pe3t (ji,jj,ik  ) * 0.5_wp
-               pdept(ji,jj,ik+1) = pdepw(ji,jj,ik+1) + pe3t (ji,jj,ik+1) * 0.5_wp
-               pe3w (ji,jj,ik+1) = pdept(ji,jj,ik+1) - pdept(ji,jj,ik)
-            END DO
-         END DO         
+               pdept(ji,jj,ik-1) = pdepw(ji,jj,ik  ) - pe3t (ji,jj,ik  ) * 0.5_wp
+               ! pe3w on both side of the interface
+               pe3w (ji,jj,ik+1) = pdept(ji,jj,ik+1) - pdept(ji,jj,ik  )
+               pe3w (ji,jj,ik  ) = pdept(ji,jj,ik  ) - pdept(ji,jj,ik-1)
+               ! e3t into the ice shelf
+               pe3t (ji,jj,ik-1) = pdepw(ji,jj,ik  ) - pdepw(ji,jj,ik-1)
+               pe3w (ji,jj,ik-1) = pdept(ji,jj,ik-1) - pdept(ji,jj,ik-2)
+            END IF
+         END_2D
+         ! bottom scale factors and depth at T- and W-points
+         DO_2D( 1, 1, 1, 1 )
+            ik = k_bot(ji,jj)
+            pdepw(ji,jj,ik+1) = MIN( zht(ji,jj) , pdepw_1d(ik+1) )
+            pe3t (ji,jj,ik  ) = pdepw(ji,jj,ik+1) - pdepw(ji,jj,ik)
+            pe3t (ji,jj,ik+1) = pe3t (ji,jj,ik  ) 
+            !
+            pdept(ji,jj,ik  ) = pdepw(ji,jj,ik  ) + pe3t (ji,jj,ik  ) * 0.5_wp
+            pdept(ji,jj,ik+1) = pdepw(ji,jj,ik+1) + pe3t (ji,jj,ik+1) * 0.5_wp
+            pe3w (ji,jj,ik+1) = pdept(ji,jj,ik+1) - pdept(ji,jj,ik)
+         END_2D       
          !                                   ! bottom scale factors and depth at  U-, V-, UW and VW-points
          pe3u (:,:,:) = pe3t(:,:,:)
          pe3uw(:,:,:) = pe3w(:,:,:)
-         DO jk = 1, jpk                      ! Computed as the minimum of neighbooring scale factors
-            DO jj = 1, jpjm1
-               DO ji = 1, jpi
-                  pe3v (ji,jj,jk) = MIN( pe3t(ji,jj,jk), pe3t(ji,jj+1,jk) )
-                  pe3vw(ji,jj,jk) = MIN( pe3w(ji,jj,jk), pe3w(ji,jj+1,jk) )
-                  pe3f (ji,jj,jk) = pe3v(ji,jj,jk)
-               END DO
-            END DO
-         END DO
+         DO_3D( 0, 0, 0, 0, 1, jpk )
+         !                                   ! Computed as the minimum of neighbooring scale factors
+            pe3v (ji,jj,jk) = MIN( pe3t(ji,jj,jk), pe3t(ji,jj+1,jk) )
+            pe3vw(ji,jj,jk) = MIN( pe3w(ji,jj,jk), pe3w(ji,jj+1,jk) )
+            pe3f (ji,jj,jk) = pe3v(ji,jj,jk)
+         END_3D
          CALL lbc_lnk( 'usrdef_zgr', pe3v , 'V', 1._wp )   ;   CALL lbc_lnk( 'usrdef_zgr', pe3vw, 'V', 1._wp )
          CALL lbc_lnk( 'usrdef_zgr', pe3f , 'F', 1._wp )
          DO jk = 1, jpk

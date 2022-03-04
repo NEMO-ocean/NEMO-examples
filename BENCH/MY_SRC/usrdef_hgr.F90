@@ -23,6 +23,8 @@ MODULE usrdef_hgr
 
    PUBLIC   usr_def_hgr   ! called by domhgr.F90
 
+   !! * Substitutions
+#  include "do_loop_substitute.h90"
    !!----------------------------------------------------------------------
    !! NEMO/OPA 4.0, NEMO Consortium (2016)
    !! $Id$ 
@@ -58,9 +60,10 @@ CONTAINS
       INTEGER                 , INTENT(out) ::   ke1e2u_v                     ! =1 u- & v-surfaces computed here, =0 otherwise 
       REAL(wp), DIMENSION(:,:), INTENT(out) ::   pe1e2u, pe1e2v               ! u- & v-surfaces (if reduction in strait)   [m2]
       !
-      INTEGER  ::   ji, jj   ! dummy loop indices
+      INTEGER  ::   ji, jj         ! dummy loop indices
+      REAL(wp), DIMENSION(jpi,jpj) ::   z2d   ! 2D workspace
       REAL(wp) ::   zres, zf0
-      REAL(wp) ::   zti, zui, ztj, zvj   ! local scalars
+      REAL(wp) ::   zti, ztj       ! local scalars
       !!-------------------------------------------------------------------------------
       !
       IF(lwp) WRITE(numout,*)
@@ -69,36 +72,40 @@ CONTAINS
       IF(lwp) WRITE(numout,*) '          Beta-plane with regular grid-spacing'
       IF(lwp) WRITE(numout,*) '          given by rn_dx and rn_dy' 
       !
-      !                          
+      ! define unique value on each point of the inner global domain. z2d ranging from 0.05 to -0.05
+      !
+      DO_2D( 0, 0, 0, 0 )   !  +/- 0.5
+         z2d(ji,jj) = 0.5 - REAL( mig0(ji) + (mjg0(jj)-1) * Ni0glo, wp ) / REAL( Ni0glo * Nj0glo, wp )
+      END_2D
+      !
       ! Position coordinates (in grid points)
-      !                          ==========         
-      DO jj = 1, jpj
-         DO ji = 1, jpi
-            
-            zti = REAL( ji - 1 + nimpp - 1, wp )          ;  ztj = REAL( jj - 1 + njmpp - 1, wp )
-            zui = REAL( ji - 1 + nimpp - 1, wp ) + 0.5_wp ;  zvj = REAL( jj - 1 + njmpp - 1, wp ) + 0.5_wp
+      !                          ==========
+      DO_2D( 0, 0, 0, 0 )
+         
+         zti = REAL( mig0(ji), wp ) - 0.5_wp   ! start at i=0.5 in the global grid without halos
+         ztj = REAL( mjg0(jj), wp ) - 0.5_wp   ! start at j=0.5 in the global grid without halos
+         
+         plamt(ji,jj) =   zti            * (1. + 1.0e-5 * z2d(ji,jj) )
+         plamu(ji,jj) = ( zti + 0.5_wp ) * (1. + 2.0e-5 * z2d(ji,jj) )
+         plamv(ji,jj) =   zti            * (1. + 3.0e-5 * z2d(ji,jj) )
+         plamf(ji,jj) = ( zti + 0.5_wp ) * (1. + 4.0e-5 * z2d(ji,jj) )
+         
+         pphit(ji,jj) =   ztj            * (1. + 1.5e-5 * z2d(ji,jj) )         
+         pphiu(ji,jj) =   ztj            * (1. + 2.5e-5 * z2d(ji,jj) )         
+         pphiv(ji,jj) = ( ztj + 0.5_wp ) * (1. + 3.5e-5 * z2d(ji,jj) )
+         pphif(ji,jj) = ( ztj + 0.5_wp ) * (1. + 4.5e-5 * z2d(ji,jj) )
 
-            plamt(ji,jj) = zti
-            plamu(ji,jj) = zui
-            plamv(ji,jj) = zti
-            plamf(ji,jj) = zui
-   
-            pphit(ji,jj) = ztj
-            pphiv(ji,jj) = zvj
-            pphiu(ji,jj) = ztj
-            pphif(ji,jj) = zvj
-            
-         END DO
-      END DO
+      END_2D
       !     
       ! Horizontal scale factors (in meters)
       !                              ======
-      zres = 1.e+5   !  100km
-      pe1t(:,:) = zres  ;   pe2t(:,:) = zres 
-      pe1u(:,:) = zres  ;   pe2u(:,:) = zres
-      pe1v(:,:) = zres  ;   pe2v(:,:) = zres
-      pe1f(:,:) = zres  ;   pe2f(:,:) = zres 
-
+      DO_2D( 0, 0, 0, 0 )
+         zres = 1.e+5   !  100km
+         pe1t(ji,jj) = zres * (1. + 1.0e-5 * z2d(ji,jj) )  ;   pe2t(ji,jj) = zres * (1. + 1.5e-5 * z2d(ji,jj) )
+         pe1u(ji,jj) = zres * (1. + 2.0e-5 * z2d(ji,jj) )  ;   pe2u(ji,jj) = zres * (1. + 2.5e-5 * z2d(ji,jj) )
+         pe1v(ji,jj) = zres * (1. + 3.0e-5 * z2d(ji,jj) )  ;   pe2v(ji,jj) = zres * (1. + 3.5e-5 * z2d(ji,jj) )
+         pe1f(ji,jj) = zres * (1. + 4.0e-5 * z2d(ji,jj) )  ;   pe2f(ji,jj) = zres * (1. + 4.5e-5 * z2d(ji,jj) )
+      END_2D
       !                             ! NO reduction of grid size in some straits 
       ke1e2u_v = 0                  !    ==>> u_ & v_surfaces will be computed in dom_hgr routine
       pe1e2u(:,:) = 0._wp           !    CAUTION: set to zero to avoid error with some compilers that
@@ -108,9 +115,13 @@ CONTAINS
       !                       !==  Coriolis parameter  ==!
       kff = 1                       !  indicate not to compute Coriolis parameter afterward
       !
-      zf0   = 2._wp * omega * SIN( rad * 45 )   ! constant coriolis factor corresponding to 45°N
-      pff_f(:,:) = zf0
-      pff_t(:,:) = zf0
+      zf0 = 2._wp * omega * SIN( rad * 45 )   ! constant coriolis factor corresponding to 45°N
+      DO_2D( 0, 0, 0, 0 )
+         pff_f(ji,jj) = zf0 * (1. + 1.0e-5 * z2d(ji,jj) )
+         pff_t(ji,jj) = zf0 * (1. + 2.0e-5 * z2d(ji,jj) )
+      END_2D
+      !
+      ! calls lbc_lnk done in dom_hgr
       !
    END SUBROUTINE usr_def_hgr
 

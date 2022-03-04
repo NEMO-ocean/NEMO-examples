@@ -129,7 +129,6 @@ if nb_exp > len(l_color):
     sys.exit(0)
 
 
-
 #-----------------------------------------------------------------
 
 
@@ -192,8 +191,7 @@ for ja in range(nb_exp):
     fig = plt.figure(num = 1, figsize=size_fig0, facecolor='w', edgecolor='k')
     ax1 = plt.axes([0.07, 0.2, 0.9, 0.75])
     ax1.set_xticks(vtime[::xticks_d])
-    ax1.format_xdata = mdates.DateFormatter('%Y-%m-%d %H:%M:%S')
-    #ax1.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d %H:%M:%S'))
+    ax1.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d %H:%M:%S'))
     plt.xticks(rotation='60', **font_x)
 
     for jv in range(ntemp):
@@ -235,7 +233,7 @@ for jv in range(nb_var):
         #
         id_toolarge, = nmp.where( xF[:,ja] > L_MAXT[jv] ) # 
         xF[id_toolarge,ja] = L_MAXT[jv]
-        id_toosmall, = nmp.where( xF[:,ja] < L_MINT[jv] ) ; print("id_toosmall =", id_toosmall)
+        id_toosmall, = nmp.where( xF[:,ja] < L_MINT[jv] ) ; #print("id_toosmall =", id_toosmall)
         xF[id_toosmall,ja] = L_MINT[jv]
 
     idx_okay = nmp.where( nmp.abs(xF) < 1.e+10 )
@@ -298,7 +296,7 @@ for jv in range(nb_var):
             plt.xticks(rotation='60', **font_x)
 
             for ja in range(nb_exp):
-                fplot = nmp.ma.masked_where( xF[:,ja]==0., xF[:,ja] )
+                fplot = nmp.ma.masked_where( xFa[:,ja]==0., xFa[:,ja] )
                 plt.plot(vtime, fplot, '-', color=l_color[ja], \
                          linewidth=l_width[ja], label=list_exp[ja], alpha=0.6) #, zorder=10+ja)
 

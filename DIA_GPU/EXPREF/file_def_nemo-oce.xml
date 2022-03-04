@@ -1,0 +1,173 @@
+<?xml version="1.0"?>
+
+<!--
+============================================================================================================
+=                                           output files definition                                        =
+=                                            Define your own filesfor ocean dynamics context               =
+=                                         put the variables you want...                                    =
+============================================================================================================
+    -->
+   
+    <file_definition type="one_file" name="@expname@_@freq@_@startdate@_@enddate@" sync_freq="1mo" min_digits="4">
+    
+      <file_group id="5d" output_freq="5d"  output_level="10" enabled=".TRUE.">  <!-- 5d files -->   
+        <file id="file11" name_suffix="_grid_T" description="ocean T grid variables" >
+          <field field_ref="e3t"      />
+          <field field_ref="toce"         name="thetao"                                                                      operation="instant" freq_op="5d" > @toce_e3t / @e3t </field>
+          <field field_ref="soce"         name="so"                                                                          operation="instant" freq_op="5d" > @soce_e3t / @e3t </field>
+          <field field_ref="sst"          name="tos"   />
+          <field field_ref="sss"          name="sos"   />
+          <field field_ref="ssh"          name="zos"   />
+          <field field_ref="sst"          name="tosstd"       long_name="sea surface temperature standard deviation"         operation="instant" freq_op="5d" > sqrt( @sst2 - @sst * @sst ) </field>
+          <field field_ref="ssh"          name="zosstd"       long_name="sea surface height above geoid standard deviation"  operation="instant" freq_op="5d" > sqrt( @ssh2 - @ssh * @ssh ) </field>
+          <field field_ref="sst"          name="sstdcy"       long_name="amplitude of sst diurnal cycle"                     operation="average" freq_op="1d" > @sstmax - @sstmin </field>
+          <field field_ref="mldkz5"   />
+          <field field_ref="mldr10_1" />
+          <field field_ref="mldr10_1"     name="mldr10_1dcy"  long_name="amplitude of mldr10_1 diurnal cycle"                operation="average" freq_op="1d" > @mldr10_1max - @mldr10_1min </field>
+          <field field_ref="sbt"      />
+          <field field_ref="heatc"        name="heatc" />
+          <field field_ref="saltc"        name="saltc" />
+
+	  <field field_ref="empmr"        name="wfo"      />
+	  <field field_ref="qsr_oce"      name="qsr_oce"  />
+	  <field field_ref="qns_oce"      name="qns_oce"  />
+	  <field field_ref="qt_oce"       name="qt_oce"   />
+	  <field field_ref="saltflx"      name="sfx"      />
+	  <field field_ref="taum"         name="taum"     />
+	  <field field_ref="wspd"         name="windsp"   />
+	  <field field_ref="precip"       name="precip"   />
+	  <!-- ice and snow -->
+	  <field field_ref="snowpre" />
+	</file>
+
+	<file id="file12" name_suffix="_grid_U" description="ocean U grid variables" >
+	  <field field_ref="e3u" />
+	  <field field_ref="ssu"          name="uos"      />
+	  <field field_ref="uoce"         name="uo"       operation="instant" freq_op="5d" > @uoce_e3u / @e3u </field>
+	  <field field_ref="utau"         name="tauuo"    />
+          <field field_ref="uocetr_eff"   name="uocetr_eff"  />
+          <!-- available with diaar5 -->
+	  <field field_ref="u_masstr"     name="vozomatr" />
+	  <field field_ref="u_heattr"     name="sozohetr" />
+	  <field field_ref="u_salttr"     name="sozosatr" />
+	</file>
+	
+	<file id="file13" name_suffix="_grid_V" description="ocean V grid variables" >
+	  <field field_ref="e3v" />
+	  <field field_ref="ssv"          name="vos"      />
+	  <field field_ref="voce"         name="vo"       operation="instant" freq_op="5d" > @voce_e3v / @e3v </field>
+	  <field field_ref="vtau"         name="tauvo"    />
+          <field field_ref="vocetr_eff"   name="vocetr_eff"  />
+          <!-- available with diaar5 -->
+	  <field field_ref="v_masstr"     name="vomematr" />
+	  <field field_ref="v_heattr"     name="somehetr" />
+          <field field_ref="v_salttr"     name="somesatr" />
+	</file>
+	
+	<file id="file14" name_suffix="_grid_W" description="ocean W grid variables" >
+	  <field field_ref="e3w" />
+	  <field field_ref="woce"         name="wo"       />
+	  <field field_ref="avt"          name="difvho"   />
+	  <field field_ref="w_masstr"     name="vovematr" />
+         <!-- variables available with ln_zdfiwm =T -->
+          <field field_ref="av_wave"      name="av_wave"    />
+          <field field_ref="bn2"          name="bn2"        />
+          <field field_ref="bflx_iwm"     name="bflx_iwm"   />
+          <field field_ref="pcmap_iwm"    name="pcmap_iwm"  />
+          <field field_ref="emix_iwm"     name="emix_iwm"   />
+          <field field_ref="av_ratio"     name="av_ratio"   />
+	</file>
+
+        <file id="file15" name_suffix="_scalar" description="scalar variables" >
+          <!-- global drifts (conservation checks) -->
+          <field field_ref="bgtemper"     name="bgtemper"    />
+          <field field_ref="bgsaline"     name="bgsaline"    />
+          <field field_ref="bgheatco"     name="bgheatco"    />
+          <field field_ref="bgheatfx"     name="bgheatfx"    />
+          <field field_ref="bgsaltco"     name="bgsaltco"    />
+          <field field_ref="bgvolssh"     name="bgvolssh"    />
+          <field field_ref="bgvole3t"     name="bgvole3t"    />
+
+          <!-- global surface forcings  -->
+          <field field_ref="bgfrcvol"     name="bgfrcvol"    />
+          <field field_ref="bgfrctem"     name="bgfrctem"    />
+          <field field_ref="bgfrchfx"     name="bgfrchfx"    />
+	  <field field_ref="bgfrcsal"     name="bgfrcsal"    />
+
+	  <field field_ref="masstot"      name="masso"  />
+          <field field_ref="voltot"       name="volo"  />
+          <field field_ref="sshthster"    name="zostoga"  />
+          <field field_ref="temptot"      name="bigthetaoga"  />
+          <field field_ref="saltot"       name="soga"  />
+          <field field_ref="ssttot"       name="tosga"  />
+        </file>
+
+      </file_group> 
+
+
+      <file_group id="1m" output_freq="1mo" output_level="10" enabled=".TRUE."> <!-- real monthly files -->
+
+        <file id="file16" name_suffix="_diaptr2D" description="zonal mean variables" >
+          <field field_ref="sophtove"    name="htovovrt"      grid_ref="grid_ptr_T_2D"  />
+          <field field_ref="sopstove"    name="sltovovrt"     grid_ref="grid_ptr_T_2D"  />
+          <field field_ref="sophtgyre"   name="htovgyre"      grid_ref="grid_ptr_T_2D"  />
+          <field field_ref="sopstgyre"   name="sltogyre"      grid_ref="grid_ptr_T_2D"  />
+          <field field_ref="sophtbtr"    name="htbtr"         grid_ref="grid_ptr_T_2D"  />
+          <field field_ref="sopstbtr"    name="sltbtr"        grid_ref="grid_ptr_T_2D"  />
+          <field field_ref="sophtadv"    name="htadv"         grid_ref="grid_ptr_T_2D"  />
+          <field field_ref="sopstadv"    name="sltadv"        grid_ref="grid_ptr_T_2D"  />
+          <field field_ref="sophtldf"    name="htldf"         grid_ref="grid_ptr_T_2D"  />
+          <field field_ref="sopstldf"    name="sltldf"        grid_ref="grid_ptr_T_2D"  />
+          <field field_ref="sophtvtr"    name="hfbasin"       grid_ref="grid_ptr_T_2D"  />
+          <field field_ref="sopstvtr"    name="sltbasin"      grid_ref="grid_ptr_T_2D"  />
+          <field field_ref="sophteiv"    name="hfbasinpmadv"  grid_ref="grid_ptr_T_2D"  />
+          <field field_ref="sopsteiv"    name="sltbasinpmadv" grid_ref="grid_ptr_T_2D"  />
+        </file>
+
+
+         <file id="file17" name_suffix="_diaptr3D" description="zonal mean variables" >
+          <field field_ref="zomsf"       name="msftyz"        grid_ref="grid_ptr_W_3D"  />
+          <field field_ref="zotem"       name="znltem"        grid_ref="grid_ptr_T_3D"  />
+          <field field_ref="zosal"       name="znlsal"        grid_ref="grid_ptr_T_3D"  />
+          <field field_ref="zosrf"       name="znlsrf"        grid_ref="grid_ptr_T_3D"  />
+        </file>
+
+      <!--  
+         <file id="file18" name_suffix="_strait_oce" description="transport variables through straits" >
+           <field field_ref="masstr_strait"        name="mfo"               />
+         </file>	   
+      -->
+
+      </file_group>
+
+      <file_group id="1y"  output_freq="1y" output_level="10" enabled=".TRUE."> <!-- real yearly files -->
+      </file_group>
+
+      <!--  To compute transport through straits : need to read mask file ( every month is the best otherwise costly )
+
+      <file id="maskMFO"  name="maskMFO" enabled="true" mode="read" output_freq="1mo" cyclic="true"  >
+        <field id="maskMFO_u" operation="instant" freq_offset="1mo" grid_ref="grid_U_4strait" />
+        <field id="maskMFO_v" operation="instant" freq_offset="1mo" grid_ref="grid_V_4strait" />
+      </file>
+
+    -->
+
+      
+      <file_group id="1ts" output_freq="1ts" output_level="10" enabled=".TRUE."/> <!-- 1 time step files -->
+      <file_group id="2h"  output_freq="2h"  output_level="10" enabled=".TRUE."/> <!-- 2h files -->
+      <file_group id="3h"  output_freq="3h"  output_level="10" enabled=".TRUE."/> <!-- 3h files -->     
+      <file_group id="4h"  output_freq="4h"  output_level="10" enabled=".TRUE."/> <!-- 4h files -->
+      <file_group id="6h"  output_freq="6h"  output_level="10" enabled=".TRUE."/> <!-- 6h files -->     
+      <file_group id="2m"  output_freq="2mo" output_level="10" enabled=".TRUE."/> <!-- real 2m files -->
+      <file_group id="3m"  output_freq="3mo" output_level="10" enabled=".TRUE."/> <!-- real 3m files -->
+      <file_group id="4m"  output_freq="4mo" output_level="10" enabled=".TRUE."/> <!-- real 4m files -->
+      <file_group id="6m"  output_freq="6mo" output_level="10" enabled=".TRUE."/> <!-- real 6m files -->
+      <file_group id="2y"  output_freq="2y"  output_level="10" enabled=".TRUE."/> <!-- real 2y files -->
+      <file_group id="5y"  output_freq="5y"  output_level="10" enabled=".TRUE."/> <!-- real 5y files -->
+      <file_group id="10y" output_freq="10y" output_level="10" enabled=".TRUE."/> <!-- real 10y files -->
+
+   </file_definition>
+    
+
+
+

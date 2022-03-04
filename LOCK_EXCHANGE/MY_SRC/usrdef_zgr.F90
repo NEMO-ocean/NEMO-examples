@@ -26,11 +26,9 @@ MODULE usrdef_zgr
 
    PUBLIC   usr_def_zgr   ! called by domzgr.F90
 
-  !! * Substitutions
-#  include "vectopt_loop_substitute.h90"
    !!----------------------------------------------------------------------
    !! NEMO/OCE 4.0 , NEMO Consortium (2018)
-   !! $Id: usrdef_zgr.F90 10425 2018-12-19 21:54:16Z smasson $
+   !! $Id: usrdef_zgr.F90 14433 2021-02-11 08:06:49Z smasson $
    !! Software governed by the CeCILL license (see ./LICENSE)
    !!----------------------------------------------------------------------
 CONTAINS             
@@ -85,9 +83,9 @@ CONTAINS
       !                       !==  top masked level bathymetry  ==!  (all coordinates)
       !
       ! no ocean cavities : top ocean level is ONE, except over land
-      ! the ocean basin surrounded by land (1 grid-point) set through lbc_lnk call as jperio=0 
+      ! the ocean basin surrounded by land (1+nn_hls grid-points) set through lbc_lnk call
       z2d(:,:) = 1._wp                    ! surface ocean is the 1st level
-      CALL lbc_lnk( 'usrdef_zgr', z2d, 'T', 1. )        ! closed basin since jperio = 0 (see userdef_nam.F90)
+      CALL lbc_lnk( 'usrdef_zgr', z2d, 'T', 1. )        ! closed basin, see userdef_nam.F90
       k_top(:,:) = NINT( z2d(:,:) )
       !
       !                              

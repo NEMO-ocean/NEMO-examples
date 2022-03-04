@@ -35,7 +35,7 @@ CONTAINS
       !!                     ***  ROUTINE stp_c1d  ***
       !!
       !! ** Purpose :  - Time stepping of SBC including sea ice (dynamic and thermodynamic eqs.)
-      !!               - Time stepping of OPA (momentum and active tracer eqs.)
+      !!               - Time stepping of OCE (momentum and active tracer eqs.)
       !!               - Time stepping of TOP (passive tracer eqs.)
       !!
       !! ** Method  : -1- Update forcings and data
@@ -78,7 +78,7 @@ CONTAINS
       IF( kstp == nit000 )   CALL iom_close( numror )          ! close input  ocean restart file
       IF( lrst_oce       )   CALL rst_write( kstp, Nbb, Nnn )  ! write output ocean restart file
       !
-#if defined key_iomput
+#if defined key_xios
       IF( kstp == nitend .OR. nstop > 0 )   CALL xios_context_finalize()   ! needed for XIOS
       !
 #endif

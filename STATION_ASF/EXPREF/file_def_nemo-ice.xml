@@ -19,7 +19,9 @@
           <field field_ref="utau_ai"          name="utau_ai" />
           <field field_ref="vtau_ai"          name="vtau_ai" />
       -->
-      <field field_ref="taum_ai"          name="taum_ai" />
+      <field field_ref="taum_ice"          name="taum_ice" />
+      <field field_ref="utau_ice"          name="utau_ice" />
+      <field field_ref="vtau_ice"          name="vtau_ice" />
 
       <!-- heat fluxes -->
 

@@ -36,7 +36,7 @@ MODULE usrdef_nam
    !!----------------------------------------------------------------------
 CONTAINS
 
-   SUBROUTINE usr_def_nam( cd_cfg, kk_cfg, kpi, kpj, kpk, kperio )
+   SUBROUTINE usr_def_nam( cd_cfg, kk_cfg, kpi, kpj, kpk, ldIperio, ldJperio, ldNFold, cdNFtype )
       !!----------------------------------------------------------------------
       !!                     ***  ROUTINE dom_nam  ***
       !!
@@ -48,10 +48,12 @@ CONTAINS
       !!
       !! ** input   : - namusr_def namelist found in namelist_cfg
       !!----------------------------------------------------------------------
-      CHARACTER(len=*), INTENT(out) ::   cd_cfg          ! configuration name
-      INTEGER         , INTENT(out) ::   kk_cfg          ! configuration resolution
-      INTEGER         , INTENT(out) ::   kpi, kpj, kpk   ! global domain sizes
-      INTEGER         , INTENT(out) ::   kperio          ! lateral global domain b.c.
+      CHARACTER(len=*), INTENT(out) ::   cd_cfg               ! configuration name
+      INTEGER         , INTENT(out) ::   kk_cfg               ! configuration resolution
+      INTEGER         , INTENT(out) ::   kpi, kpj, kpk        ! global domain sizes
+      LOGICAL         , INTENT(out) ::   ldIperio, ldJperio   ! i- and j- periodicity
+      LOGICAL         , INTENT(out) ::   ldNFold              ! North pole folding
+      CHARACTER(len=1), INTENT(out) ::   cdNFtype             ! Folding type: T or F
       !
       INTEGER ::   ios   ! Local integer
       !!
@@ -72,7 +74,8 @@ CONTAINS
       kpk = 2    ! 2, rather than 1, because 1 would cause some issues... like overflow in array boundary indexes, etc...
       !
       !                             ! Set the lateral boundary condition of the global domain
-      kperio =  7                   ! C1D configuration : 3x3 basin with cyclic Est-West and Norht-South condition
+      ldIperio = .TRUE.    ;   ldJperio = .true.   ! C1D configuration : 3x3 basin with cyclic Est-West and Norht-South condition
+      ldNFold  = .FALSE.   ;   cdNFtype = '-'
       !
       !                             ! control print
       IF(lwp) THEN
@@ -84,7 +87,6 @@ CONTAINS
          WRITE(numout,*) '         jpiglo, jpjglo  = ', kpi, kpj
          WRITE(numout,*) '      number of model levels                              kpk = ', kpk
          WRITE(numout,*) '   '
-         WRITE(numout,*) '   Lateral b.c. of the domain set to       jperio = ', kperio
       ENDIF
       !
    END SUBROUTINE usr_def_nam

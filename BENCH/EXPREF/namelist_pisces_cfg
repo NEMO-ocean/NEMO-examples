@@ -80,12 +80,8 @@
 !-----------------------------------------------------------------------
 /
 !-----------------------------------------------------------------------
-&nampissbc     !   parameters for inputs deposition
+&nampisbc      !   parameters for inputs deposition
 !-----------------------------------------------------------------------
-   ln_dust     =  .false.   ! boolean for dust input from the atmosphere
-   ln_solub    =  .false.   ! boolean for variable solubility of atm. Iron
-   ln_river    =  .false.   ! boolean for river input of nutrients
-   ln_ndepo    =  .false.   ! boolean for atmospheric deposition of N
    ln_ironsed  =  .false.   ! boolean for Fe input from sediments
    ln_ironice  =  .false.   ! boolean for Fe input from sea ice
    ln_hydrofe  =  .false.  ! boolean for from hydrothermal vents

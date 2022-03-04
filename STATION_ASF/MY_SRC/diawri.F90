@@ -62,9 +62,9 @@ MODULE diawri
    !!----------------------------------------------------------------------
 CONTAINS
 
-#if defined key_iomput
+#if defined key_xios
    !!----------------------------------------------------------------------
-   !!   'key_iomput'                                        use IOM library
+   !!   'key_xios'                                        use IOM library
    !!----------------------------------------------------------------------
    INTEGER FUNCTION dia_wri_alloc()
       !

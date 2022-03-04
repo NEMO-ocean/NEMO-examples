@@ -1,0 +1,59 @@
+<?xml version="1.0"?>
+<!-- $id$ -->
+
+<!--
+============================================================================================================
+=                                  definition of all existing variables                                    =
+=                                            DO NOT CHANGE                                                 =
+============================================================================================================
+-->
+<field_definition level="1" prec="4" operation="average" enabled=".TRUE." default_value="1.e20" > <!-- time step automaticaly defined -->
+
+  <!--
+      ============================================================================================================
+      Inert tracers variables
+      ============================================================================================================
+  -->
+
+
+  <field_group id="inerttrc" grid_ref="grid_T_2D">
+
+    <!-- CFC11 : variables available with ln_cfc11 -->
+    <field id="CFC11"        long_name="Chlorofluoro carbon11 Concentration"      unit="umol/m3"   grid_ref="grid_T_3D" />
+    <field id="CFC11_e3t"    long_name="CFC11 * e3t"                              unit="umol/m2"   grid_ref="grid_T_3D"  > CFC11 * e3t </field >
+    <field id="qtr_CFC11"    long_name="Air-sea flux of CFC-11"                   unit="mol/m2/s"   />
+    <field id="qint_CFC11"   long_name="Cumulative air-sea flux of CFC-11"        unit="mol/m2"     />
+
+    <!-- CFC12 : variables available with ln_cfc12 -->
+    <field id="CFC12"        long_name="Chlorofluoro carbon12 Concentration"      unit="umol/m3"   grid_ref="grid_T_3D" />
+    <field id="CFC12_e3t"    long_name="CFC12 * e3t"                              unit="umol/m2"   grid_ref="grid_T_3D"  > CFC12 * e3t </field >
+    <field id="qtr_CFC12"    long_name="Air-sea flux of CFC12"                    unit="mol/m2/s"   />
+    <field id="qint_CFC12"   long_name="Cumulative air-sea flux of CFC12"         unit="mol/m2"     />
+
+    <!-- SF6 : variables available with ln_sf6 -->
+    <field id="SF6"          long_name="Sulfur hexafluoride Concentration"        unit="umol/m3"   grid_ref="grid_T_3D" />
+    <field id="SF6_e3t"      long_name="SF6 * e3t"                                unit="umol/m2"   grid_ref="grid_T_3D"  > SF6 * e3t </field >
+    <field id="qtr_SF6"      long_name="Air-sea flux of SF6"                      unit="mol/m2/s"   />
+    <field id="qint_SF6"     long_name="Cumulative air-sea flux of SF6"           unit="mol/m2"     />
+
+    <!-- C14 : variables available with ln_c14 -->
+    <field id="RC14"         long_name="Radiocarbon ratio"                        unit="-"         grid_ref="grid_T_3D"  />
+    <field id="RC14_e3t"     long_name="RC14 * e3t"                               unit="m"         grid_ref="grid_T_3D"   > RC14 * e3t </field >
+    <field id="DeltaC14"     long_name="Delta C14"                                unit="permil"    grid_ref="grid_T_3D"  />
+    <field id="C14Age"       long_name="Radiocarbon age"                          unit="yr"        grid_ref="grid_T_3D"  />
+    <field id="RAge"         long_name="Reservoir Age"                            unit="yr"       />
+    <field id="qtr_c14"      long_name="Air-sea flux of C14"                      unit="1/m2/s"   />
+    <field id="qint_c14"     long_name="Cumulative air-sea flux of C14"           unit="1/m2"     />
+    <field id="AtmCO2"       long_name="Global atmospheric CO2"                   unit="ppm"      />
+    <field id="AtmC14"       long_name="Global atmospheric DeltaC14"              unit="permil"   />
+    <field id="K_C14"        long_name="Global 14C/C exchange velocity"           unit="m/yr"     />
+    <field id="K_CO2"        long_name="Global CO2 piston velocity"               unit="cm/h"     />
+    <field id="C14Inv"       long_name="global Radiocarbon ocean inventory"       unit="10^26 atoms"   />
+
+    <!-- AGE : variables available with ln_age -->
+    <field id="Age"          long_name="Sea water age since surface contact"      unit="yr"        grid_ref="grid_T_3D"  />
+    <field id="Age_e3t"      long_name="Age * e3t"                                unit="yr * m"   grid_ref="grid_T_3D"    > Age * e3t </field >
+
+  </field_group>
+
+</field_definition>

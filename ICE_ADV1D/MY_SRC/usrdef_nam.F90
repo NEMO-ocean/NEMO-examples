@@ -13,7 +13,6 @@ MODULE usrdef_nam
    !!   usr_def_nam   : read user defined namelist and set global domain size
    !!   usr_def_hgr   : initialize the horizontal mesh 
    !!----------------------------------------------------------------------
-   USE dom_oce  , ONLY: nimpp , njmpp            ! i- & j-indices of the local domain
    USE par_oce        ! ocean space and time domain
    USE phycst         ! physical constants
    !
@@ -39,7 +38,7 @@ MODULE usrdef_nam
    !!----------------------------------------------------------------------
 CONTAINS
 
-   SUBROUTINE usr_def_nam( ldtxt, ldnam, cd_cfg, kk_cfg, kpi, kpj, kpk, kperio )
+   SUBROUTINE usr_def_nam( cd_cfg, kk_cfg, kpi, kpj, kpk, ldIperio, ldJperio, ldNFold, cdNFtype )
       !!----------------------------------------------------------------------
       !!                     ***  ROUTINE dom_nam  ***
       !!                    
@@ -51,25 +50,23 @@ CONTAINS
       !!
       !! ** input   : - namusr_def namelist found in namelist_cfg
       !!----------------------------------------------------------------------
-      CHARACTER(len=*), DIMENSION(:), INTENT(out) ::   ldtxt, ldnam    ! stored print information
-      CHARACTER(len=*)              , INTENT(out) ::   cd_cfg          ! configuration name
-      INTEGER                       , INTENT(out) ::   kk_cfg          ! configuration resolution
-      INTEGER                       , INTENT(out) ::   kpi, kpj, kpk   ! global domain sizes 
-      INTEGER                       , INTENT(out) ::   kperio          ! lateral global domain b.c. 
+      CHARACTER(len=*), INTENT(out) ::   cd_cfg               ! configuration name
+      INTEGER         , INTENT(out) ::   kk_cfg               ! configuration resolution
+      INTEGER         , INTENT(out) ::   kpi, kpj, kpk        ! global domain sizes
+      LOGICAL         , INTENT(out) ::   ldIperio, ldJperio   ! i- and j- periodicity
+      LOGICAL         , INTENT(out) ::   ldNFold              ! North pole folding
+      CHARACTER(len=1), INTENT(out) ::   cdNFtype             ! Folding type: T or F
       !
-      INTEGER ::   ios, ii   ! Local integer
+      INTEGER ::   ios       ! Local integer
       REAL(wp)::   zlx, zly  ! Local scalars
       !!
       NAMELIST/namusr_def/ rn_dx, rn_dy, ln_corio, rn_ppgphi0
       !!----------------------------------------------------------------------
       !
-      ii = 1
-      !
-      REWIND( numnam_cfg )          ! Namelist namusr_def (exist in namelist_cfg only)
       READ  ( numnam_cfg, namusr_def, IOSTAT = ios, ERR = 902 )
-902   IF( ios /= 0 )   CALL ctl_nam ( ios , 'namusr_def in configuration namelist', .TRUE. )
+902   IF( ios /= 0 )   CALL ctl_nam ( ios , 'namusr_def in configuration namelist' )
       !
-      WRITE( ldnam(:), namusr_def )
+      IF(lwm)   WRITE( numond, namusr_def )
       !
       cd_cfg = 'ICE_ADV1D'           ! name & resolution (not used)
       kk_cfg = INT( rn_dx )
@@ -81,27 +78,27 @@ CONTAINS
       !
       zlx = kpi*rn_dx*1.e-3
       zly = kpj*rn_dy*1.e-3
-      !                             ! control print
-      WRITE(ldtxt(ii),*) '   '                                                                          ;   ii = ii + 1
-      WRITE(ldtxt(ii),*) 'usr_def_nam  : read the user defined namelist (namusr_def) in namelist_cfg'   ;   ii = ii + 1
-      WRITE(ldtxt(ii),*) '~~~~~~~~~~~ '                                                                 ;   ii = ii + 1
-      WRITE(ldtxt(ii),*) '   Namelist namusr_def : ICE_ADV1D test case'                                 ;   ii = ii + 1
-      WRITE(ldtxt(ii),*) '      horizontal resolution                    rn_dx  = ', rn_dx, ' meters'   ;   ii = ii + 1
-      WRITE(ldtxt(ii),*) '      horizontal resolution                    rn_dy  = ', rn_dy, ' meters'   ;   ii = ii + 1
-      WRITE(ldtxt(ii),*) '      ICE_ADV1D domain  '                                                     ;   ii = ii + 1
-      WRITE(ldtxt(ii),*) '         LX [km]: ', zlx                                                      ;   ii = ii + 1
-      WRITE(ldtxt(ii),*) '         LY [km]: ', zly                                                      ;   ii = ii + 1
-      WRITE(ldtxt(ii),*) '         resulting global domain size :        jpiglo = ', kpi                ;   ii = ii + 1
-      WRITE(ldtxt(ii),*) '                                               jpjglo = ', kpj                ;   ii = ii + 1
-      WRITE(ldtxt(ii),*) '                                               jpkglo = ', kpk                ;   ii = ii + 1
-      WRITE(ldtxt(ii),*) '         Coriolis:', ln_corio                                                 ;   ii = ii + 1
-      !
       !                             ! Set the lateral boundary condition of the global domain
-      kperio = 0                    ! ICE_ADV1D configuration : bi-periodic basin
+      ldIperio = .FALSE.   ;   ldJperio = .FALSE.   ! ICE_ADV1D configuration : closed domain
+      ldNFold  = .FALSE.   ;   cdNFtype = '-'
       !
-      WRITE(ldtxt(ii),*) '   '                                                                          ;   ii = ii + 1
-      WRITE(ldtxt(ii),*) '   Lateral boundary condition of the global domain'                           ;   ii = ii + 1
-      WRITE(ldtxt(ii),*) '      ICE_ADV1D : closed basin                    jperio = ', kperio          ;   ii = ii + 1
+      !                             ! control print
+      IF(lwp) THEN
+         WRITE(numout,*) '   '
+         WRITE(numout,*) 'usr_def_nam  : read the user defined namelist (namusr_def) in namelist_cfg'
+         WRITE(numout,*) '~~~~~~~~~~~ '
+         WRITE(numout,*) '   Namelist namusr_def : ICE_ADV1D test case'
+         WRITE(numout,*) '      horizontal resolution                    rn_dx  = ', rn_dx, ' meters'
+         WRITE(numout,*) '      horizontal resolution                    rn_dy  = ', rn_dy, ' meters'
+         WRITE(numout,*) '      ICE_ADV1D domain  '
+         WRITE(numout,*) '         LX [km]: ', zlx
+         WRITE(numout,*) '         LY [km]: ', zly
+         WRITE(numout,*) '         resulting global domain size :        Ni0glo = ', kpi
+         WRITE(numout,*) '                                               Nj0glo = ', kpj
+         WRITE(numout,*) '                                               jpkglo = ', kpk
+         WRITE(numout,*) '         Coriolis:', ln_corio
+         WRITE(numout,*) '   '
+      ENDIF
       !
    END SUBROUTINE usr_def_nam
 

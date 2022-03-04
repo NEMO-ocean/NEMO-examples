@@ -214,20 +214,12 @@ Now, it's time to launch simulations:
 
     $ ./launch_sasf.sh
 
-If everything goes according to plan, ``launch_sasf.sh`` should have generated the 4 following sets of output files into `${PROD_DIR}/output` (example for PAPA forcing, 4 algos tested):
+If everything goes according to plan, ``launch_sasf.sh`` should have generated the 4 following output files into `${PROD_DIR}/output` (example for PAPA forcing, 4 algos tested):
 
     STATION_ASF-ANDREAS_PAPA_1h_20180101_20181231_gridT.nc
-    STATION_ASF-ANDREAS_PAPA_1h_20180101_20181231_gridU.nc
-    STATION_ASF-ANDREAS_PAPA_1h_20180101_20181231_gridV.nc
     STATION_ASF-COARE3p6_PAPA_1h_20180101_20181231_gridT.nc
-    STATION_ASF-COARE3p6_PAPA_1h_20180101_20181231_gridU.nc
-    STATION_ASF-COARE3p6_PAPA_1h_20180101_20181231_gridV.nc
     STATION_ASF-ECMWF_PAPA_1h_20180101_20181231_gridT.nc
-    STATION_ASF-ECMWF_PAPA_1h_20180101_20181231_gridU.nc
-    STATION_ASF-ECMWF_PAPA_1h_20180101_20181231_gridV.nc
     STATION_ASF-NCAR_PAPA_1h_20180101_20181231_gridT.nc
-    STATION_ASF-NCAR_PAPA_1h_20180101_20181231_gridU.nc
-    STATION_ASF-NCAR_PAPA_1h_20180101_20181231_gridV.nc
 
 
 #### Post-processing and figures

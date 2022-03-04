@@ -1,0 +1,108 @@
+<?xml version="1.0"?>
+
+    <!-- 
+============================================================================================================
+=                                           output files definition                                        =
+=                                            Define your own files                                         =
+=                                         put the variables you want...                                    =
+============================================================================================================
+    -->
+    
+    <file_definition type="one_file" name="@expname@_@freq@_@startdate@_@enddate@" sync_freq="1h" min_digits="4">
+    
+      <file_group id="1ts" output_freq="1ts"  output_level="10" enabled=".TRUE."/> <!-- 1 time step files -->
+
+      <file_group id="1h" output_freq="1h"  output_level="10" enabled=".TRUE."/> <!-- 1h files -->
+
+      <file_group id="2h" output_freq="2h"  output_level="10" enabled=".TRUE."/> <!-- 2h files -->
+
+      <file_group id="3h" output_freq="3h"  output_level="10" enabled=".TRUE."/> <!-- 3h files -->     
+
+      <file_group id="4h" output_freq="4h"  output_level="10" enabled=".TRUE."/> <!-- 4h files -->
+
+      <file_group id="6h" output_freq="6h"  output_level="10" enabled=".FALSE."> <!-- 6h files -->     
+
+        <file id="file61" name_suffix="_grid_T" description="ocean T grid variables" >
+          <field field_ref="e3t"                           />
+          <field field_ref="toce"         name="votemper"     operation="instant" freq_op="6h" > @toce_e3t / @e3t </field>
+          <field field_ref="soce"         name="vosaline"     operation="instant" freq_op="6h" > @soce_e3t / @e3t </field>
+          <field field_ref="mldkz5"                       />
+          <field field_ref="mldr10_1"                     />
+          <field field_ref="empmr"        name="wfo"      />
+          <field field_ref="qsr_oce"      name="qsr_oce"  />
+          <field field_ref="qns_oce"      name="qns_oce"  />
+          <field field_ref="qt_oce"       name="qt_oce"   />
+          <field field_ref="saltflx"      name="sfx"      />
+          <field field_ref="taum"         name="taum"     />
+          <field field_ref="wspd"         name="windsp"   />
+          <field field_ref="precip"       name="precip"   />
+        </file>
+
+      </file_group>
+
+
+      <file_group id="12h" output_freq="12h"  output_level="10" enabled=".FALSE."> <!-- 12h files -->
+
+        <file id="file1" name_suffix="_grid_T" description="ocean T grid variables" >
+          <field field_ref="e3t"                           />
+          <field field_ref="toce"         name="votemper"     operation="instant" freq_op="12h" > @toce_e3t / @e3t </field>
+          <field field_ref="soce"         name="vosaline"     operation="instant" freq_op="12h" > @soce_e3t / @e3t </field>
+          <field field_ref="mldkz5"                       />
+          <field field_ref="mldr10_1"                     />
+          <field field_ref="empmr"        name="wfo"      />
+          <field field_ref="qsr_oce"      name="qsr_oce"  />
+          <field field_ref="qns_oce"      name="qns_oce"  />
+          <field field_ref="qt_oce"       name="qt_oce"   />
+          <field field_ref="saltflx"      name="sfx"      />
+          <field field_ref="taum"         name="taum"     />
+          <field field_ref="wspd"         name="windsp"   />
+          <field field_ref="precip"       name="precip"   />
+        </file>
+
+       <file id="file2" name_suffix="_grid_U" description="ocean U grid variables" >
+          <field field_ref="uoce"         name="uo"       operation="instant" freq_op="12h" > @uoce_e3u / @e3u </field>
+          <field field_ref="utau"         name="tauuo"    />
+        </file>
+
+       <file id="file3" name_suffix="_grid_V" description="ocean V grid variables" >
+          <field field_ref="voce"         name="vo"       operation="instant" freq_op="12h" > @voce_e3v / @e3v </field>
+          <field field_ref="vtau"         name="tauvo"    />
+        </file>
+
+        <file id="file4" name_suffix="_grid_W" description="ocean W grid variables" >
+          <field field_ref="e3w" />
+          <field field_ref="avt"          name="difvho"   />
+        </file>
+
+      </file_group>
+
+      
+      <file_group id="1d" output_freq="1d"  output_level="10" enabled=".TRUE."> <!-- 1d files -->
+
+        <file id="file60" name_suffix="_grid_T" description="ocean T grid variables" >
+          <field field_ref="e3t"                           />
+          <field field_ref="toce"         name="votemper"     operation="instant" freq_op="1d" > @toce_e3t / @e3t </field>
+          <field field_ref="soce"         name="vosaline"     operation="instant" freq_op="1d" > @soce_e3t / @e3t </field>
+          <field field_ref="mldkz5"                       />
+          <field field_ref="mldr10_1"                     />
+          <field field_ref="empmr"        name="wfo"      />
+          <field field_ref="qsr_oce"      name="qsr_oce"  />
+          <field field_ref="qns_oce"      name="qns_oce"  />
+          <field field_ref="qt_oce"       name="qt_oce"   />
+          <field field_ref="saltflx"      name="sfx"      />
+          <field field_ref="taum"         name="taum"     />
+          <field field_ref="wspd"         name="windsp"   />
+          <field field_ref="precip"       name="precip"   />
+        </file>
+
+      </file_group>
+
+      <file_group id="3d" output_freq="3d"  output_level="10" enabled=".TRUE."/> <!-- 3d files -->
+      <file_group id="5d" output_freq="5d"  output_level="10" enabled=".TRUE."/> <!-- 5d files -->   
+      <file_group id="1m" output_freq="1mo" output_level="10" enabled=".TRUE."/> <!-- real monthly files -->
+      <file_group id="2y"  output_freq="2y" output_level="10" enabled=".TRUE."/> <!-- real 2y files -->
+      <file_group id="5y"  output_freq="5y" output_level="10" enabled=".TRUE."/> <!-- real 5y files -->
+      <file_group id="10y" output_freq="10y" output_level="10" enabled=".TRUE."/> <!-- real 10y files -->
+
+   </file_definition>
+    

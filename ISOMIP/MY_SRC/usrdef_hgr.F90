@@ -13,7 +13,7 @@ MODULE usrdef_hgr
    !!----------------------------------------------------------------------
    !!   usr_def_hgr    : initialize the horizontal mesh for ISOMIP configuration
    !!----------------------------------------------------------------------
-   USE dom_oce  ,  ONLY: nimpp, njmpp       ! ocean space and time domain
+   USE dom_oce
    USE par_oce         ! ocean space and time domain
    USE phycst          ! physical constants
    USE usrdef_nam, ONLY: rn_e1deg, rn_e2deg   ! horizontal resolution in meters
@@ -26,9 +26,11 @@ MODULE usrdef_hgr
 
    PUBLIC   usr_def_hgr   ! called by domhgr.F90
 
+   !! * Substitutions
+#  include "do_loop_substitute.h90"
    !!----------------------------------------------------------------------
    !! NEMO/OCE 4.0 , NEMO Consortium (2018)
-   !! $Id: usrdef_hgr.F90 10074 2018-08-28 16:15:49Z nicolasmartin $ 
+   !! $Id: usrdef_hgr.F90 14223 2020-12-19 10:22:45Z smasson $ 
    !! Software governed by the CeCILL license (see ./LICENSE)
    !!----------------------------------------------------------------------
 CONTAINS
@@ -74,35 +76,32 @@ CONTAINS
       ENDIF
       !
       !                       !==  grid point position  ==!   (in degrees)
-      DO jj = 1, jpj
-         DO ji = 1, jpi             ! longitude   (west coast at lon=0°)
-            plamt(ji,jj) = rn_e1deg * (  - 0.5 + REAL( ji-1 + nimpp-1 , wp )  )  
-            plamu(ji,jj) = rn_e1deg * (          REAL( ji-1 + nimpp-1 , wp )  )
-            plamv(ji,jj) = plamt(ji,jj)
-            plamf(ji,jj) = plamu(ji,jj)
-            !                       ! latitude   (south coast at lat= 81°)
-            pphit(ji,jj) = rn_e2deg * (  - 0.5 + REAL( jj-1 + njmpp-1 , wp )  ) - 80._wp
-            pphiu(ji,jj) = pphit(ji,jj)
-            pphiv(ji,jj) = rn_e2deg * (          REAL( jj-1 + njmpp-1 , wp )  ) - 80_wp
-            pphif(ji,jj) = pphiv(ji,jj)
-         END DO
-      END DO
+      DO_2D( nn_hls, nn_hls, nn_hls, nn_hls )
+         !                       ! longitude   (west coast at lon=0°)
+         plamt(ji,jj) = rn_e1deg * (  - 0.5 + REAL( mig0(ji)-1 , wp )  )  
+         plamu(ji,jj) = rn_e1deg * (          REAL( mig0(ji)-1 , wp )  )
+         plamv(ji,jj) = plamt(ji,jj)
+         plamf(ji,jj) = plamu(ji,jj)
+         !                       ! latitude   (south coast at lat=-80°)
+         pphit(ji,jj) = rn_e2deg * (  - 0.5 + REAL( mjg0(jj)-1 , wp )  ) - 80._wp
+         pphiu(ji,jj) = pphit(ji,jj)
+         pphiv(ji,jj) = rn_e2deg * (          REAL( mjg0(jj)-1 , wp )  ) - 80._wp
+         pphif(ji,jj) = pphiv(ji,jj)
+      END_2D
       !
       !                       !==  Horizontal scale factors  ==!   (in meters)
-      DO jj = 1, jpj
-         DO ji = 1, jpi
-            !                       ! e1   (zonal)
-            pe1t(ji,jj) = ra * rad * COS( rad * pphit(ji,jj) ) * rn_e1deg
-            pe1u(ji,jj) = ra * rad * COS( rad * pphiu(ji,jj) ) * rn_e1deg
-            pe1v(ji,jj) = ra * rad * COS( rad * pphiv(ji,jj) ) * rn_e1deg
-            pe1f(ji,jj) = ra * rad * COS( rad * pphif(ji,jj) ) * rn_e1deg
-            !                       ! e2   (meridional)
-            pe2t(ji,jj) = ra * rad * rn_e2deg
-            pe2u(ji,jj) = ra * rad * rn_e2deg
-            pe2v(ji,jj) = ra * rad * rn_e2deg
-            pe2f(ji,jj) = ra * rad * rn_e2deg
-         END DO
-      END DO
+      DO_2D( nn_hls, nn_hls, nn_hls, nn_hls )
+         !                       ! e1   (zonal)
+         pe1t(ji,jj) = ra * rad * COS( rad * pphit(ji,jj) ) * rn_e1deg
+         pe1u(ji,jj) = ra * rad * COS( rad * pphiu(ji,jj) ) * rn_e1deg
+         pe1v(ji,jj) = ra * rad * COS( rad * pphiv(ji,jj) ) * rn_e1deg
+         pe1f(ji,jj) = ra * rad * COS( rad * pphif(ji,jj) ) * rn_e1deg
+         !                       ! e2   (meridional)
+         pe2t(ji,jj) = ra * rad * rn_e2deg
+         pe2u(ji,jj) = ra * rad * rn_e2deg
+         pe2v(ji,jj) = ra * rad * rn_e2deg
+         pe2f(ji,jj) = ra * rad * rn_e2deg
+      END_2D
       !                             ! NO reduction of grid size in some straits 
       ke1e2u_v    = 0               !    ==>> u_ & v_surfaces will be computed in dom_ghr routine
       pe1e2u(:,:) = 0._wp           !    CAUTION: set to zero to avoid error with some compilers that

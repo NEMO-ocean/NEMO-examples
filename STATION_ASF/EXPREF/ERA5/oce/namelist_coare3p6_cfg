@@ -11,9 +11,9 @@
 !!   namwad       Wetting and drying                                    (default: OFF)
 !!   namtsd       data: temperature & salinity                          (default: OFF)
 !!   namcrs       coarsened grid (for outputs and/or TOP)               (ln_crs =T)
-!!   namc1d       1D configuration options                              ("key_c1d")
-!!   namc1d_dyndmp 1D newtonian damping applied on currents             ("key_c1d")
-!!   namc1d_uvd   1D data (currents)                                    ("key_c1d")
+!!   namc1d       1D configuration options                              (ln_c1d =T)
+!!   namc1d_dyndmp 1D newtonian damping applied on currents             (ln_c1d =T)
+!!   namc1d_uvd   1D data (currents)                                    (ln_c1d =T)
 !!======================================================================
 !
 !-----------------------------------------------------------------------
@@ -52,12 +52,12 @@
    rn_lon1d    =  324. !  Column longitude   [ERA5_NorthGreenland station]
 /
 !-----------------------------------------------------------------------
-&namc1d_dyndmp !   U & V newtonian damping                              ("key_c1d" default: OFF)
+&namc1d_dyndmp !   U & V newtonian damping                              (ln_c1d =T default: OFF)
 !-----------------------------------------------------------------------
    ln_dyndmp   =  .false.  !  add a damping term (T) or not (F)
 /
 !-----------------------------------------------------------------------
-&namc1d_uvd    !   data: U & V currents                                 ("key_c1d" default: OFF)
+&namc1d_uvd    !   data: U & V currents                                 (ln_c1d =T default: OFF)
 !-----------------------------------------------------------------------
    !                       !  =T read U-V fields for:
    ln_uvd_init   = .false.       !  ocean initialisation
@@ -250,13 +250,13 @@
 !!======================================================================
 !!                  ***  Miscellaneous namelists  ***                 !!
 !!                                                                    !!
-!!   nammpp            Massively Parallel Processing                    ("key_mpp_mpi")
+!!   nammpp            Massively Parallel Processing
 !!   namctl            Control prints                                   (default: OFF)
 !!   namsto            Stochastic parametrization of EOS                (default: OFF)
 !!======================================================================
 !
 !-----------------------------------------------------------------------
-&nammpp        !   Massively Parallel Processing                        ("key_mpp_mpi")
+&nammpp        !   Massively Parallel Processing
 !-----------------------------------------------------------------------
 /
 !-----------------------------------------------------------------------
