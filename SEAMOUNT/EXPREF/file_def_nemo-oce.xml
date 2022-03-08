@@ -7,8 +7,8 @@
 ============================================================================================================
     -->
     
-    <file_definition type="one_file" name="@expname@_@freq@" sync_freq="10d" min_digits="4">
-      <file_group id="1d" output_freq="1d"  output_level="10" enabled=".TRUE." >  <!-- 5d files -->  
+    <file_definition type="one_file" name="@expname@_@freq@" sync_freq="5d" min_digits="4">
+      <file_group id="1d" output_freq="1h"  output_level="10" enabled=".TRUE." >  <!-- 5d files -->  
  
 	<file id="file1" name_suffix="_grid_T" description="ocean T grid variables" >
 	  <field field_ref="toce" /> 
