@@ -60,7 +60,7 @@ CONTAINS
       INTEGER                                 ::   ji, jj, jk                  ! dummy indices
       INTEGER                                 ::   ik                          ! local integers
       REAL(wp)                                ::   zlam_mid, zphi_mid          ! local scalar
-      REAL(wp), DIMENSION(jpi,jpj)            ::   bathy                       ! model bathymetry
+      REAL(wp), DIMENSION(jpi,jpj)            ::   topo                        ! model topography
       !
       !!----------------------------------------------------------------------
       !
@@ -79,10 +79,10 @@ CONTAINS
       !
       zlam_mid = 0.5_wp * 1000._wp * rn_xdim
       zphi_mid = 0.5_wp * 1000._wp * rn_ydim
-      bathy(:,:) = 0._wp
+      topo(:,:) = 0._wp
       DO jj = 1, jpj
          DO ji = 1, jpi
-            bathy(ji,jj) = rn_bot_max - rn_smnt_H * EXP(                 &
+            topo(ji,jj) = rn_bot_max - rn_smnt_H * EXP(                 &
                &           -(( 1000._wp * glamt(ji,jj) - zlam_mid)**2 + &
                &             ( 1000._wp * gphit(ji,jj) - zphi_mid)**2 ) & 
                &           / ( 1000._wp * rn_smnt_L)**2 )
@@ -94,19 +94,19 @@ CONTAINS
       !
       CALL zgr_msk_top_bot( k_top , k_bot )                 ! masked top and bottom ocean t-level indices
       !
-      IF ( ln_zco ) CALL zgr_zco( bathy    ,                                    &  ! in : 2D bathymetry
+      IF ( ln_zco ) CALL zgr_zco( topo     ,                                    &  ! in : 2D bathymetry
             &                     pdept_1d , pdepw_1d, pe3t_1d , pe3w_1d,       &  !      1D ref. z-coord.
             &                     pdept    , pdepw   ,                          &  ! out: 3D T & W-points depth
             &                     pe3t     , pe3u    , pe3v    , pe3f   ,       &  !      vertical scale factors
             &                     pe3w     , pe3uw   , pe3vw   , k_bot  , k_top )  
       !
-      IF ( ln_zps ) CALL zgr_zps( bathy    ,                                    &  ! in : 2D bathymetry
+      IF ( ln_zps ) CALL zgr_zps( topo     ,                                    &  ! in : 2D bathymetry
             &                     pdept_1d , pdepw_1d, pe3t_1d , pe3w_1d,       &  !      1D ref. z-coord.
             &                     pdept    , pdepw   ,                          &  ! out: 3D T & W-points depth
             &                     pe3t     , pe3u    , pe3v    , pe3f   ,       &  !      vertical scale factors
             &                     pe3w     , pe3uw   , pe3vw   , k_bot  , k_top )    
       !
-      IF ( ln_sco ) CALL zgr_sco( bathy    ,                                    &  ! in : 2D bathymetry
+      IF ( ln_sco ) CALL zgr_sco( topo     ,                                    &  ! in : 2D bathymetry
             &                     pdept    , pdepw   ,                          &  ! out: 3D T & W-points depth
             &                     pe3t     , pe3u    , pe3v    , pe3f   ,       &  !      vertical scale factors
             &                     pe3w     , pe3uw   , pe3vw   , k_bot  , k_top )
@@ -383,7 +383,6 @@ CONTAINS
       REAL(wp), DIMENSION(jpi,jpj)              ::   pht_w 
       !!----------------------------------------------------------------------
       !
-      pht_w(:,:) = pht(:,:)
       ! Computing envelope bathymetry if using vanishing quasi-sigma levels
       IF( ln_vqs ) THEN 
         CALL s_vqs( pht, pht_w )
@@ -408,7 +407,7 @@ CONTAINS
             ! Depth of model levels
             DO jk = 1, jpk
                pdept(ji,jj,jk) = rn_hc * sigt_1d(jk) + sigt_1d(jk) * (pht_w(ji,jj) - rn_hc)
-               pdepw(ji,jj,jk) = rn_hc * sigw_1d(jk) + sigw_1d(jk) * (pht_W(ji,jj) - rn_hc)
+               pdepw(ji,jj,jk) = rn_hc * sigw_1d(jk) + sigw_1d(jk) * (pht_w(ji,jj) - rn_hc)
             END DO
             ! Vertical scale factors as finite differences
             DO jk = 1, jpkm1
@@ -424,11 +423,8 @@ CONTAINS
       IF( ln_vqs ) THEN
         DO jj = 1, jpj
            DO ji = 1, jpi 
-              DO jk = jpkm1, 1, -1
-                 IF ( pht_w(ji,jj) < pdept(ji,jj,jk) ) THEN   
-                    pk_bot(ji,jj) = jk-1
-                    CYCLE
-                 ENDIF
+              DO jk = 1, jpkm1
+                 IF( pht(ji,jj) >= pdept(ji,jj,jk) ) pk_bot(ji,jj) = MAX( 2, jk )
               END DO
            END DO
         END DO
@@ -439,9 +435,9 @@ CONTAINS
          DO jj = 1, jpjm1
             DO ji = 1, jpim1
                pe3u (ji,jj,jk) = 0.5_wp  * ( pe3t (ji,jj,jk)   + pe3t (ji+1,jj,  jk) )
-               pe3v (ji,jj,jk) = 0.5_wp  * ( pe3w (ji,jj,jk)   + pe3t (ji,jj+1,  jk) )
-               pe3uw(ji,jj,jk) = 0.5_wp  * ( pe3w (ji,jj,jk)   + pe3t (ji+1,jj,  jk) )
-               pe3vw(ji,jj,jk) = 0.5_wp  * ( pe3w (ji,jj,jk)   + pe3t (ji,jj+1,  jk) )
+               pe3v (ji,jj,jk) = 0.5_wp  * ( pe3t (ji,jj,jk)   + pe3t (ji,jj+1,  jk) )
+               pe3uw(ji,jj,jk) = 0.5_wp  * ( pe3w (ji,jj,jk)   + pe3w (ji+1,jj,  jk) )
+               pe3vw(ji,jj,jk) = 0.5_wp  * ( pe3w (ji,jj,jk)   + pe3w (ji,jj+1,  jk) )
                pe3f (ji,jj,jk) = 0.25 * ( pe3t (ji,jj,jk)   + pe3t (ji+1,jj,  jk) &
                                      &  + pe3t (ji,jj+1,jk) + pe3t (ji+1,jj+1,jk) ) 
             END DO
