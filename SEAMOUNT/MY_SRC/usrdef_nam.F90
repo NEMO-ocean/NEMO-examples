@@ -2,7 +2,7 @@ MODULE usrdef_nam
    !!======================================================================
    !!                     ***  MODULE usrdef_nam   ***
    !!
-   !!                   ===  SEAMOUNT configuration  ===
+   !!                   ===  SEAMOUNT configuration  === test
    !!
    !! User defined : set the domain characteristics of a user configuration
    !!======================================================================
