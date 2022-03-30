@@ -49,7 +49,7 @@
    ln_zps       = .false. ! z-partial-step coordinate
    ln_sco       = .true.  ! s-coordinate
    ! Stretched s-levels (ln_sco = .true.)
-   ln_s_sh94    = .false.  ! TRUE:  s-levels using Song & Haidvogel 1994 (SH94)
+   ln_s_sh94    = .true.  ! TRUE:  s-levels using Song & Haidvogel 1994 (SH94)
                           !        stretching function 
                           ! FALSE: uniform sigma-levels
    rn_theta     = 3.0     ! SH94 surface control parameter (0<=theta<=20)

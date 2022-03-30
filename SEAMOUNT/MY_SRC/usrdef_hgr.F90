@@ -104,9 +104,8 @@ CONTAINS
       !                       !==  Coriolis parameter  ==!
       kff = 1                       !  indicate not to compute Coriolis parameter afterward
       !
-      pff_f(:,:) = rn_f            ! here: f=0.0001
-      pff_t(:,:) = rn_f
-      !
+      pff_f(:,:) = rn_fplane        ! here: f=0.0001
+      pff_t(:,:) = rn_fplane    
       !
    END SUBROUTINE usr_def_hgr
 

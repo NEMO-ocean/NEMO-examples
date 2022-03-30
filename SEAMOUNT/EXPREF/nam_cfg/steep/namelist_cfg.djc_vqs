@@ -56,8 +56,8 @@
    rn_bb        = 0.0     ! SH94 bottom control parameter (0<=bb<=1)
    rn_hc        = 500     ! SH94 critical depth for transition to stretched coordinates [m]
    ! Paramaters for vqs-coordinate (ln_sco = .true.)
-   ln_vqs       = .false. ! activating vanishing quasi-sigma levels (TRUE)   
-   rn_rmax      = 0.3     ! maximum cut-off slope parameter value allowed 
+   ln_vqs       = .true.  ! activating vanishing quasi-sigma levels (TRUE)   
+   rn_rmax      = 0.25     ! maximum cut-off slope parameter value allowed 
                           ! if using vqs-levels (0<r_max<1)
 !! INITIAL CONDITION
    nn_ini_cond  = 1       ! 0: Shchepetkin and McWilliams (2002)

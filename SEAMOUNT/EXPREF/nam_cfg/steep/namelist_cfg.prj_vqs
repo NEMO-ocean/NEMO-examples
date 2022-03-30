@@ -56,8 +56,8 @@
    rn_bb        = 0.0     ! SH94 bottom control parameter (0<=bb<=1)
    rn_hc        = 500     ! SH94 critical depth for transition to stretched coordinates [m]
    ! Paramaters for vqs-coordinate (ln_sco = .true.)
-   ln_vqs       = .false. ! activating vanishing quasi-sigma levels (TRUE)   
-   rn_rmax      = 0.3     ! maximum cut-off slope parameter value allowed 
+   ln_vqs       = .true.  ! activating vanishing quasi-sigma levels (TRUE)   
+   rn_rmax      = 0.25     ! maximum cut-off slope parameter value allowed 
                           ! if using vqs-levels (0<r_max<1)
 !! INITIAL CONDITION
    nn_ini_cond  = 1       ! 0: Shchepetkin and McWilliams (2002)
@@ -285,10 +285,10 @@
    ln_hpg_zps  = .false.   !  z-coordinate - partial steps (interpolation)
    ln_hpg_sco  = .false.   !  s-coordinate (standard jacobian formulation)
    ln_hpg_isf  = .false.   !  s-coordinate (sco ) adapted to isf
-   ln_hpg_djc  = .true.   !  s-coordinate (Density Jacobian with Cubic polynomial)
+   ln_hpg_djc  = .false.   !  s-coordinate (Density Jacobian with Cubic polynomial)
       ln_hpg_djc_vnh = .true.  !  hor.  bc type for djc scheme (T=von Neumann, F=linear extrapolation)
       ln_hpg_djc_vnv = .true.  !  vert. bc type for djc scheme (T=von Neumann, F=linear extrapolation)
-   ln_hpg_prj  = .false.   !  s-coordinate (Pressure Jacobian scheme)
+   ln_hpg_prj  = .true.   !  s-coordinate (Pressure Jacobian scheme)
 /
 !-----------------------------------------------------------------------
 &namdyn_spg    !   surface pressure gradient                            (default: NO selection)

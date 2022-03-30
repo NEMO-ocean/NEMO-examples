@@ -49,7 +49,7 @@
    ln_zps       = .false. ! z-partial-step coordinate
    ln_sco       = .true.  ! s-coordinate
    ! Stretched s-levels (ln_sco = .true.)
-   ln_s_sh94    = .false.  ! TRUE:  s-levels using Song & Haidvogel 1994 (SH94)
+   ln_s_sh94    = .true.  ! TRUE:  s-levels using Song & Haidvogel 1994 (SH94)
                           !        stretching function 
                           ! FALSE: uniform sigma-levels
    rn_theta     = 3.0     ! SH94 surface control parameter (0<=theta<=20)
@@ -283,9 +283,9 @@
 !-----------------------------------------------------------------------
    ln_hpg_zco  = .false.   !  z-coordinate - full steps
    ln_hpg_zps  = .false.   !  z-coordinate - partial steps (interpolation)
-   ln_hpg_sco  = .false.   !  s-coordinate (standard jacobian formulation)
+   ln_hpg_sco  = .true.   !  s-coordinate (standard jacobian formulation)
    ln_hpg_isf  = .false.   !  s-coordinate (sco ) adapted to isf
-   ln_hpg_djc  = .true.   !  s-coordinate (Density Jacobian with Cubic polynomial)
+   ln_hpg_djc  = .false.   !  s-coordinate (Density Jacobian with Cubic polynomial)
       ln_hpg_djc_vnh = .true.  !  hor.  bc type for djc scheme (T=von Neumann, F=linear extrapolation)
       ln_hpg_djc_vnv = .true.  !  vert. bc type for djc scheme (T=von Neumann, F=linear extrapolation)
    ln_hpg_prj  = .false.   !  s-coordinate (Pressure Jacobian scheme)

@@ -37,8 +37,8 @@
    rn_xdim      = 504.    ! x-dimension of the domain [km]
    rn_ydim      = 504.    ! y-dimension of the domain [km]
    rn_bot_max   = 4500.   ! max ocean depth (>0) [m]
-   rn_smnt_H    = 4050.   ! seamount height (>0) [m]
-   rn_smnt_L    = 25.     ! seamount width [km]
+   rn_smnt_H    = 2700.   ! seamount height (>0) [m]
+   rn_smnt_L    = 50.     ! seamount width [km]
    rn_fplane    = 0.0001  ! Coriolis parameter for f-plane approximation             
 !! NUMERICAL DISCRETIZATION
    rn_dx        = 8000.   ! horizontal resolution [m] 
@@ -283,9 +283,9 @@
 !-----------------------------------------------------------------------
    ln_hpg_zco  = .false.   !  z-coordinate - full steps
    ln_hpg_zps  = .false.   !  z-coordinate - partial steps (interpolation)
-   ln_hpg_sco  = .false.   !  s-coordinate (standard jacobian formulation)
+   ln_hpg_sco  = .true.   !  s-coordinate (standard jacobian formulation)
    ln_hpg_isf  = .false.   !  s-coordinate (sco ) adapted to isf
-   ln_hpg_djc  = .true.   !  s-coordinate (Density Jacobian with Cubic polynomial)
+   ln_hpg_djc  = .false.   !  s-coordinate (Density Jacobian with Cubic polynomial)
       ln_hpg_djc_vnh = .true.  !  hor.  bc type for djc scheme (T=von Neumann, F=linear extrapolation)
       ln_hpg_djc_vnv = .true.  !  vert. bc type for djc scheme (T=von Neumann, F=linear extrapolation)
    ln_hpg_prj  = .false.   !  s-coordinate (Pressure Jacobian scheme)
