@@ -77,8 +77,8 @@ CONTAINS
       REAL(wp), DIMENSION(jpi,jpj,jpk)     , INTENT(  out) ::   pv      ! j-component of the velocity  [m/s] 
       !
       INTEGER                                              :: ji, jj, jk  ! dummy loop indices
-      REAL(wp)                                             :: T0, S0
-      REAL(wp)                                             :: drho, dtem, delta
+      REAL(wp)                                             :: T0
+      REAL(wp)                                             :: drho
       REAL(wp), DIMENSION(jpi,jpj)                         :: rho
       !!----------------------------------------------------------------------
       !
