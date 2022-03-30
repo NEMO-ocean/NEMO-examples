@@ -56,6 +56,8 @@ MODULE usrdef_nam
    INTEGER,  PUBLIC :: nn_ini_cond ! 0: Shchepetkin and McWilliams (2002)
                                    ! 1: Ezer, Arango and Shchepetkin (2002)
 
+   LOGICAL,  PUBLIC ::   ln_init_pt_val, ln_init_curved
+
    !!----------------------------------------------------------------------
    !! NEMO/OCE 4.0 , NEMO Consortium (2018)
    !! $Id: usrdef_nam.F90 14072 2020-12-04 07:48:38Z laurent $
@@ -90,7 +92,7 @@ CONTAINS
       NAMELIST/namusr_def/ rn_xdim  , rn_ydim  , rn_bot_max , rn_smnt_H   , rn_smnt_L, & 
          &                 rn_fplane, rn_dx    , rn_dz      , ln_zco      , ln_zps   , &
          &                 ln_sco   , ln_s_sh94, rn_theta   , rn_bb       , rn_hc    , &
-         &                 ln_vqs   , rn_rmax  , nn_ini_cond
+         &                 ln_vqs   , rn_rmax  , nn_ini_cond, ln_init_pt_val, ln_init_curved
       !!----------------------------------------------------------------------
       !
       READ  ( numnam_cfg, namusr_def, IOSTAT = ios, ERR = 902 )
@@ -157,6 +159,18 @@ CONTAINS
          ELSE IF( nn_ini_cond == 1 ) THEN
            WRITE(numout,*) '           Ezer, Arango and Shchepetkin (2002)'
          ENDIF         
+
+         IF ( ln_init_pt_val ) THEN 
+            WRITE(numout,*) '   Initial condition:     grid values calculated from point values '
+	 ELSE 
+	    WRITE(numout,*) '   Initial condition:     grid values calculated from grid cell means'
+	    IF ( ln_init_curved ) THEN   
+  	       WRITE(numout,*) '                          grid cells curve with the bathymetry'
+            ELSE 
+  	       WRITE(numout,*) '                          grid cells boundaries interpolated from T cell points'
+            END IF
+         ENDIF 
+
          WRITE(numout,*) ''
          WRITE(numout,*) '   Global domain size:                   '
          WRITE(numout,*) '          1st dimension of glob. dom. i-dir.     jpiglo  =  ', kpi
